@@ -1,0 +1,40 @@
+<?php
+
+namespace App\Http\Controllers\API;
+
+use App\Models\{CartItem, Order, OrderItem, Transaction};
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\{Auth, DB};
+use App\Http\Controllers\Controller;
+use App\Http\Resources\Api\OrderResource;
+
+
+class OrderController extends Controller
+{
+    protected $checkoutService;
+
+    public function __construct(\App\Services\CheckoutService $checkoutService)
+    {
+        $this->checkoutService = $checkoutService;
+    }
+
+    public function checkout(Request $request)
+    {
+        $useOzIds = $request->input('use_oz', []);
+
+        try {
+            $order = $this->checkoutService->processCheckout($useOzIds);
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Enjoy your coffee! Order #' . $order->bill_id . ' placed.',
+                'order' => new OrderResource($order)
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => $e->getMessage(),
+            ], 500);
+        }
+    }
+}
