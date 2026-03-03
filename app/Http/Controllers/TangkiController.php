@@ -13,7 +13,7 @@ class TangkiController extends Controller
     public function index()
     {
         $transactions = Auth::user()->transactions()->latest()->take(5)->get();
-        return view('tangki.index', compact('transactions'));
+        return view('user.tangki.index', compact('transactions'));
     }
 
     public function refill(Request $request)
@@ -52,7 +52,7 @@ class TangkiController extends Controller
                 $transaction->save();
             });
 
-            return redirect()->route('tangki')->with('success', 'Refill successful!');
+            return redirect()->route('user.tangki')->with('success', 'Refill successful!');
 
         } catch (\Exception $e) {
             return back()->with('error', 'Transaction failed: ' . $e->getMessage());

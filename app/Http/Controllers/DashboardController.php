@@ -31,6 +31,6 @@ class DashboardController extends Controller
             return Menu::pluck('name');
         });
 
-        return view('dashboard', compact('menus', 'allCategoryNames', 'search', 'category'));
+        return view('user.dashboard', compact('menus', 'allCategoryNames', 'search', 'category'));
     }
 }

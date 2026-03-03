@@ -26,7 +26,7 @@ class TransactionController extends Controller
 
         $transactions = $query->latest()->paginate(15);
 
-        return view('tangki.transactions', compact('transactions'));
+        return view('user.tangki.transactions', compact('transactions'));
     }
 
     public function showOrderDetail($bill_id)
@@ -38,6 +38,6 @@ class TransactionController extends Controller
             abort(403, 'Unauthorized');
         }
 
-        return view('tangki.order-detail', compact('order'));
+        return view('user.tangki.order-detail', compact('order'));
     }
 }

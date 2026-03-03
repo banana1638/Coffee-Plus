@@ -12,6 +12,6 @@ class ProductController extends Controller
 
         $options = config('coffee.options');
 
-        return view('products.detail', compact('product', 'options'));
+        return view('user.products.detail', compact('product', 'options'));
     }
 }
