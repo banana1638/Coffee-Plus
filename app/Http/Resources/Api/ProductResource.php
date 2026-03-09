@@ -20,11 +20,11 @@ class ProductResource extends JsonResource
             'name' => $this->name,
             'description' => $this->description,
             // 如果你图片在 public/images/products，直接返回文件名或相对路径
-            'image_url' => $this->image, 
+            'image_url' => $this->image ? asset('storage/' . $this->image) : null,
             'base_price' => (float) $this->price,
             'category_id' => $this->menu_id,
             // 确保 is_active 在数据库里是 1
-            'is_available' => (bool) ($this->is_active ?? true), 
+            'is_available' => (bool) ($this->is_active ?? true),
             'created_at' => $this->created_at->format('Y-m-d'),
         ];
     }

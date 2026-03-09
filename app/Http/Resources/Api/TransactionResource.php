@@ -21,6 +21,8 @@ class TransactionResource extends JsonResource
             'oz_delta' => ($this->oz_delta > 0 ? '+' : '') . $this->oz_delta,
             'description' => $this->description,
             'time' => $this->created_at->diffForHumans(),
+            'timestamp' => $this->created_at ? $this->created_at->format('Y-m-d H:i:s') : null,
+            'order' => new OrderResource($this->whenLoaded('order')),
         ];
     }
 }

@@ -19,7 +19,7 @@ class CategoryResource extends JsonResource
             'category_id' => $this->id,
             'category_name' => $this->name,
             'products' => ProductResource::collection($this->whenLoaded('products')),
-            'product_count' => $this->products->count(),
+            'product_count' => $this->products_count ?? $this->products->count(),
         ];
     }
 }

@@ -19,11 +19,7 @@ class OrderResource extends JsonResource
             'bill_id' => $this->bill_id,
             'amount' => (float) $this->final_amount,
             'status' => $this->status,
-            'items' => $this->items->map(fn($item) => [
-                'name' => $item->product->name,
-                'qty' => $item->quantity,
-                'price' => $item->price_at_time
-            ]),
+            'items' => OrderItemResource::collection($this->whenLoaded('items')),
             'created_at' => $this->created_at->format('Y-m-d H:i'),
         ];
     }

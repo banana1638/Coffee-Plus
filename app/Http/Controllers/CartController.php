@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\CartItem;
+use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -18,7 +19,7 @@ class CartController extends Controller
             'addons' => 'nullable|array',
         ]);
 
-        $product = \App\Models\Product::findOrFail($request->product_id);
+        $product = Product::findOrFail($request->product_id);
         $coffeeConfig = config('coffee.options');
 
         $sizeExtra = collect($coffeeConfig['sizes'])
@@ -29,7 +30,7 @@ class CartController extends Controller
             ->sum('price');
         $finalUnitPrice = $product->price + $sizeExtra + $addonsTotal;
 
-        $cartItem = new \App\Models\CartItem();
+        $cartItem = new CartItem();
         $cartItem->user_id = Auth::id();
         $cartItem->product_id = $request->product_id;
         $cartItem->quantity = $request->quantity;
@@ -39,7 +40,7 @@ class CartController extends Controller
         $cartItem->unit_price = $finalUnitPrice;
         $cartItem->save();
 
-        $cartCount = \App\Models\CartItem::where('user_id', Auth::id())->sum('quantity');
+        $cartCount = CartItem::where('user_id', Auth::id())->sum('quantity');
 
         return response()->json([
             'status' => 'success',

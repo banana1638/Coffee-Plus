@@ -1,17 +1,15 @@
 <?php
 
-namespace App\Http\Controllers\API;
-
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\API\Auth\LoginController;
-use App\Http\Controllers\API\Auth\RegisterController;
 use App\Http\Controllers\API\CartController;
-use App\Http\Controllers\API\DashboardController;
 use App\Http\Controllers\API\OrderController;
+use App\Http\Controllers\API\TangkiController;
 use App\Http\Controllers\API\ProductController;
 use App\Http\Controllers\API\ProfileController;
-use App\Http\Controllers\API\TangkiController;
+use App\Http\Controllers\API\DashboardController;
 use App\Http\Controllers\API\TransactionController;
+use App\Http\Controllers\API\Auth\LoginController;
+use App\Http\Controllers\API\Auth\RegisterController;
 
 /*
 |--------------------------------------------------------------------------
@@ -19,36 +17,49 @@ use App\Http\Controllers\API\TransactionController;
 |--------------------------------------------------------------------------
 */
 
-// Public Routes
+// --- 公共路由 ---
 Route::post('/login', [LoginController::class, 'login']);
 Route::post('/register', [RegisterController::class, 'register']);
-Route::get('/dashboard', [DashboardController::class, 'index']);
 Route::get('/products/{id}', [ProductController::class, 'show']);
 
-// Protected Routes
+/**
+ * 优化后的 Dashboard 路由
+ * 使用 Sanctum 内置的 guard 尝试获取用户信息，避免手动解析 Token。
+ * 如果没有 Token，auth:sanctum 不会报错，只是 auth()->user() 为空。
+ */
+Route::get('/dashboard', [DashboardController::class, 'index'])->middleware('auth:sanctum');
+
+// --- 受保护路由 ---
 Route::middleware('auth:sanctum')->group(function () {
+
     Route::post('/logout', [LoginController::class, 'logout']);
 
-    Route::prefix('cart')->group(function () {
-        Route::get('/', [CartController::class, 'index']);
-        Route::post('/add', [CartController::class, 'add']);
-        Route::post('/update', [CartController::class, 'update']);
-        Route::post('/remove', [CartController::class, 'destroy']);
+    // 购物车：使用 controller 方法简化
+    Route::controller(CartController::class)->prefix('cart')->group(function () {
+        Route::get('/', 'index');
+        Route::post('/add', 'add');
+        Route::post('/update', 'update');
+        Route::post('/remove', 'destroy');
     });
 
     Route::post('/checkout', [OrderController::class, 'checkout']);
 
-    Route::prefix('profile')->group(function () {
-        Route::get('/', [ProfileController::class, 'edit']);
-        Route::post('/update', [ProfileController::class, 'update']);
-        Route::post('/delete', [ProfileController::class, 'destroy']);
+    // 个人资料：符合 RESTful 风格的更新/删除
+    Route::controller(ProfileController::class)->prefix('profile')->group(function () {
+        Route::get('/', 'edit');
+        Route::patch('/', 'update'); // 使用 PATCH 表示部分更新
+        Route::delete('/', 'destroy'); // 使用 DELETE 表示删除
     });
 
-    Route::prefix('tangki')->group(function () {
-        Route::get('/', [TangkiController::class, 'index']);
-        Route::post('/refill', [TangkiController::class, 'refill']);
+    // 储水箱 (Tangki)
+    Route::controller(TangkiController::class)->prefix('tangki')->group(function () {
+        Route::get('/', 'index');
+        Route::post('/refill', 'refill');
     });
 
-    Route::get('/transactions', [TransactionController::class, 'index']);
-    Route::get('/transactions/{bill_id}', [TransactionController::class, 'showOrderDetail']);
+    // 交易记录
+    Route::controller(TransactionController::class)->prefix('transactions')->group(function () {
+        Route::get('/', 'index');
+        Route::get('/{bill_id}', 'showOrderDetail');
+    });
 });
