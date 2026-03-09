@@ -19,13 +19,12 @@ class ProductResource extends JsonResource
             'id' => $this->id,
             'name' => $this->name,
             'description' => $this->description,
-            'image_url' => $this->image ? asset(Storage::url($this->image)) : asset('images/default-coffee.png'),
+            // 如果你图片在 public/images/products，直接返回文件名或相对路径
+            'image_url' => $this->image, 
             'base_price' => (float) $this->price,
             'category_id' => $this->menu_id,
-            'is_available' => (bool) $this->is_active,
-            'options' => $this->when($request->routeIs('*products.show*'), function () {
-                return config('coffee.options');
-            }),
+            // 确保 is_active 在数据库里是 1
+            'is_available' => (bool) ($this->is_active ?? true), 
             'created_at' => $this->created_at->format('Y-m-d'),
         ];
     }

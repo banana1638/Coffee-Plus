@@ -22,13 +22,12 @@ use \App\Http\Controllers\Api\TransactionController;
 // Public Routes
 Route::post('/login', [LoginController::class, 'login']);
 Route::post('/register', [RegisterController::class, 'register']);
+Route::get('/dashboard', [DashboardController::class, 'index']);
+Route::get('/products/{id}', [ProductController::class, 'show']);
 
 // Protected Routes
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [LoginController::class, 'logout']);
-
-    Route::get('/dashboard', [DashboardController::class, 'index']);
-    Route::get('/products/{id}', [ProductController::class, 'show']);
 
     Route::prefix('cart')->group(function () {
         Route::get('/', [CartController::class, 'index']);
