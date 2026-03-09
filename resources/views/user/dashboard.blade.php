@@ -72,7 +72,7 @@
                 @endforeach
             </div>
 
-            @include('products.index', ['menus' => $menus])
+            @include('user.products.index', ['menus' => $menus])
 
         </div>
     </div>
