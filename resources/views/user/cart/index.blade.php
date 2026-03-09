@@ -14,6 +14,14 @@
                 </span>
             </div>
 
+            {{-- 错误信息反馈区 --}}
+            @if(session('error'))
+                <div class="mb-6 p-4 bg-red-50 border border-red-100 text-red-600 rounded-2xl font-bold text-sm flex items-center gap-3">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path></svg>
+                    {{ session('error') }}
+                </div>
+            @endif
+
             <div class="mb-10 bg-white rounded-[2.5rem] p-6 md:p-8 shadow-sm border border-gray-100 flex flex-col md:flex-row items-center gap-8">
                 <div class="w-32 md:w-40 shrink-0">
                     @include('components.tank-visualization')
@@ -43,6 +51,7 @@
                     <a href="{{ route('dashboard') }}" class="inline-block mt-6 px-8 py-3 bg-blue-600 text-white rounded-xl font-black text-sm uppercase transition-all hover:scale-105">Browse Products</a>
                 </div>
             @else
+                {{-- 主表单：用于余额/OZ 支付 --}}
                 <form action="{{ route('order.checkout') }}" method="POST" id="checkout-form">
                     @csrf
                     <div class="space-y-4">
@@ -98,13 +107,20 @@
                                     <span class="text-xl font-bold text-blue-500 mr-1">RM</span><span id="display-total">0.00</span>
                                 </p>
                                 <p id="oz-summary" class="text-blue-400 text-[10px] font-bold uppercase tracking-widest mt-2 h-4"></p>
+                                <div class="mt-2 h-4">
+                                    <p id="oz-summary" class="text-blue-400 text-[10px] font-bold uppercase tracking-widest"></p>
+                                    <p id="balance-error" class="hidden text-red-500 text-[10px] font-black uppercase tracking-widest italic animate-pulse">
+                                        Insufficient Cash Balance
+                                    </p>
+                                </div>
                             </div>
                             
                             <div class="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
-                                <button type="submit" class="bg-gray-800 hover:bg-black text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all shadow-lg active:scale-95">
-                                    Use Balance
+                                <button type="submit" id="btn-use-balance" form="checkout-form" class="bg-gray-800 hover:bg-black text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all shadow-lg active:scale-95">
+                                    <span id="btn-text">Use Balance</span>
                                 </button>
-                                <button type="submit" form="stripe-form" class="bg-blue-600 hover:bg-blue-500 text-white px-10 py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all shadow-lg shadow-blue-200 active:scale-95">
+                                
+                                <button type="button" onclick="document.getElementById('stripe-real-form').submit();" class="bg-blue-600 hover:bg-blue-500 text-white px-10 py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all shadow-lg">
                                     Pay with Stripe
                                 </button>
                             </div>
@@ -112,7 +128,7 @@
                     </div>
                 </form>
 
-                <form id="stripe-form" action="{{ route('stripe.checkout') }}" method="POST" class="hidden">
+                <form id="stripe-real-form" action="{{ route('stripe.checkout') }}" method="POST" class="hidden">
                     @csrf
                 </form>
             @endif
@@ -121,50 +137,70 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const checkboxes = document.querySelectorAll('.oz-checkbox');
-            const totalDisplay = document.getElementById('display-total');
-            const ozSummary = document.getElementById('oz-summary');
-            const userBalance = parseInt(document.getElementById('user-balance').dataset.balance);
+        const checkboxes = document.querySelectorAll('.oz-checkbox');
+        const totalDisplay = document.getElementById('display-total');
+        const ozSummary = document.getElementById('oz-summary');
+        const balanceError = document.getElementById('balance-error');
+        
+        const btnUseBalance = document.getElementById('btn-use-balance');
+        const btnText = document.getElementById('btn-text');
+        
+        const userOzBalance = parseInt(document.getElementById('user-balance').dataset.balance);
+        const userCashBalance = parseFloat("{{ Auth::user()->tangki_balance }}");
 
-            function updateCalculations() {
-                let currentTotalCash = 0;
-                let totalOzUsed = 0;
+        function updateCalculations() {
+            let currentTotalCash = 0;
+            let totalOzUsed = 0;
 
-                checkboxes.forEach(cb => {
-                    const price = parseFloat(cb.dataset.price);
-                    const ozNeeded = parseInt(cb.dataset.ozNeeded);
-                    const card = cb.closest('.group');
-                    const priceLabel = card.querySelector('.item-price-label');
+            checkboxes.forEach(cb => {
+                const price = parseFloat(cb.dataset.price);
+                const ozNeeded = parseInt(cb.dataset.ozNeeded);
+                const card = cb.closest('.group');
+                const priceLabel = card.querySelector('.item-price-label');
 
-                    if (cb.checked) {
-                        totalOzUsed += ozNeeded;
-                        priceLabel.innerHTML = `<span class="text-gray-300 line-through">${priceLabel.dataset.cash}</span> <span class="text-[10px] ml-1 text-blue-400 font-bold">REDEEMED</span>`;
-                    } else {
-                        currentTotalCash += price;
-                        priceLabel.innerHTML = priceLabel.dataset.cash;
-                    }
-                });
+                if (cb.checked) {
+                    totalOzUsed += ozNeeded;
+                    priceLabel.innerHTML = `<span class="text-gray-300 line-through">${priceLabel.dataset.cash}</span> <span class="text-[10px] ml-1 text-blue-400 font-bold">REDEEMED</span>`;
+                } else {
+                    currentTotalCash += price;
+                    priceLabel.innerHTML = priceLabel.dataset.cash;
+                }
+            });
 
-                totalDisplay.innerText = currentTotalCash.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
-                ozSummary.innerText = totalOzUsed > 0 ? `${totalOzUsed.toLocaleString()} OZ WILL BE DEDUCTED` : '';
+            totalDisplay.innerText = currentTotalCash.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            ozSummary.innerText = totalOzUsed > 0 ? `${totalOzUsed.toLocaleString()} OZ WILL BE DEDUCTED` : '';
 
-                checkboxes.forEach(cb => {
-                    if (!cb.checked) {
-                        const neededForThis = parseInt(cb.dataset.ozNeeded);
-                        const label = cb.closest('.oz-label');
-                        if (totalOzUsed + neededForThis > userBalance) {
-                            cb.disabled = true;
-                            label.classList.add('opacity-20', 'cursor-not-allowed');
-                        } else {
-                            cb.disabled = false;
-                            label.classList.remove('opacity-20', 'cursor-not-allowed');
-                        }
-                    }
-                });
+            if (currentTotalCash > userCashBalance) {
+                btnUseBalance.disabled = true;
+                btnText.innerText = 'Balance Insufficient';
+                balanceError.classList.remove('hidden');
+                btnUseBalance.classList.replace('bg-gray-800', 'bg-red-900/20');
+                btnUseBalance.classList.add('text-red-400', 'border', 'border-red-500/30');
+            } else {
+                btnUseBalance.disabled = false;
+                btnText.innerText = 'Use Balance';
+                balanceError.classList.add('hidden');
+                btnUseBalance.classList.replace('bg-red-900/20', 'bg-gray-800');
+                btnUseBalance.classList.remove('text-red-400', 'border', 'border-red-500/30');
             }
 
-            checkboxes.forEach(cb => cb.addEventListener('change', updateCalculations));
-            updateCalculations();
-        });
+            checkboxes.forEach(cb => {
+                if (!cb.checked) {
+                    const neededForThis = parseInt(cb.dataset.ozNeeded);
+                    const label = cb.closest('.oz-label');
+                    if (totalOzUsed + neededForThis > userOzBalance) {
+                        cb.disabled = true;
+                        label.classList.add('opacity-20', 'cursor-not-allowed');
+                    } else {
+                        cb.disabled = false;
+                        label.classList.remove('opacity-20', 'cursor-not-allowed');
+                    }
+                }
+            });
+        }
+
+        checkboxes.forEach(cb => cb.addEventListener('change', updateCalculations));
+        updateCalculations();
+    });
     </script>
 </x-app-layout>
