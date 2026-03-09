@@ -1,13 +1,13 @@
 <?php
 
-namespace App\Http\Controllers\API;
+namespace App\Http\Controllers\Api;
 
-use App\Models\Menu;
-use Illuminate\Http\Request;
-use App\Http\Controllers\Controller;
-use App\Http\Resources\Api\CategoryResource;
-use App\Http\Resources\Api\UserResource;
-use Illuminate\Support\Facades\Cache;
+use \App\Models\Menu;
+use \Illuminate\Http\Request;
+use \App\Http\Controllers\Controller;
+use \App\Http\Resources\Api\CategoryResource;
+use \App\Http\Resources\Api\UserResource;
+use \Illuminate\Support\Facades\Cache;
 
 class DashboardController extends Controller
 {

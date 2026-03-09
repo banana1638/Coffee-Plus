@@ -23,7 +23,7 @@ class CartController extends Controller
         ]);
 
         $product = Product::findOrFail($request->product_id);
-        
+
         // 获取配置
         $coffeeConfig = config('coffee.options');
 
@@ -60,7 +60,7 @@ class CartController extends Controller
     public function index()
     {
         $cartItems = CartItem::with('product')->where('user_id', Auth::id())->get();
-        
+
         return Response::json([
             'status' => 'success',
             'cartItems' => CartResource::collection($cartItems)
