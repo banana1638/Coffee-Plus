@@ -17,7 +17,7 @@ class TransactionResource extends JsonResource
         return [
             'id' => $this->id,
             'bill_id' => $this->bill_id,
-            'type' => $this->type, // refill or usage
+            'type' => $this->type,
             'oz_delta' => ($this->oz_delta > 0 ? '+' : '') . $this->oz_delta,
             'description' => $this->description,
             'time' => $this->created_at->diffForHumans(),

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\CartItem;
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Models\Transaction;
 use Illuminate\Http\Request;
 use Stripe\Stripe;
 use Stripe\Checkout\Session;
@@ -67,11 +68,44 @@ class StripeController extends Controller
             return redirect()->route('dashboard');
         }
 
-        Stripe::setApiKey(env('STRIPE_SECRET'));
+        Stripe::setApiKey(config('services.stripe.secret'));
         $session = Session::retrieve($sessionId);
 
         if ($session->payment_status === 'paid') {
             $user = Auth::user();
+
+            // Handle Refill
+            if (isset($session->metadata->type) && $session->metadata->type === 'refill') {
+                $amount = (float) $session->metadata->amount;
+                $ozToInject = (int) ($amount * 10);
+                $billId = 'TOPUP-' . strtoupper(uniqid());
+
+                DB::transaction(function () use ($user, $amount, $ozToInject, $billId) {
+                    $user->increment('tangki_balance', $amount);
+                    $user->increment('tangki_oz', $ozToInject);
+
+                    $order = new Order();
+                    $order->user_id = $user->id;
+                    $order->bill_id = $billId;
+                    $order->subtotal = $amount;
+                    $order->oz_used = 0;
+                    $order->final_amount = $amount;
+                    $order->status = 'completed';
+                    $order->save();
+
+                    $transaction = new Transaction();
+                    $transaction->user_id = $user->id;
+                    $transaction->bill_id = $billId;
+                    $transaction->oz_delta = $ozToInject;
+                    $transaction->type = 'refill';
+                    $transaction->description = "Refilled RM" . number_format($amount, 2) . " (Earned {$ozToInject} OZ)";
+                    $transaction->save();
+                });
+
+                return redirect()->route('user.tangki')->with('success', 'Refill successful!');
+            }
+
+            // Handle Cart Checkout (Existing Logic)
             $cartItems = CartItem::where('user_id', $user->id)->with('product')->get();
 
             if ($cartItems->isEmpty()) {

@@ -25,37 +25,33 @@ class TangkiController extends Controller
             return back()->with('error', 'Invalid amount.');
         }
 
-        $ozToInject = (int) ($amount * 10);
+        \Stripe\Stripe::setApiKey(config('services.stripe.secret'));
 
-        $billId = 'TOPUP-' . strtoupper(uniqid());
+        $session = \Stripe\Checkout\Session::create([
+            'payment_method_types' => ['card'],
+            'line_items' => [
+                [
+                    'price_data' => [
+                        'currency' => 'myr',
+                        'product_data' => [
+                            'name' => 'Tangki Refill',
+                            'description' => "Refill RM" . number_format($amount, 2),
+                        ],
+                        'unit_amount' => (int) ($amount * 100),
+                    ],
+                    'quantity' => 1,
+                ]
+            ],
+            'mode' => 'payment',
+            'success_url' => route('stripe.success') . '?session_id={CHECKOUT_SESSION_ID}',
+            'cancel_url' => route('tangki.index'),
+            'metadata' => [
+                'type' => 'refill',
+                'user_id' => $user->id,
+                'amount' => $amount,
+            ]
+        ]);
 
-        try {
-            DB::transaction(function () use ($user, $amount, $ozToInject, $billId) {
-                $user->increment('tangki_balance', $amount);
-                $user->increment('tangki_oz', $ozToInject);
-
-                $order = new Order();
-                $order->user_id = $user->id;
-                $order->bill_id = $billId;
-                $order->subtotal = $amount;
-                $order->oz_used = 0;
-                $order->final_amount = $amount;
-                $order->status = 'completed';
-                $order->save();
-
-                $transaction = new Transaction();
-                $transaction->user_id = $user->id;
-                $transaction->bill_id = $billId;
-                $transaction->oz_delta = $ozToInject;
-                $transaction->type = 'refill';
-                $transaction->description = "Refilled RM" . number_format($amount, 2) . " (Earned {$ozToInject} OZ)";
-                $transaction->save();
-            });
-
-            return redirect()->route('user.tangki')->with('success', 'Refill successful!');
-
-        } catch (\Exception $e) {
-            return back()->with('error', 'Transaction failed: ' . $e->getMessage());
-        }
+        return redirect($session->url);
     }
 }
