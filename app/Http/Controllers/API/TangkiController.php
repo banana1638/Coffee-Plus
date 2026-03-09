@@ -2,14 +2,14 @@
 
 namespace App\Http\Controllers\Api;
 
-use \App\Models\Order;
-use \App\Models\Transaction;
-use \Illuminate\Http\Request;
-use \Illuminate\Support\Facades\DB;
-use \Illuminate\Support\Facades\Auth;
-use \App\Http\Controllers\Controller;
-use \App\Http\Resources\Api\TransactionResource;
-use \App\Http\Resources\Api\UserResource;
+use App\Models\Order;
+use App\Models\Transaction;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
+use App\Http\Controllers\Controller;
+use App\Http\Resources\Api\TransactionResource;
+use App\Http\Resources\Api\UserResource;
 
 class TangkiController extends Controller
 {
