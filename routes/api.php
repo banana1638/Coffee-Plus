@@ -2,16 +2,16 @@
 
 namespace App\Http\Controllers\API;
 
-use \Illuminate\Support\Facades\Route;
-use \App\Http\Controllers\Api\Auth\LoginController;
-use \App\Http\Controllers\Api\Auth\RegisterController;
-use \App\Http\Controllers\Api\CartController;
-use \App\Http\Controllers\Api\DashboardController;
-use \App\Http\Controllers\Api\OrderController;
-use \App\Http\Controllers\Api\ProductController;
-use \App\Http\Controllers\Api\ProfileController;
-use \App\Http\Controllers\Api\TangkiController;
-use \App\Http\Controllers\Api\TransactionController;
+use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\API\Auth\LoginController;
+use App\Http\Controllers\API\Auth\RegisterController;
+use App\Http\Controllers\API\CartController;
+use App\Http\Controllers\API\DashboardController;
+use App\Http\Controllers\API\OrderController;
+use App\Http\Controllers\API\ProductController;
+use App\Http\Controllers\API\ProfileController;
+use App\Http\Controllers\API\TangkiController;
+use App\Http\Controllers\API\TransactionController;
 
 /*
 |--------------------------------------------------------------------------
