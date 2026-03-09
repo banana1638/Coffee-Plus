@@ -23,7 +23,7 @@ class StripeController extends Controller
             return back()->with('error', 'Your cart is empty.');
         }
 
-        Stripe::setApiKey(env('STRIPE_SECRET'));
+        Stripe::setApiKey(config('services.stripe.secret'));
 
         $session = Session::create([
             'payment_method_types' => ['card'],

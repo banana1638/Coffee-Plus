@@ -7,6 +7,8 @@ use App\Models\Transaction;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use Stripe\Stripe;
+use Stripe\Checkout\Session;
 
 class TangkiController extends Controller
 {
@@ -25,9 +27,9 @@ class TangkiController extends Controller
             return back()->with('error', 'Invalid amount.');
         }
 
-        \Stripe\Stripe::setApiKey(config('services.stripe.secret'));
+        Stripe::setApiKey(config('services.stripe.secret'));
 
-        $session = \Stripe\Checkout\Session::create([
+        $session = Session::create([
             'payment_method_types' => ['card'],
             'line_items' => [
                 [
