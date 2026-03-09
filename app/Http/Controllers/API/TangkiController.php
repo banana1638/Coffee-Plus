@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Api\TransactionResource;
+use App\Http\Resources\Api\UserResource;
 
 class TangkiController extends Controller
 {
@@ -17,6 +18,7 @@ class TangkiController extends Controller
         $transactions = Auth::user()->transactions()->latest()->take(5)->get();
         return response()->json([
             'transactions' => TransactionResource::collection($transactions),
+            'user' => new UserResource(Auth::user()),
         ]);
     }
 
