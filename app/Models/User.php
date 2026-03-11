@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use Illuminate\Support\Str;
 
 class User extends Authenticatable
 {
@@ -19,13 +20,6 @@ class User extends Authenticatable
      *
      * @var list<string>
      */
-    protected $fillable = [
-        'name',
-        'email',
-        'password',
-        'phone',
-        'address',
-    ];
 
     /**
      * The attributes that should be hidden for serialization.
@@ -33,6 +27,7 @@ class User extends Authenticatable
      * @var list<string>
      */
     protected $hidden = [
+        'id',
         'password',
         'remember_token',
         'phone_index',
@@ -48,10 +43,15 @@ class User extends Authenticatable
     {
         return [
             'email_verified_at' => 'datetime',
-            'password'          => 'hashed',
-            'phone'             => 'encrypted',
-            'address'           => 'encrypted',
+            'password' => 'hashed',
+            'phone' => 'encrypted',
+            'address' => 'encrypted',
         ];
+    }
+
+    public function getRouteKeyName(): string
+    {
+        return 'uuid';
     }
 
     // -------------------------------------------------------------------------
@@ -113,6 +113,12 @@ class User extends Authenticatable
 
     protected static function booted(): void
     {
+        static::creating(function ($user) {
+            if (empty($user->uuid)) {
+                $user->uuid = (string) Str::uuid();
+            }
+        });
+
         static::observe(UserObserver::class);
     }
 
