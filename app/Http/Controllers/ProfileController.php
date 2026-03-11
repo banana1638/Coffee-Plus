@@ -33,7 +33,10 @@ class ProfileController extends Controller
             $user->name = $validated['name'];
         }
         if (isset($validated['email'])) {
-            $user->email = $validated['email'];
+            if ($user->email !== $validated['email']) {
+                $user->email = $validated['email'];
+                $user->email_verified_at = null;
+            }
         }
         if (array_key_exists('phone', $validated)) {
             $user->phone = $validated['phone'];
@@ -42,11 +45,7 @@ class ProfileController extends Controller
             $user->address = $validated['address'];
         }
 
-        if ($request->user()->isDirty('email')) {
-            $request->user()->email_verified_at = null;
-        }
-
-        $request->user()->save();
+        $user->save();
 
         return Redirect::route('profile.edit')->with('status', 'profile-updated');
     }

@@ -17,20 +17,20 @@ class RegisterController extends Controller
     public function register(Request $request)
     {
         $request->validate([
-            'name'     => 'required|string|max:255',
-            'email'    => 'required|string|email|max:255|unique:users',
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users',
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
-            'phone'    => 'nullable|string|max:20',
-            'address'  => 'nullable|string|max:500',
+            'phone' => 'nullable|string|max:20',
+            'address' => 'nullable|string|max:500',
         ]);
 
-        $user = User::create([
-            'name'     => $request->name,
-            'email'    => $request->email,
-            'password' => Hash::make($request->password),
-            'phone'    => $request->phone,
-            'address'  => $request->address,
-        ]);
+        $user = new User();
+        $user->name = $request->name;
+        $user->email = $request->email;
+        $user->password = Hash::make($request->password);
+        $user->phone = $request->phone;
+        $user->address = $request->address;
+        $user->save();
 
         $token = $user->createToken('api_token')->plainTextToken;
 
