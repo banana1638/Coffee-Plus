@@ -35,6 +35,12 @@ class ProfileController extends Controller
         if (isset($validated['email'])) {
             $user->email = $validated['email'];
         }
+        if (array_key_exists('phone', $validated)) {
+            $user->phone = $validated['phone'];
+        }
+        if (array_key_exists('address', $validated)) {
+            $user->address = $validated['address'];
+        }
 
         if ($request->user()->isDirty('email')) {
             $request->user()->email_verified_at = null;

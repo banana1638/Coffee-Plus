@@ -3,6 +3,8 @@
     email: '',
     password: '',
     name: '',
+    phone: '',
+    address: '',
     password_confirmation: '',
     errors: {},
     loading: false,
@@ -48,7 +50,9 @@
                     name: this.name, 
                     email: this.email, 
                     password: this.password, 
-                    password_confirmation: this.password_confirmation 
+                    password_confirmation: this.password_confirmation,
+                    phone: this.phone || null,
+                    address: this.address || null
                 })
             });
             const data = await response.json();
@@ -180,6 +184,22 @@
                                 <p class="text-red-500 text-[10px] font-black uppercase tracking-widest mt-2 ml-1"
                                     x-text="errors.password[0]"></p>
                             </template>
+                            <div>
+                                <input type="tel" x-model="phone" placeholder="Phone Number (optional)"
+                                    class="w-full px-6 py-4 bg-gray-50 border-2 border-transparent rounded-2xl focus:bg-white focus:border-blue-600 focus:ring-0 transition duration-200 text-gray-900 font-bold shadow-sm">
+                                <template x-if="errors.phone">
+                                    <p class="text-red-500 text-[10px] font-black uppercase tracking-widest mt-2 ml-1"
+                                        x-text="errors.phone[0]"></p>
+                                </template>
+                            </div>
+                            <div>
+                                <input type="text" x-model="address" placeholder="Address (optional)"
+                                    class="w-full px-6 py-4 bg-gray-50 border-2 border-transparent rounded-2xl focus:bg-white focus:border-blue-600 focus:ring-0 transition duration-200 text-gray-900 font-bold shadow-sm">
+                                <template x-if="errors.address">
+                                    <p class="text-red-500 text-[10px] font-black uppercase tracking-widest mt-2 ml-1"
+                                        x-text="errors.address[0]"></p>
+                                </template>
+                            </div>
                             <button type="submit" :disabled="loading"
                                 class="w-full py-4 bg-gray-900 text-white rounded-2xl text-sm font-black uppercase tracking-[0.2em] shadow-lg shadow-gray-100 hover:bg-black transition transform active:scale-[0.98] disabled:opacity-50 overflow-hidden relative group">
                                 <span class="relative z-10" x-show="!loading">Register Now</span>
