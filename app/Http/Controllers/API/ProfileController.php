@@ -56,10 +56,8 @@ class ProfileController extends Controller
 
         /** @var \App\Models\User $user */
         $user = $request->user();
-
-        $user->update([
-            'password' => Hash::make($validated['password']),
-        ]);
+        $user->password = Hash::make($validated['password']);
+        $user->save();
 
         return response()->json([
             'status' => 'success',
