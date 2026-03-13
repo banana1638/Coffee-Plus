@@ -16,18 +16,13 @@ class DashboardController extends Controller
         $search = $request->input('search');
         $category = $request->input('category', 'all');
 
-        $menus = Menu::whereHas('products', function ($query) use ($search) {
-            if ($search) {
-                $query->where('name', 'like', '%' . $search . '%');
-            }
-        })
-            ->with([
-                'products' => function ($query) use ($search) {
-                    if ($search) {
-                        $query->where('name', 'like', '%' . $search . '%');
-                    }
+        $menus = Menu::with([
+            'products' => function ($query) use ($search) {
+                if ($search) {
+                    $query->where('name', 'like', '%' . $search . '%');
                 }
-            ])
+            }
+        ])
             ->when($category !== 'all', function ($query) use ($category) {
                 return $query->where('name', $category);
             })
@@ -42,7 +37,16 @@ class DashboardController extends Controller
             'allCategoryNames' => $allCategoryNames,
             'search' => $search,
             'category' => $category,
-            'user' => $request->user() ? new UserResource($request->user()) : null,
+            // 修改这里：如果没登录，返回一个具有默认结构的对象
+            'user' => $request->user('sanctum')
+                ? new UserResource($request->user('sanctum'))
+                : [
+                    'id' => null,
+                    'name' => 'Guest',
+                    'email' => '',
+                    'balance' => 0,
+                    'oz' => 0
+                ],
         ]);
     }
 }

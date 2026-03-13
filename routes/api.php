@@ -27,7 +27,7 @@ Route::get('/products/{id}', [ProductController::class, 'show']);
  * 使用 Sanctum 内置的 guard 尝试获取用户信息，避免手动解析 Token。
  * 如果没有 Token，auth:sanctum 不会报错，只是 auth()->user() 为空。
  */
-Route::get('/dashboard', [DashboardController::class, 'index'])->middleware('auth:sanctum');
+Route::get('/dashboard', [DashboardController::class, 'index']);
 
 // --- 受保护路由 ---
 Route::middleware('auth:sanctum')->group(function () {
