@@ -35,6 +35,7 @@ class DashboardController extends Controller
         return response()->json([
             'menus' => CategoryResource::collection($menus),
             'allCategoryNames' => $allCategoryNames,
+            'options' => config('coffee.options'),
             'search' => $search,
             'category' => $category,
             // 修改这里：如果没登录，返回一个具有默认结构的对象
