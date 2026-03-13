@@ -47,8 +47,8 @@ Route::middleware('auth:sanctum')->group(function () {
     // 个人资料：符合 RESTful 风格的更新/删除
     Route::controller(ProfileController::class)->prefix('profile')->group(function () {
         Route::get('/', 'edit');
-        Route::patch('/', 'update'); // 使用 PATCH 表示部分更新
-        Route::delete('/', 'destroy'); // 使用 DELETE 表示删除
+        Route::post('/update', 'update');
+        Route::post('/delete', 'destroy');
     });
 
     // 储水箱 (Tangki)

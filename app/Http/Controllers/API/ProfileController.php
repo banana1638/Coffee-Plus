@@ -3,10 +3,7 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Requests\ProfileUpdateRequest;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Redirect;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Api\UserResource;
 
@@ -57,11 +54,15 @@ class ProfileController extends Controller
             'password' => ['required', 'current_password'],
         ]);
 
+        /** @var \App\Models\User $user */
         $user = $request->user();
 
-        $user->currentAccessToken()->delete();
+        /** @var \Laravel\Sanctum\PersonalAccessToken|null $token */
+        $token = $user->currentAccessToken();
 
-        $user->delete();
+        if ($token) {
+            $token->delete();
+        }
 
         return response()->json([
             'status' => 'success',
