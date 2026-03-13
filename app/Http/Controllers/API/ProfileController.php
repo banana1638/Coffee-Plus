@@ -6,6 +6,8 @@ use App\Http\Requests\ProfileUpdateRequest;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Api\UserResource;
+use Illuminate\Support\Facades\Hash; 
+use Illuminate\Validation\Rules\Password;
 
 class ProfileController extends Controller
 {
@@ -42,6 +44,26 @@ class ProfileController extends Controller
             'status' => 'success',
             'message' => 'Profile updated successfully.',
             'user' => new UserResource($request->user())
+        ]);
+    }
+
+    public function updatePassword(Request $request)
+    {
+        $validated = $request->validate([
+            'current_password' => ['required', 'current_password'],
+            'password' => ['required', Password::defaults(), 'confirmed'],
+        ]);
+
+        /** @var \App\Models\User $user */
+        $user = $request->user();
+
+        $user->update([
+            'password' => Hash::make($validated['password']),
+        ]);
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Password updated successfully.'
         ]);
     }
 

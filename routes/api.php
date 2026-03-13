@@ -49,6 +49,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/', 'edit');
         Route::post('/update', 'update');
         Route::post('/delete', 'destroy');
+        Route::post('/password', 'updatePassword');
     });
 
     // 储水箱 (Tangki)
