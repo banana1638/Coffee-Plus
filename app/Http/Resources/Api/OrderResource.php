@@ -18,12 +18,14 @@ class OrderResource extends JsonResource
             'id' => $this->id,
             'bill_id' => $this->bill_id,
             'status' => $this->status,
-            'subtotal' => number_format($this->subtotal, 2), 
-            'total_amount' => number_format($this->subtotal, 2), 
-            'oz_used' => (float) $this->oz_used,
-            'final_amount' => number_format($this->final_amount, 2),
+            'created_at' => $this->created_at->format('Y-m-d H:i'),
+            'subtotal' => (float) $this->subtotal,
+            'final_amount' => (float) $this->final_amount,
+            'coupon_discount' => (float) ($this->coupon_discount ?? 0),
+            'points_discount' => (float) ($this->points_discount ?? 0),
+            'oz_used' => (float) ($this->oz_used ?? 0),
+            'payment_method' => $this->payment_method,
             'items' => OrderItemResource::collection($this->whenLoaded('items')),
-            'created_at' => $this->created_at->format('M d, Y H:i'),
         ];
     }
 }
