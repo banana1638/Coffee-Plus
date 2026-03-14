@@ -9,7 +9,12 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Support\Str;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 
+/**
+ * @property string|null $phone
+ * @property string|null $address
+ */
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
@@ -20,7 +25,6 @@ class User extends Authenticatable
      *
      * @var list<string>
      */
-
     /**
      * The attributes that should be hidden for serialization.
      *
@@ -68,19 +72,27 @@ class User extends Authenticatable
      * Intercept phone assignment: stash the plaintext, then let the normal
      * attribute setter (and encrypted cast) process it as usual.
      */
-    public function setPhoneAttribute(?string $value): void
+    protected function phone(): Attribute
     {
-        $this->_pendingPlaintext['phone'] = $value;
-        $this->attributes['phone'] = $value; // cast will encrypt on next sync
+        return Attribute::make(
+            set: function (?string $value) {
+                $this->_pendingPlaintext['phone'] = $value;
+                return $value;
+            },
+        );
     }
 
     /**
      * Intercept address assignment: same pattern as phone.
      */
-    public function setAddressAttribute(?string $value): void
+    protected function address(): Attribute
     {
-        $this->_pendingPlaintext['address'] = $value;
-        $this->attributes['address'] = $value;
+        return Attribute::make(
+            set: function (?string $value) {
+                $this->_pendingPlaintext['address'] = $value;
+                return $value;
+            },
+        );
     }
 
     public function getPendingPlaintext(): array

@@ -89,4 +89,32 @@ class ProfileController extends Controller
             'message' => 'Account deleted successfully.'
         ]);
     }
+
+    /**
+     * Get user's notifications.
+     */
+    public function notifications(Request $request)
+    {
+        $notifications = $request->user()->notifications()->latest()->get();
+        return response()->json([
+            'status' => 'success',
+            'notifications' => $notifications
+        ]);
+    }
+
+    /**
+     * Mark a specific notification as read.
+     */
+    public function markAsRead(Request $request, $id)
+    {
+        $notification = $request->user()->unreadNotifications()->where('id', $id)->first();
+        if ($notification) {
+            $notification->markAsRead();
+        }
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Notification marked as read.'
+        ]);
+    }
 }

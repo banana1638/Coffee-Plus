@@ -50,6 +50,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/update', 'update');
         Route::post('/delete', 'destroy');
         Route::post('/password', 'updatePassword');
+        Route::get('/notifications', 'notifications');
+        Route::post('/notifications/{id}/read', 'markAsRead');
     });
 
     // 储水箱 (Tangki)

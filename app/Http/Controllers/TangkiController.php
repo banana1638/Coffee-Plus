@@ -4,11 +4,17 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Stripe\Stripe;
-use Stripe\Checkout\Session;
+use App\Services\PaymentService;
 
 class TangkiController extends Controller
 {
+    protected $paymentService;
+
+    public function __construct(PaymentService $paymentService)
+    {
+        $this->paymentService = $paymentService;
+    }
+
     public function index()
     {
         $transactions = Auth::user()->transactions()->latest()->take(5)->get();
@@ -24,32 +30,7 @@ class TangkiController extends Controller
             return back()->with('error', 'Invalid amount.');
         }
 
-        Stripe::setApiKey(config('services.stripe.secret'));
-
-        $session = Session::create([
-            'payment_method_types' => ['card'],
-            'line_items' => [
-                [
-                    'price_data' => [
-                        'currency' => 'myr',
-                        'product_data' => [
-                            'name' => 'Tangki Refill',
-                            'description' => "Refill RM" . number_format($amount, 2),
-                        ],
-                        'unit_amount' => (int) ($amount * 100),
-                    ],
-                    'quantity' => 1,
-                ]
-            ],
-            'mode' => 'payment',
-            'success_url' => route('stripe.success') . '?session_id={CHECKOUT_SESSION_ID}',
-            'cancel_url' => route('tangki.index'),
-            'metadata' => [
-                'type' => 'refill',
-                'user_id' => $user->id,
-                'amount' => $amount,
-            ]
-        ]);
+        $session = $this->paymentService->createRefillSession($user->id, $amount);
 
         return redirect($session->url);
     }
