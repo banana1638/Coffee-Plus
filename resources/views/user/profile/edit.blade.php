@@ -94,7 +94,7 @@
                     <section id="profile-info" class="scroll-mt-8">
                         <div class="bg-white rounded-[2.5rem] p-8 md:p-12 shadow-sm border border-gray-100">
                             <div class="max-w-xl">
-                                @include('profile.partials.update-profile-information-form')
+                                @include('user.profile.partials.update-profile-information-form')
                             </div>
                         </div>
                     </section>
@@ -102,7 +102,7 @@
                     <section id="password-info" class="scroll-mt-8">
                         <div class="bg-white rounded-[2.5rem] p-8 md:p-12 shadow-sm border border-gray-100">
                             <div class="max-w-xl">
-                                @include('profile.partials.update-password-form')
+                                @include('user.profile.partials.update-password-form')
                             </div>
                         </div>
                     </section>
@@ -111,7 +111,7 @@
                         <div
                             class="bg-white rounded-[2.5rem] p-8 md:p-12 shadow-sm border border-gray-100 border-b-8 border-b-red-500">
                             <div class="max-w-xl">
-                                @include('profile.partials.delete-user-form')
+                                @include('user.profile.partials.delete-user-form')
                             </div>
                         </div>
                     </section>
