@@ -16,17 +16,22 @@ class DashboardController extends Controller
         $search = $request->input('search');
         $category = $request->input('category', 'all');
 
-        $menus = Menu::with([
-            'products' => function ($query) use ($search) {
-                if ($search) {
-                    $query->where('name', 'like', '%' . $search . '%');
+        $cacheKey = 'dashboard_menus_' . $category . '_' . ($search ?? 'none');
+
+        $menus = Cache::remember($cacheKey, 600, function () use ($search, $category) {
+            return Menu::with([
+                'products' => function ($query) use ($search) {
+                    if ($search) {
+                        $query->where('name', 'like', '%' . $search . '%');
+                    }
+                    $query->where('is_active', true);
                 }
-            }
-        ])
-            ->when($category !== 'all', function ($query) use ($category) {
-                return $query->where('name', $category);
-            })
-            ->get();
+            ])
+                ->when($category !== 'all', function ($query) use ($category) {
+                    return $query->where('name', $category);
+                })
+                ->get();
+        });
 
         $allCategoryNames = Cache::remember('menu_category_names', 3600, function () {
             return Menu::pluck('name');
