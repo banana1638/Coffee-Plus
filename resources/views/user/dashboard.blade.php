@@ -60,6 +60,12 @@
             </div>
 
             <div class="flex items-center gap-3 overflow-x-auto pb-4 no-scrollbar">
+                @auth
+                <a href="{{ route('dashboard', ['search' => request('search'), 'category' => 'collections']) }}" 
+                   class="px-6 py-3 rounded-xl font-bold text-sm transition-all whitespace-nowrap {{ request('category') === 'collections' ? 'bg-blue-600 text-white shadow-lg shadow-blue-200' : 'bg-white text-gray-500 hover:bg-gray-100' }}">
+                    Collections
+                </a>
+                @endauth
                 <a href="{{ route('dashboard', ['search' => request('search'), 'category' => 'all']) }}" 
                    class="px-6 py-3 rounded-xl font-bold text-sm transition-all whitespace-nowrap {{ request('category', 'all') === 'all' ? 'bg-blue-600 text-white shadow-lg shadow-blue-200' : 'bg-white text-gray-500 hover:bg-gray-100' }}">
                     All Items
@@ -72,7 +78,11 @@
                 @endforeach
             </div>
 
-            @include('user.products.index', ['menus' => $menus])
+            @if($category === 'collections')
+                @include('user.favorites.list', ['favorites' => $favorites])
+            @else
+                @include('user.products.index', ['menus' => $menus])
+            @endif
 
         </div>
     </div>

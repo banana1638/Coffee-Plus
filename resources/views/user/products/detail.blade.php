@@ -23,9 +23,21 @@
                     @csrf
                     <input type="hidden" name="product_id" value="{{ $product->id }}">
 
-                    <div class="mb-10">
-                        <span class="text-blue-600 font-bold text-sm uppercase tracking-widest">Premium Selection</span>
-                        <h1 class="text-4xl font-black text-gray-900 mt-1">{{ $product->name }}</h1>
+                    <div class="mb-10 flex items-start justify-between">
+                        <div>
+                            <span class="text-blue-600 font-bold text-sm uppercase tracking-widest">Premium Selection</span>
+                            <h1 class="text-4xl font-black text-gray-900 mt-1">{{ $product->name }}</h1>
+                        </div>
+                        <button type="button" onclick="toggleFavorite()" id="favoriteBtn" class="p-4 bg-white rounded-3xl shadow-xl shadow-gray-200/50 border border-gray-100 text-gray-300 hover:text-red-500 transition-all active:scale-95 group">
+                            <svg id="favoriteIcon" class="w-8 h-8 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                            </svg>
+                        </button>
+                    </div>
+
+                    <div id="favoriteRemarkContainer" class="mb-8 hidden">
+                        <h3 class="text-xs font-black uppercase tracking-[0.2em] text-gray-400 mb-3">Add a Personal Note</h3>
+                        <textarea id="favoriteRemark" placeholder="e.g. My Monday Morning Coffee" class="w-full bg-white border-2 border-gray-100 rounded-2xl p-4 text-sm font-bold focus:border-blue-600 focus:ring-0 transition-all placeholder:text-gray-300 h-20 resize-none"></textarea>
                     </div>
 
                     <div class="mb-10">
@@ -177,5 +189,80 @@
             modal.classList.toggle('hidden', !show);
             modal.classList.toggle('flex', show);
         };
+
+        // Favorite Functionality
+        async function checkFavoriteStatus() {
+            const size = document.querySelector('input[name="size"]:checked').value;
+            const temp = document.querySelector('input[name="temp"]:checked').value;
+            const addons = Array.from(document.querySelectorAll('input[name="addons[]"]:checked')).map(el => el.value);
+
+            const params = new URLSearchParams({
+                product_id: "{{ $product->id }}",
+                size: size,
+                temp: temp,
+            });
+            addons.forEach(a => params.append('addons[]', a));
+
+            const response = await fetch("{{ route('favorites.check') }}?" + params.toString());
+            const data = await response.json();
+            
+            const icon = document.getElementById('favoriteIcon');
+            const btn = document.getElementById('favoriteBtn');
+            const remarkContainer = document.getElementById('favoriteRemarkContainer');
+
+            if (data.is_favorite) {
+                icon.setAttribute('fill', 'currentColor');
+                btn.classList.add('text-red-500');
+                btn.classList.remove('text-gray-300');
+                remarkContainer.classList.remove('hidden');
+            } else {
+                icon.setAttribute('fill', 'none');
+                btn.classList.add('text-gray-300');
+                btn.classList.remove('text-red-500');
+                remarkContainer.classList.add('hidden');
+            }
+        }
+
+        async function toggleFavorite() {
+            @guest
+                alert('Please login first');
+                return;
+            @endguest
+
+            const size = document.querySelector('input[name="size"]:checked').value;
+            const temp = document.querySelector('input[name="temp"]:checked').value;
+            const addons = Array.from(document.querySelectorAll('input[name="addons[]"]:checked')).map(el => el.value);
+            const remark = document.getElementById('favoriteRemark').value;
+
+            const icon = document.getElementById('favoriteIcon');
+            icon.classList.add('scale-150', 'animate-pulse');
+
+            try {
+                const response = await fetch("{{ route('favorites.toggle') }}", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    },
+                    body: JSON.stringify({
+                        product_id: "{{ $product->id }}",
+                        size: size,
+                        temp: temp,
+                        addons: addons,
+                        remark: remark
+                    })
+                });
+
+                if (response.ok) {
+                    await checkFavoriteStatus();
+                }
+            } finally {
+                icon.classList.remove('scale-150', 'animate-pulse');
+            }
+        }
+
+        // Initial check and listen for changes
+        checkFavoriteStatus();
+        orderForm.addEventListener('change', checkFavoriteStatus);
     </script>
 </x-app-layout>

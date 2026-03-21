@@ -10,6 +10,7 @@ use App\Http\Controllers\API\DashboardController;
 use App\Http\Controllers\API\TransactionController;
 use App\Http\Controllers\API\Auth\LoginController;
 use App\Http\Controllers\API\Auth\RegisterController;
+use App\Http\Controllers\API\FavoriteController;
 
 /*
 |--------------------------------------------------------------------------
@@ -65,4 +66,6 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/', 'index');
         Route::get('/{bill_id}', 'showOrderDetail');
     });
+
+    Route::apiResource('favorites', FavoriteController::class);
 });

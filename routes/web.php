@@ -51,6 +51,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::delete('/', 'destroy')->name('destroy');
     });
 
+    Route::post('/favorites/toggle', [\App\Http\Controllers\FavoriteController::class, 'toggle'])->name('favorites.toggle');
+    Route::get('/favorites/check', [\App\Http\Controllers\FavoriteController::class, 'check'])->name('favorites.check');
+    Route::delete('/favorites/{id}', [\App\Http\Controllers\FavoriteController::class, 'destroy'])->name('favorites.destroy');
+
     Route::get('/notifications/mark-all-as-read', [NotificationController::class, 'markAllAsRead'])
         ->name('notifications.markAllAsRead');
 
