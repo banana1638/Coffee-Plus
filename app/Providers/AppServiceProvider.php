@@ -15,7 +15,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-    //
+        $this->app->bind(
+            \App\Contracts\PaymentGatewayInterface::class,
+            \App\Services\Payment\Gateways\StripeGateway::class
+        );
     }
 
     /**
@@ -31,7 +34,7 @@ class AppServiceProvider extends ServiceProvider
             $user = Auth::user();
 
             // Only regular users have cart items. Admins do not.
-            $isRegularUser = $user instanceof \App\Models\User;
+            $isRegularUser = $user instanceof User;
             $cartCount = $isRegularUser ? $user->cartItems()->sum('quantity') : 0;
 
             // Notifications might exist for both, but let's be safe.
@@ -42,11 +45,11 @@ class AppServiceProvider extends ServiceProvider
             $view->with([
                 'cartCount' => $cartCount,
                 'navbarNotifications' => $notificationsQuery
-                ? $notificationsQuery->latest()->limit(10)->get()
-                : collect(),
+                    ? $notificationsQuery->latest()->limit(10)->get()
+                    : collect(),
                 'navbarUnreadCount' => $notificationsQuery
-                ? (clone $notificationsQuery)->count()
-                : 0,
+                    ? (clone $notificationsQuery)->count()
+                    : 0,
             ]);
         });
     }

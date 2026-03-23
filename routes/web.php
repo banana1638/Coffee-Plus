@@ -10,7 +10,7 @@ use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\TangkiController;
 use App\Http\Controllers\TransactionController;
-use App\Http\Controllers\StripeController;
+use App\Http\Controllers\PaymentController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
@@ -34,8 +34,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/order/checkout', [OrderController::class, 'checkout'])->name('order.checkout');
 
     // Stripe Routes
-    Route::post('/stripe/checkout', [StripeController::class, 'checkout'])->name('stripe.checkout');
-    Route::get('/stripe/success', [StripeController::class, 'success'])->name('stripe.success');
+    Route::post('/stripe/checkout', [PaymentController::class, 'checkout'])->name('stripe.checkout');
+    Route::get('/stripe/success', [PaymentController::class, 'success'])->name('stripe.success');
 
     Route::prefix('tangki')->name('tangki.')->group(function () {
         Route::get('/', [TangkiController::class, 'index'])->name('index');

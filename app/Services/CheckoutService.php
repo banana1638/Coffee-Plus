@@ -3,7 +3,7 @@
 namespace App\Services;
 
 use App\Models\{CartItem, Order, OrderItem, Transaction, User};
-use Illuminate\Support\Facades\{DB, Auth};
+use Illuminate\Support\Facades\DB;
 
 class CheckoutService
 {
@@ -14,9 +14,8 @@ class CheckoutService
      * @return Order
      * @throws \Exception
      */
-    public function processCheckout(array $useOzIds): Order
+    public function processCheckout(User $user, array $useOzIds): Order
     {
-        $user = Auth::user();
         $cartItems = CartItem::where('user_id', $user->id)->with('product')->get();
 
         if ($cartItems->isEmpty()) {
