@@ -2,9 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\{CartItem, Order, OrderItem, Transaction};
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\{Auth, DB};
+use Illuminate\Support\Facades\Auth;
 
 class OrderController extends Controller
 {
@@ -20,12 +19,11 @@ class OrderController extends Controller
         $useOzIds = $request->input('use_oz', []);
 
         try {
-            $order = $this->checkoutService->processCheckout($useOzIds);
+            $order = $this->checkoutService->processCheckout(Auth::user(), $useOzIds);
 
             return redirect()->route('tangki.transactions')
                 ->with('success', 'Enjoy your coffee! Order #' . $order->bill_id . ' placed.');
-        }
-        catch (\Exception $e) {
+        } catch (\Exception $e) {
             return back()->with('error', $e->getMessage());
         }
     }

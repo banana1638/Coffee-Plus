@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Favorite;
-use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -20,7 +19,7 @@ class FavoriteController extends Controller
         ]);
 
         $user = Auth::user();
-        
+
         // Find existing favorite with same options
         $favorite = Favorite::where('user_id', $user->id)
             ->where('product_id', $request->product_id)
@@ -49,7 +48,8 @@ class FavoriteController extends Controller
     public function check(Request $request)
     {
         $user = Auth::user();
-        if (!$user) return response()->json(['is_favorite' => false]);
+        if (!$user)
+            return response()->json(['is_favorite' => false]);
 
         $isFavorite = Favorite::where('user_id', $user->id)
             ->where('product_id', $request->product_id)
