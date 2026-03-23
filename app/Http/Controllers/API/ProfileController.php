@@ -117,4 +117,19 @@ class ProfileController extends Controller
             'message' => 'Notification marked as read.'
         ]);
     }
+
+    public function batchDeleteNotifications(Request $request) {
+        $ids = $request->input('ids', []);
+        if (!empty($ids)) {
+            $request->user()->notifications()->whereIn('id', $ids)->delete();
+            return response()->json(['message' => 'Notifications deleted successfully']);
+        }
+        return response()->json(['message' => 'No notifications selected'], 400);
+    }
+
+    public function deleteReadNotifications(Request $request) {
+        $request->user()->readNotifications()->delete();
+        return response()->json(['message' => 'Read notifications deleted successfully']);
+    }
+
 }
