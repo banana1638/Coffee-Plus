@@ -22,7 +22,6 @@ class OrderController extends Controller
         try {
             $order = $this->checkoutService->processCheckout($useOzIds);
 
-            // 加载关联以确保 OrderResource 能够正确解析 items 数据
             $order->load(['items.product']);
 
             return response()->json([

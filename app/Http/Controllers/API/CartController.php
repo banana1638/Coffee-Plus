@@ -24,14 +24,13 @@ class CartController extends Controller
 
         $product = Product::findOrFail($request->product_id);
 
-        // 获取配置
         $coffeeConfig = config('coffee.options');
 
         $sizeExtra = collect($coffeeConfig['sizes'])
             ->firstWhere('name', $request->size)['extra'] ?? 0;
 
         $selectedAddons = $request->input('addons', []);
-        
+
         $addonsTotal = $product->addons()
             ->whereIn('name', $selectedAddons)
             ->sum('price');
@@ -50,7 +49,6 @@ class CartController extends Controller
 
         $cartCount = CartItem::where('user_id', Auth::id())->sum('quantity');
 
-        // 使用 Response Facade
         return Response::json([
             'status' => 'success',
             'cartCount' => $cartCount,
