@@ -25,6 +25,7 @@ class ProductResource extends JsonResource
             'category_id' => $this->menu_id,
             // 确保 is_active 在数据库里是 1
             'is_available' => (bool) ($this->is_active ?? true),
+            'addons' => $this->addons,
             'created_at' => $this->created_at->format('Y-m-d'),
         ];
     }

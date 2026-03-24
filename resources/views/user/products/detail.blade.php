@@ -71,20 +71,22 @@
                         </div>
                     </div>
 
+                    @if($product->addons->isNotEmpty())
                     <div class="mb-10">
                         <h3 class="text-xs font-black uppercase tracking-[0.2em] text-gray-400 mb-5">Extra Add-ons</h3>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            @foreach($options['add_ons'] as $addon)
+                            @foreach($product->addons as $addon)
                                 <label class="flex items-center justify-between p-5 rounded-2xl border-2 border-transparent bg-white shadow-sm cursor-pointer has-[:checked]:border-blue-600 transition-all">
                                     <div class="flex items-center">
-                                        <input type="checkbox" name="addons[]" value="{{ $addon['name'] }}" data-price="{{ $addon['price'] }}" class="w-5 h-5 rounded text-blue-600 border-gray-300">
-                                        <span class="ml-4 font-bold text-gray-700">{{ $addon['name'] }}</span>
+                                        <input type="checkbox" name="addons[]" value="{{ $addon->name }}" data-price="{{ $addon->price }}" class="w-5 h-5 rounded text-blue-600 border-gray-300">
+                                        <span class="ml-4 font-bold text-gray-700">{{ $addon->name }}</span>
                                     </div>
-                                    <span class="text-xs font-bold text-blue-500">+ RM {{ number_format($addon['price'], 2) }}</span>
+                                    <span class="text-xs font-bold text-blue-500">+ RM {{ number_format($addon->price, 2) }}</span>
                                 </label>
                             @endforeach
                         </div>
                     </div>
+                    @endif
 
                     <div class="fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-xl border-t border-gray-100 px-6 py-6 z-50">
                         <div class="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">

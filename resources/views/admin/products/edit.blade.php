@@ -63,6 +63,37 @@
                         </div>
                     </div>
 
+                        <div class="md:col-span-2 space-y-4">
+                            <div class="flex items-center justify-between ml-4">
+                                <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest block">Add-ons</label>
+                                <button type="button" onclick="addAddonRow()" class="text-xs font-bold text-blue-600 hover:text-blue-800 transition-colors uppercase tracking-wider flex items-center gap-1">
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                                    Add Option
+                                </button>
+                            </div>
+                            
+                            <div id="addons-container" class="space-y-3">
+                                @forelse($product->addons as $index => $addon)
+                                <div class="flex items-center gap-3 addon-row">
+                                    <input type="text" name="addons[{{ $index }}][name]" value="{{ $addon->name }}" placeholder="Name" class="flex-1 px-5 py-4 bg-gray-50 border-none rounded-2xl focus:ring-4 focus:ring-blue-500/5 transition-all font-bold text-gray-800 placeholder:text-gray-300">
+                                    <input type="number" step="0.01" name="addons[{{ $index }}][price]" value="{{ $addon->price }}" placeholder="Price" class="w-32 px-5 py-4 bg-gray-50 border-none rounded-2xl focus:ring-4 focus:ring-blue-500/5 transition-all font-bold text-gray-800 placeholder:text-gray-300">
+                                    <button type="button" onclick="removeAddonRow(this)" class="p-4 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-2xl transition-all">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                                    </button>
+                                </div>
+                                @empty
+                                <div class="flex items-center gap-3 addon-row">
+                                    <input type="text" name="addons[0][name]" placeholder="Name (e.g. Extra Shot)" class="flex-1 px-5 py-4 bg-gray-50 border-none rounded-2xl focus:ring-4 focus:ring-blue-500/5 transition-all font-bold text-gray-800 placeholder:text-gray-300">
+                                    <input type="number" step="0.01" name="addons[0][price]" placeholder="Price (RM)" class="w-32 px-5 py-4 bg-gray-50 border-none rounded-2xl focus:ring-4 focus:ring-blue-500/5 transition-all font-bold text-gray-800 placeholder:text-gray-300">
+                                    <button type="button" onclick="removeAddonRow(this)" class="p-4 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-2xl transition-all">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                                    </button>
+                                </div>
+                                @endforelse
+                            </div>
+                        </div>
+                    </div>
+
                     <button type="submit" class="w-full py-6 bg-blue-600 text-white rounded-[2rem] font-black text-lg shadow-2xl shadow-blue-200 hover:bg-gray-900 transition-all hover:-translate-y-1 active:scale-[0.98]">
                         UPDATE PRODUCT
                     </button>
@@ -82,6 +113,26 @@
                 placeholder.classList.add('hidden');
             };
             reader.readAsDataURL(event.target.files[0]);
+        }
+
+        let addonCount = {{ max(1, $product->addons ? $product->addons->count() : 1) }};
+        function addAddonRow() {
+            const container = document.getElementById('addons-container');
+            const newRow = document.createElement('div');
+            newRow.className = 'flex items-center gap-3 addon-row';
+            newRow.innerHTML = `
+                <input type="text" name="addons[${addonCount}][name]" placeholder="Name (e.g. Extra Shot)" class="flex-1 px-5 py-4 bg-gray-50 border-none rounded-2xl focus:ring-4 focus:ring-blue-500/5 transition-all font-bold text-gray-800 placeholder:text-gray-300">
+                <input type="number" step="0.01" name="addons[${addonCount}][price]" placeholder="Price (RM)" class="w-32 px-5 py-4 bg-gray-50 border-none rounded-2xl focus:ring-4 focus:ring-blue-500/5 transition-all font-bold text-gray-800 placeholder:text-gray-300">
+                <button type="button" onclick="removeAddonRow(this)" class="p-4 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-2xl transition-all">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            `;
+            container.appendChild(newRow);
+            addonCount++;
+        }
+
+        function removeAddonRow(button) {
+            button.closest('.addon-row').remove();
         }
     </script>
 </x-admin-layout>

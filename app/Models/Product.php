@@ -20,4 +20,9 @@ class Product extends Model
     {
         return $this->belongsTo(Menu::class);
     }
+
+    public function addons()
+    {
+        return $this->hasMany(ProductAddon::class);
+    }
 }

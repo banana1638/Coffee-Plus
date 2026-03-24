@@ -43,6 +43,19 @@ class ProductAdminController extends Controller
         }
 
         $product->save();
+
+        if ($request->has('addons') && is_array($request->addons)) {
+            foreach ($request->addons as $addonData) {
+                if (!empty($addonData['name']) && isset($addonData['price'])) {
+                    $addon = new \App\Models\ProductAddon();
+                    $addon->product_id = $product->id;
+                    $addon->name = $addonData['name'];
+                    $addon->price = $addonData['price'];
+                    $addon->save();
+                }
+            }
+        }
+
         return redirect()->route('admin.products.index')->with('success', 'Product created!');
     }
 
@@ -79,6 +92,22 @@ class ProductAdminController extends Controller
         }
 
         $product->save();
+
+        if ($request->has('addons') && is_array($request->addons)) {
+            $product->addons()->delete();
+            foreach ($request->addons as $addonData) {
+                if (!empty($addonData['name']) && isset($addonData['price'])) {
+                    $addon = new \App\Models\ProductAddon();
+                    $addon->product_id = $product->id;
+                    $addon->name = $addonData['name'];
+                    $addon->price = $addonData['price'];
+                    $addon->save();
+                }
+            }
+        } else {
+            $product->addons()->delete();
+        }
+
         return redirect()->route('admin.products.index')->with('success', 'Product updated!');
     }
 

@@ -8,7 +8,7 @@ class ProductController extends Controller
 {
     public function show($id)
     {
-        $product = Product::findOrFail($id);
+        $product = Product::with('addons')->findOrFail($id);
 
         $options = config('coffee.options');
 

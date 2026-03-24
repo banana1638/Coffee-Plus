@@ -31,7 +31,8 @@ class CartController extends Controller
             ->firstWhere('name', $request->size)['extra'] ?? 0;
 
         $selectedAddons = $request->input('addons', []);
-        $addonsTotal = collect($coffeeConfig['add_ons'])
+        
+        $addonsTotal = $product->addons()
             ->whereIn('name', $selectedAddons)
             ->sum('price');
 
