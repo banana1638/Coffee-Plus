@@ -25,12 +25,30 @@ class FavoriteController extends Controller
             'remark' => 'nullable|string',
         ]);
 
+        $addonsArray = $request->addons ?? [];
+        sort($addonsArray);
+
+        $existing = $request->user()->favorites()
+            ->where('product_id', $request->product_id)
+            ->where('size', $request->size)
+            ->where('temp', $request->temp)
+            ->get()
+            ->first(function ($item) use ($addonsArray) {
+                $itemAddons = is_array($item->addons) ? $item->addons : [];
+                sort($itemAddons);
+                return $itemAddons === $addonsArray;
+            });
+
+        if ($existing) {
+            return response()->json(['message' => 'Favorite already exists'], 409);
+        }
+
         $favorite = new Favorite();
         $favorite->user_id = $request->user()->id;
         $favorite->product_id = $request->product_id;
         $favorite->size = $request->size;
         $favorite->temp = $request->temp;
-        $favorite->addons = $request->addons ?? [];
+        $favorite->addons = $addonsArray;
         $favorite->remark = $request->remark;
         $favorite->save();
 

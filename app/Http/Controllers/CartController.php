@@ -33,15 +33,36 @@ class CartController extends Controller
             
         $finalUnitPrice = $product->price + $sizeExtra + $addonsTotal;
 
-        $cartItem = new CartItem();
-        $cartItem->user_id = Auth::id();
-        $cartItem->product_id = $request->product_id;
-        $cartItem->quantity = $request->quantity;
-        $cartItem->size = $request->size;
-        $cartItem->temp = $request->temp;
-        $cartItem->addons = $request->input('addons', []);
-        $cartItem->unit_price = $finalUnitPrice;
-        $cartItem->save();
+        $addonsArray = $request->input('addons', []);
+        sort($addonsArray);
+
+        /** @var \App\Models\CartItem|null $cartItem */
+        $cartItem = CartItem::where('user_id', Auth::id())
+            ->where('product_id', $request->product_id)
+            ->where('size', $request->size)
+            ->where('temp', $request->temp)
+            ->get()
+            ->first(function ($item) use ($addonsArray) {
+                $itemAddons = is_array($item->addons) ? $item->addons : [];
+                sort($itemAddons);
+                return $itemAddons === $addonsArray;
+            });
+
+        if ($cartItem) {
+            $cartItem->quantity += $request->quantity;
+            $cartItem->unit_price = $finalUnitPrice;
+            $cartItem->save();
+        } else {
+            $cartItem = new CartItem();
+            $cartItem->user_id = Auth::id();
+            $cartItem->product_id = $request->product_id;
+            $cartItem->quantity = $request->quantity;
+            $cartItem->size = $request->size;
+            $cartItem->temp = $request->temp;
+            $cartItem->addons = $addonsArray;
+            $cartItem->unit_price = $finalUnitPrice;
+            $cartItem->save();
+        }
 
         $cartCount = CartItem::where('user_id', Auth::id())->sum('quantity');
 

@@ -16,22 +16,32 @@ class DashboardController extends Controller
         $search = $request->input('search');
         $category = $request->input('category', 'all');
 
-        $cacheKey = 'dashboard_menus_' . $category . '_' . ($search ?? 'none');
-
-        $menus = Cache::remember($cacheKey, 600, function () use ($search, $category) {
-            return Menu::with([
-                'products' => function ($query) use ($search) {
-                    if ($search) {
-                        $query->where('name', 'like', '%' . $search . '%');
-                    }
-                    $query->where('is_active', true);
+        $query = Menu::whereHas('products', function ($q) use ($search) {
+            $q->where('is_active', true);
+            if ($search) {
+                $q->where('name', 'like', '%' . $search . '%');
+            }
+        })
+        ->with([
+            'products' => function ($q) use ($search) {
+                $q->where('is_active', true);
+                if ($search) {
+                    $q->where('name', 'like', '%' . $search . '%');
                 }
-            ])
-                ->when($category !== 'all', function ($query) use ($category) {
-                    return $query->where('name', $category);
-                })
-                ->get();
+            }
+        ])
+        ->when($category !== 'all', function ($q) use ($category) {
+            return $q->where('name', $category);
         });
+
+        if (empty($search)) {
+            $cacheKey = 'dashboard_menus_' . $category;
+            $menus = Cache::remember($cacheKey, 600, function () use ($query) {
+                return $query->get();
+            });
+        } else {
+            $menus = $query->get();
+        }
 
         $allCategoryNames = Cache::remember('menu_category_names', 3600, function () {
             return Menu::pluck('name');

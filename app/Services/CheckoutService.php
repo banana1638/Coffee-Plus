@@ -52,7 +52,10 @@ class CheckoutService
                 $orderItem->price = $item->product->price;
 
                 if ($isRedeem) {
-                    $ozNeeded = (int) ($unitPrice * 100 * $item->quantity);
+                    $baseOzNeeded = $item->product->oz_redeem_value > 0 
+                        ? $item->product->oz_redeem_value 
+                        : (int) ($unitPrice * 100);
+                    $ozNeeded = $baseOzNeeded * $item->quantity;
                     $totalOzToDrain += $ozNeeded;
                     $orderItem->oz_at_time = $ozNeeded;
                     $orderItem->price_at_time = 0;

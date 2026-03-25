@@ -20,7 +20,7 @@ class OrderController extends Controller
         $useOzIds = $request->input('use_oz', []);
 
         try {
-            $order = $this->checkoutService->processCheckout($useOzIds);
+            $order = $this->checkoutService->processCheckout($request->user(), $useOzIds);
 
             $order->load(['items.product']);
 

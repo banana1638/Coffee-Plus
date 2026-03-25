@@ -37,15 +37,36 @@ class CartController extends Controller
 
         $finalUnitPrice = $product->price + $sizeExtra + $addonsTotal;
 
-        $cartItem = new CartItem();
-        $cartItem->user_id = Auth::id();
-        $cartItem->product_id = $request->product_id;
-        $cartItem->quantity = $request->quantity;
-        $cartItem->size = $request->size;
-        $cartItem->temp = $request->temp;
-        $cartItem->addons = $request->input('addons', []);
-        $cartItem->unit_price = $finalUnitPrice;
-        $cartItem->save();
+        $addonsArray = $request->input('addons', []);
+        sort($addonsArray);
+
+        /** @var \App\Models\CartItem|null $cartItem */
+        $cartItem = CartItem::where('user_id', Auth::id())
+            ->where('product_id', $request->product_id)
+            ->where('size', $request->size)
+            ->where('temp', $request->temp)
+            ->get()
+            ->first(function ($item) use ($addonsArray) {
+                $itemAddons = is_array($item->addons) ? $item->addons : [];
+                sort($itemAddons);
+                return $itemAddons === $addonsArray;
+            });
+
+        if ($cartItem) {
+            $cartItem->quantity += $request->quantity;
+            $cartItem->unit_price = $finalUnitPrice;
+            $cartItem->save();
+        } else {
+            $cartItem = new CartItem();
+            $cartItem->user_id = Auth::id();
+            $cartItem->product_id = $request->product_id;
+            $cartItem->quantity = $request->quantity;
+            $cartItem->size = $request->size;
+            $cartItem->temp = $request->temp;
+            $cartItem->addons = $addonsArray;
+            $cartItem->unit_price = $finalUnitPrice;
+            $cartItem->save();
+        }
 
         $cartCount = CartItem::where('user_id', Auth::id())->sum('quantity');
 
@@ -69,13 +90,21 @@ class CartController extends Controller
     public function update(Request $request)
     {
         $request->validate([
-            'product_id' => 'required|exists:products,id',
             'quantity' => 'required|integer|min:1',
         ]);
 
-        CartItem::where('user_id', Auth::id())
-            ->where('product_id', $request->product_id)
-            ->update(['quantity' => $request->quantity]);
+        if ($request->has('cart_item_id')) {
+            $request->validate(['cart_item_id' => 'exists:cart_items,id']);
+            CartItem::where('user_id', Auth::id())
+                ->where('id', $request->cart_item_id)
+                ->update(['quantity' => $request->quantity]);
+        } else {
+            // Fallback for old clients
+            $request->validate(['product_id' => 'required|exists:products,id']);
+            CartItem::where('user_id', Auth::id())
+                ->where('product_id', $request->product_id)
+                ->update(['quantity' => $request->quantity]);
+        }
 
         return Response::json([
             'status' => 'success',
@@ -85,13 +114,17 @@ class CartController extends Controller
 
     public function destroy(Request $request)
     {
-        $request->validate([
-            'product_id' => 'required|exists:products,id',
-        ]);
-
-        CartItem::where('user_id', Auth::id())
-            ->where('product_id', $request->product_id)
-            ->delete();
+        if ($request->has('cart_item_id')) {
+            $request->validate(['cart_item_id' => 'exists:cart_items,id']);
+            CartItem::where('user_id', Auth::id())
+                ->where('id', $request->cart_item_id)
+                ->delete();
+        } else {
+            $request->validate(['product_id' => 'required|exists:products,id']);
+            CartItem::where('user_id', Auth::id())
+                ->where('product_id', $request->product_id)
+                ->delete();
+        }
 
         return Response::json([
             'status' => 'success',

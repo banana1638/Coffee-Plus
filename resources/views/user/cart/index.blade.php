@@ -120,7 +120,7 @@
                                     <span id="btn-text">Use Balance</span>
                                 </button>
                                 
-                                <button type="button" onclick="document.getElementById('stripe-real-form').submit();" class="bg-blue-600 hover:bg-blue-500 text-white px-10 py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all shadow-lg">
+                                <button type="submit" form="checkout-form" formaction="{{ route('stripe.checkout') }}" class="bg-blue-600 hover:bg-blue-500 text-white px-10 py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all shadow-lg">
                                     Pay with Stripe
                                 </button>
                             </div>
@@ -128,10 +128,7 @@
                     </div>
                 </form>
 
-                <form id="stripe-real-form" action="{{ route('stripe.checkout') }}" method="POST" class="hidden">
-                    @csrf
-                </form>
-            @endif
+
         </div>
     </div>
 

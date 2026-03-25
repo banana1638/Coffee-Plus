@@ -20,13 +20,20 @@ class FavoriteController extends Controller
 
         $user = Auth::user();
 
-        // Find existing favorite with same options
+        $addonsArray = $request->addons ?? [];
+        sort($addonsArray);
+
+        /** @var \App\Models\Favorite|null $favorite */
         $favorite = Favorite::where('user_id', $user->id)
             ->where('product_id', $request->product_id)
             ->where('size', $request->size)
             ->where('temp', $request->temp)
-            ->where('addons', json_encode($request->addons ?? []))
-            ->first();
+            ->get()
+            ->first(function ($item) use ($addonsArray) {
+                $itemAddons = is_array($item->addons) ? $item->addons : [];
+                sort($itemAddons);
+                return $itemAddons === $addonsArray;
+            });
 
         if ($favorite) {
             $favorite->delete();
@@ -38,7 +45,7 @@ class FavoriteController extends Controller
         $favorite->product_id = $request->product_id;
         $favorite->size = $request->size;
         $favorite->temp = $request->temp;
-        $favorite->addons = $request->addons ?? [];
+        $favorite->addons = $addonsArray;
         $favorite->remark = $request->remark ?? '';
         $favorite->save();
 
@@ -51,12 +58,19 @@ class FavoriteController extends Controller
         if (!$user)
             return response()->json(['is_favorite' => false]);
 
+        $addonsArray = $request->addons ?? [];
+        sort($addonsArray);
+
         $isFavorite = Favorite::where('user_id', $user->id)
             ->where('product_id', $request->product_id)
             ->where('size', $request->size)
             ->where('temp', $request->temp)
-            ->where('addons', json_encode($request->addons ?? []))
-            ->exists();
+            ->get()
+            ->contains(function ($item) use ($addonsArray) {
+                $itemAddons = is_array($item->addons) ? $item->addons : [];
+                sort($itemAddons);
+                return $itemAddons === $addonsArray;
+            });
 
         return response()->json(['is_favorite' => $isFavorite]);
     }

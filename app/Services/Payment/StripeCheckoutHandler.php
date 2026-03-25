@@ -18,6 +18,13 @@ class StripeCheckoutHandler implements PaymentCompletionHandler
 
     public function handle(PaymentResult $result, User $user)
     {
-        return $this->checkoutService->processCheckout([]);
+        $metadata = $result->metadata;
+        $useOzIds = [];
+        
+        if (isset($metadata['use_oz'])) {
+            $useOzIds = json_decode($metadata['use_oz'], true) ?? [];
+        }
+
+        return $this->checkoutService->processCheckout($user, $useOzIds);
     }
 }

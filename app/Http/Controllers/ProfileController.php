@@ -28,23 +28,24 @@ class ProfileController extends Controller
      */
     public function update(ProfileUpdateRequest $request): RedirectResponse
     {
-        $validated = $request->validated();
         $user = $request->user();
+        $validated = $request->validated();
 
         if (isset($validated['name'])) {
             $user->name = $validated['name'];
         }
-        if (isset($validated['email'])) {
-            if ($user->email !== $validated['email']) {
-                $user->email = $validated['email'];
-                $user->email_verified_at = null;
-            }
+
+        if (isset($validated['email']) && $user->email !== $validated['email']) {
+            $user->email = $validated['email'];
+            $user->email_verified_at = null;
         }
+
         if (array_key_exists('phone', $validated)) {
-            $user->phone = $validated['phone'];
+            $user->setAttribute('phone', $validated['phone']);
         }
+
         if (array_key_exists('address', $validated)) {
-            $user->address = $validated['address'];
+            $user->setAttribute('address', $validated['address']);
         }
 
         $user->save();

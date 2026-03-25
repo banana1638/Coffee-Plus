@@ -26,6 +26,7 @@ class PaymentController extends Controller
     {
         $user = Auth::user();
         $cartItems = CartItem::where('user_id', $user->id)->with('product')->get();
+        $useOzIds = $request->input('use_oz', []);
 
         if ($cartItems->isEmpty()) {
             return redirect()->route('cart.index')->with('error', 'Your cart is empty.');
@@ -33,12 +34,16 @@ class PaymentController extends Controller
 
         $items = [];
         foreach ($cartItems as $item) {
+            if (in_array($item->id, $useOzIds)) {
+                continue; // Skip items paid with OZ
+            }
+
             $items[] = [
                 'price_data' => [
                     'currency' => 'myr',
                     'product_data' => [
                         'name' => $item->product->name,
-                        'description' => "{$item->size}, {$item->temp}" . ($item->addons ? ", +{$item->addons}" : ""),
+                        'description' => "{$item->size}, {$item->temp}" . (!empty($item->addons) ? ", +" . implode(', ', $item->addons) : ""),
                     ],
                     'unit_amount' => (int) ($item->unit_price * 100),
                 ],
@@ -46,9 +51,15 @@ class PaymentController extends Controller
             ];
         }
 
+        // If everything is fully paid by OZ, just route to normal checkout directly
+        if (empty($items)) {
+            return app(\App\Http\Controllers\OrderController::class)->checkout($request);
+        }
+
         $url = $this->gateway->createCheckoutUrl($user, $items, [
             'type' => 'checkout',
             'user_id' => $user->id,
+            'use_oz' => json_encode($useOzIds)
         ]);
 
         return Redirect::away($url);
