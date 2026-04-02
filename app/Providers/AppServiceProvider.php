@@ -38,18 +38,18 @@ class AppServiceProvider extends ServiceProvider
             $cartCount = $isRegularUser ? $user->cartItems()->sum('quantity') : 0;
 
             // Notifications might exist for both, but let's be safe.
-            $notificationsQuery = method_exists($user, 'unreadNotifications')
-                ? $user->unreadNotifications()
-                : null;
+            $allNotifications = method_exists($user, 'notifications')
+                ? $user->notifications()->latest()->limit(10)->get()
+                : collect();
+
+            $unreadCount = method_exists($user, 'unreadNotifications')
+                ? $user->unreadNotifications()->count()
+                : 0;
 
             $view->with([
                 'cartCount' => $cartCount,
-                'navbarNotifications' => $notificationsQuery
-                    ? $notificationsQuery->latest()->limit(10)->get()
-                    : collect(),
-                'navbarUnreadCount' => $notificationsQuery
-                    ? (clone $notificationsQuery)->count()
-                    : 0,
+                'navbarNotifications' => $allNotifications,
+                'navbarUnreadCount' => $unreadCount,
             ]);
         });
     }

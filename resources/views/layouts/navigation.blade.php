@@ -68,28 +68,84 @@
                         </button>
 
                         <div x-show="activeMenu === 'notification'" x-cloak x-transition class="absolute right-0 mt-4 w-80 bg-white
-                                                rounded-[1.5rem] shadow-2xl border border-gray-100 z-50 overflow-hidden">
-                            <!-- ... (notifications content) ... -->
-                            <div class="px-5 py-4 border-b bg-gray-50 flex justify-between items-center">
+                                                rounded-[2rem] shadow-2xl border border-gray-100 z-50 overflow-hidden ring-1 ring-black/5">
+                            <div class="px-6 py-4 border-b bg-gray-50/50 flex justify-between items-center">
                                 <span class="text-[10px] font-black text-gray-400 uppercase tracking-widest">
                                     Notifications
                                 </span>
+                                @if($navbarUnreadCount > 0)
+                                    <a href="{{ route('notifications.markAllAsRead') }}"
+                                        class="text-[9px] font-black text-blue-600 uppercase tracking-widest hover:text-blue-700 transition-colors">
+                                        Mark all as read
+                                    </a>
+                                @endif
                             </div>
-                            <div class="max-h-64 overflow-y-auto">
+                            <div class="max-h-96 overflow-y-auto divide-y divide-gray-50">
                                 @forelse($navbarNotifications as $notification)
                                     <div
-                                        class="px-5 py-4 hover:bg-blue-50/50 border-b border-gray-50 last:border-0 transition-colors">
-                                        <p class="text-xs text-gray-800 font-bold">
-                                            {{ $notification->data['message'] ?? 'New notification' }}
-                                        </p>
-                                        <p class="text-[9px] text-gray-400 mt-1 uppercase font-black tracking-tighter">
-                                            Order #{{ $notification->data['bill_id'] ?? 'N/A' }}
-                                            • {{ $notification->created_at->diffForHumans() }}
-                                        </p>
+                                        class="group relative flex items-start px-6 py-4 transition-all duration-200 {{ $notification->read_at ? 'opacity-75' : 'bg-blue-50/30' }} hover:bg-gray-50">
+
+                                        {{-- Unread Dot --}}
+                                        @if(!$notification->read_at)
+                                            <div
+                                                class="absolute left-2 top-1/2 -translate-y-1/2 w-1.5 h-1.5 bg-blue-600 rounded-full shadow-[0_0_8px_rgba(37,99,235,0.5)]">
+                                            </div>
+                                        @endif
+
+                                        <div class="flex-1 min-w-0 pr-8">
+                                            <a href="{{ route('notifications.markAsRead', $notification->id) }}"
+                                                class="block">
+                                                <p
+                                                    class="text-[13px] leading-snug {{ $notification->read_at ? 'text-gray-600 font-medium' : 'text-gray-900 font-bold' }}">
+                                                    {{ $notification->data['message'] ?? 'New notification' }}
+                                                </p>
+                                                <div class="flex items-center mt-1.5 space-x-2">
+                                                    <span
+                                                        class="text-[9px] font-black text-gray-400 uppercase tracking-widest">
+                                                        #{{ $notification->data['bill_id'] ?? 'N/A' }}
+                                                    </span>
+                                                    <span class="text-[9px] font-black text-gray-300">•</span>
+                                                    <span
+                                                        class="text-[9px] font-black text-gray-400 uppercase tracking-widest">
+                                                        {{ $notification->created_at->diffForHumans() }}
+                                                    </span>
+                                                </div>
+                                            </a>
+                                        </div>
+
+                                        {{-- Delete Button --}}
+                                        <div
+                                            class="absolute right-4 top-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <form action="{{ route('notifications.destroy', $notification->id) }}"
+                                                method="POST" onsubmit="return confirm('Delete this notification?')">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit"
+                                                    class="p-1.5 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor"
+                                                        viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                                            stroke-width="2"
+                                                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                    </svg>
+                                                </button>
+                                            </form>
+                                        </div>
                                     </div>
                                 @empty
-                                    <div class="px-5 py-8 text-center text-gray-400">
-                                        <p class="text-xs font-bold uppercase tracking-widest">Empty tank ☕</p>
+                                    <div class="px-6 py-12 text-center">
+                                        <div
+                                            class="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                                            <svg class="w-8 h-8 text-gray-200" fill="none" stroke="currentColor"
+                                                viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                                    d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                                            </svg>
+                                        </div>
+                                        <p class="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">No
+                                            Notifications</p>
+                                        <p class="text-[9px] text-gray-300 mt-1 uppercase font-black">Everything is up
+                                            to date ☕</p>
                                     </div>
                                 @endforelse
                             </div>
