@@ -8,21 +8,20 @@ use Illuminate\Support\Facades\DB;
 class CheckoutService
 {
     /**
-     * Process the checkout for the authenticated user.
-     *
-     * @param array $useOzIds
-     * @return Order
-     * @throws \Exception
+     * Process checkout
      */
     public function processCheckout(User $user, array $useOzIds): Order
     {
-        $cartItems = CartItem::where('user_id', $user->id)->with('product')->get();
+        $cartItems = CartItem::where('user_id', $user->id)
+            ->with('product')
+            ->get();
 
         if ($cartItems->isEmpty()) {
             throw new \Exception('Your cart is empty.');
         }
 
         return DB::transaction(function () use ($user, $cartItems, $useOzIds) {
+
             $totalCashToPay = 0;
             $totalOzToDrain = 0;
             $totalRewardOz = 0;
@@ -37,13 +36,17 @@ class CheckoutService
             $order->save();
 
             foreach ($cartItems as $item) {
+
                 $unitPrice = $item->unit_price;
+                $quantity = $item->quantity;
+                $itemTotal = $unitPrice * $quantity;
+
                 $isRedeem = in_array($item->id, $useOzIds);
 
                 $orderItem = new OrderItem();
                 $orderItem->order_id = $order->id;
                 $orderItem->product_id = $item->product_id;
-                $orderItem->quantity = $item->quantity;
+                $orderItem->quantity = $quantity;
                 $orderItem->options = [
                     'size' => $item->size,
                     'temp' => $item->temp,
@@ -51,51 +54,103 @@ class CheckoutService
                 ];
                 $orderItem->price = $item->product->price;
 
+                // =========================
+                // OZ 兑换逻辑
+                // =========================
                 if ($isRedeem) {
-                    $baseOzNeeded = $item->product->oz_redeem_value > 0 
-                        ? $item->product->oz_redeem_value 
-                        : (int) ($unitPrice * 100);
-                    $ozNeeded = $baseOzNeeded * $item->quantity;
+
+                    $ozNeeded = (int) ($itemTotal * 100);
+
                     $totalOzToDrain += $ozNeeded;
+
                     $orderItem->oz_at_time = $ozNeeded;
                     $orderItem->price_at_time = 0;
-                } else {
-                    $itemTotal = $unitPrice * $item->quantity;
+                }
+
+                // =========================
+                // 现金支付逻辑
+                // =========================
+                else {
+
                     $totalCashToPay += $itemTotal;
+
                     $orderItem->oz_at_time = 0;
                     $orderItem->price_at_time = $unitPrice;
-                    $totalRewardOz += (int) ($itemTotal * 50);
+
+                    // ⭐ 奖励 OZ（只在现金支付时）
+                    $totalRewardOz += (int) (($itemTotal * 100) / 2);
                 }
+
                 $orderItem->save();
             }
 
+            // =========================
+            // 余额检查
+            // =========================
             if ($user->tangki_oz < $totalOzToDrain) {
-                throw new \Exception("Insufficient OZ Balance. You need " . number_format($totalOzToDrain) . " OZ.");
-            }
-            if ($user->tangki_balance < $totalCashToPay) {
-                throw new \Exception("Insufficient Account Balance. Required: RM " . number_format($totalCashToPay, 2));
+                throw new \Exception(
+                    "Insufficient OZ Balance. Required: " . number_format($totalOzToDrain)
+                );
             }
 
-            // Update User Balances
-            $user->tangki_oz -= $totalOzToDrain;
-            $user->tangki_oz += $totalRewardOz;
-            $user->tangki_balance -= $totalCashToPay;
+            if ($user->tangki_balance < $totalCashToPay) {
+                throw new \Exception(
+                    "Insufficient Balance. Required: RM " . number_format($totalCashToPay, 2)
+                );
+            }
+
+            // =========================
+            // 更新用户资产
+            // =========================
+
+            // 扣 OZ（兑换）
+            if ($totalOzToDrain > 0) {
+                $user->tangki_oz -= $totalOzToDrain;
+            }
+
+            // 扣 balance + 加奖励 OZ
+            if ($totalCashToPay > 0) {
+                $user->tangki_balance -= $totalCashToPay;
+                $user->tangki_oz += $totalRewardOz;
+            }
+
             $user->save();
 
+            // =========================
+            // 更新订单
+            // =========================
             $order->subtotal = $totalCashToPay + ($totalOzToDrain / 100);
             $order->final_amount = $totalCashToPay;
             $order->oz_used = $totalOzToDrain;
             $order->save();
 
-            // Log Transactions
+            // =========================
+            // 交易记录
+            // =========================
+
             if ($totalOzToDrain > 0) {
-                $this->logTransaction($user->id, $order->bill_id, -$totalOzToDrain, 'drain', "Cart Redemption (Order: {$order->bill_id})");
-            }
-            if ($totalRewardOz > 0) {
-                $this->logTransaction($user->id, $order->bill_id, $totalRewardOz, 'refill', "Cart Purchase Reward (Order: {$order->bill_id})");
+                $this->logTransaction(
+                    $user->id,
+                    $order->bill_id,
+                    -$totalOzToDrain,
+                    'drain',
+                    "OZ Redeem (Order: {$order->bill_id})"
+                );
             }
 
-            // Clear Cart
+            if ($totalRewardOz > 0) {
+                $this->logTransaction(
+                    $user->id,
+                    $order->bill_id,
+                    $totalRewardOz,
+                    'refill',
+                    "Cash Reward (Order: {$order->bill_id})"
+                );
+            }
+
+            // =========================
+            // 清空购物车
+            // =========================
             CartItem::where('user_id', $user->id)->delete();
 
             return $order;
@@ -103,17 +158,15 @@ class CheckoutService
     }
 
     /**
-     * Log a transaction for the user.
-     *
-     * @param int $userId
-     * @param string $billId
-     * @param int $delta
-     * @param string $type
-     * @param string $desc
-     * @return void
+     * Log transaction
      */
-    private function logTransaction(int $userId, string $billId, int $delta, string $type, string $desc): void
-    {
+    private function logTransaction(
+        int $userId,
+        string $billId,
+        int $delta,
+        string $type,
+        string $desc
+    ): void {
         $transaction = new Transaction();
         $transaction->user_id = $userId;
         $transaction->bill_id = $billId;
