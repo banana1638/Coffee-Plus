@@ -2,13 +2,19 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\CartItem;
-use App\Models\Product;
+use App\Contracts\CartServiceInterface;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class CartController extends Controller
 {
+    protected CartServiceInterface $cartService;
+
+    public function __construct(CartServiceInterface $cartService)
+    {
+        $this->cartService = $cartService;
+    }
+
     public function add(Request $request)
     {
         $request->validate([
@@ -19,52 +25,16 @@ class CartController extends Controller
             'addons' => 'nullable|array',
         ]);
 
-        $product = Product::findOrFail($request->product_id);
-        $coffeeConfig = config('coffee.options');
+        $this->cartService->add(
+            Auth::user(),
+            (int) $request->product_id,
+            (int) $request->quantity,
+            $request->size,
+            $request->temp,
+            $request->input('addons', []) ?? []
+        );
 
-        $sizeExtra = collect($coffeeConfig['sizes'])
-            ->firstWhere('name', $request->size)['extra'] ?? 0;
-            
-        $selectedAddons = $request->input('addons', []);
-        
-        $addonsTotal = $product->addons()
-            ->whereIn('name', $selectedAddons)
-            ->sum('price');
-            
-        $finalUnitPrice = $product->price + $sizeExtra + $addonsTotal;
-
-        $addonsArray = $request->input('addons', []);
-        sort($addonsArray);
-
-        /** @var \App\Models\CartItem|null $cartItem */
-        $cartItem = CartItem::where('user_id', Auth::id())
-            ->where('product_id', $request->product_id)
-            ->where('size', $request->size)
-            ->where('temp', $request->temp)
-            ->get()
-            ->first(function ($item) use ($addonsArray) {
-                $itemAddons = is_array($item->addons) ? $item->addons : [];
-                sort($itemAddons);
-                return $itemAddons === $addonsArray;
-            });
-
-        if ($cartItem) {
-            $cartItem->quantity += $request->quantity;
-            $cartItem->unit_price = $finalUnitPrice;
-            $cartItem->save();
-        } else {
-            $cartItem = new CartItem();
-            $cartItem->user_id = Auth::id();
-            $cartItem->product_id = $request->product_id;
-            $cartItem->quantity = $request->quantity;
-            $cartItem->size = $request->size;
-            $cartItem->temp = $request->temp;
-            $cartItem->addons = $addonsArray;
-            $cartItem->unit_price = $finalUnitPrice;
-            $cartItem->save();
-        }
-
-        $cartCount = CartItem::where('user_id', Auth::id())->sum('quantity');
+        $cartCount = $this->cartService->getCartCount(Auth::user());
 
         return response()->json([
             'status' => 'success',
@@ -75,7 +45,7 @@ class CartController extends Controller
 
     public function index()
     {
-        $cartItems = CartItem::with('product')->where('user_id', Auth::id())->get();
+        $cartItems = $this->cartService->getCartItems(Auth::user());
         return view('user.cart.index', compact('cartItems'));
     }
 }

@@ -2,32 +2,26 @@
 
 namespace App\Services;
 
-class TangkiService {
-    public static function drain($user, $ozAmount, $billId) {
-        if ($user->tangki_oz < $ozAmount) return false;
-        
-        $user->decrement('tangki_oz', $ozAmount);
-        $user->transactions()->create([
-            'bill_id' => $billId,
-            'oz_delta' => -$ozAmount,
-            'type' => 'drain',
-            'description' => 'Redeemed items'
-        ]);
-        return true;
-    }
+use App\Contracts\TangkiServiceInterface;
+use App\Models\User;
+use App\Models\Order;
+use App\Models\Transaction;
+use Illuminate\Support\Facades\DB;
 
+class TangkiService implements TangkiServiceInterface
+{
     /**
-     * Handle account balance refill.
+     * Refill user's account balance and reward them with OZ.
      */
-    public static function refill($user, $amount, $billId)
+    public function refillBalance(User $user, float $amount, string $billId): bool
     {
         $ozToInject = (int) ($amount * 10);
 
-        \Illuminate\Support\Facades\DB::transaction(function () use ($user, $amount, $ozToInject, $billId) {
+        DB::transaction(function () use ($user, $amount, $ozToInject, $billId) {
             $user->increment('tangki_balance', $amount);
             $user->increment('tangki_oz', $ozToInject);
 
-            $order = new \App\Models\Order();
+            $order = new Order();
             $order->user_id = $user->id;
             $order->bill_id = $billId;
             $order->subtotal = $amount;
@@ -36,7 +30,7 @@ class TangkiService {
             $order->status = 'completed';
             $order->save();
 
-            $transaction = new \App\Models\Transaction();
+            $transaction = new Transaction();
             $transaction->user_id = $user->id;
             $transaction->bill_id = $billId;
             $transaction->oz_delta = $ozToInject;
@@ -44,6 +38,53 @@ class TangkiService {
             $transaction->description = "Refilled RM" . number_format($amount, 2) . " (Earned {$ozToInject} OZ)";
             $transaction->save();
         });
+
+        return true;
+    }
+
+    /**
+     * Drain user's OZ balance.
+     */
+    public function drainOz(User $user, int $ozAmount, string $billId, string $description = 'Redeemed items'): bool
+    {
+        if ($user->tangki_oz < $ozAmount) {
+            return false;
+        }
+
+        $user->decrement('tangki_oz', $ozAmount);
+
+        $transaction = new Transaction();
+        $transaction->user_id = $user->id;
+        $transaction->bill_id = $billId;
+        $transaction->oz_delta = -$ozAmount;
+        $transaction->type = 'drain';
+        $transaction->description = $description;
+        $transaction->save();
+
+        return true;
+    }
+
+    /**
+     * Deduct user's cash balance and reward them with OZ.
+     */
+    public function deductBalanceAndRewardOz(User $user, float $amount, int $rewardOz, string $billId, string $description): bool
+    {
+        if ($user->tangki_balance < $amount) {
+            return false;
+        }
+
+        $user->decrement('tangki_balance', $amount);
+        if ($rewardOz > 0) {
+            $user->increment('tangki_oz', $rewardOz);
+
+            $transaction = new Transaction();
+            $transaction->user_id = $user->id;
+            $transaction->bill_id = $billId;
+            $transaction->oz_delta = $rewardOz;
+            $transaction->type = 'refill';
+            $transaction->description = $description;
+            $transaction->save();
+        }
 
         return true;
     }

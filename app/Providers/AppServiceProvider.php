@@ -19,6 +19,38 @@ class AppServiceProvider extends ServiceProvider
             \App\Contracts\PaymentGatewayInterface::class,
             \App\Services\Payment\Gateways\StripeGateway::class
         );
+
+        $this->app->bind(
+            \App\Contracts\PricingServiceInterface::class,
+            \App\Services\PricingService::class
+        );
+
+        $this->app->bind(
+            \App\Contracts\CartServiceInterface::class,
+            \App\Services\CartService::class
+        );
+
+        $this->app->bind(
+            \App\Contracts\FavoriteServiceInterface::class,
+            \App\Services\FavoriteService::class
+        );
+
+        $this->app->bind(
+            \App\Contracts\TangkiServiceInterface::class,
+            \App\Services\TangkiService::class
+        );
+
+        $this->app->bind(
+            \App\Contracts\CheckoutServiceInterface::class,
+            \App\Services\CheckoutService::class
+        );
+
+        $this->app->singleton(\App\Services\Payment\PaymentHandlerFactory::class, function ($app) {
+            return new \App\Services\Payment\PaymentHandlerFactory([
+                'refill' => \App\Services\Payment\RefillHandler::class,
+                'checkout' => \App\Services\Payment\StripeCheckoutHandler::class,
+            ]);
+        });
     }
 
     /**

@@ -2,15 +2,22 @@
 
 namespace App\Http\Controllers\API;
 
+use App\Contracts\TangkiServiceInterface;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Api\TransactionResource;
 use App\Http\Resources\Api\UserResource;
-use App\Services\TangkiService;
 
 class TangkiController extends Controller
 {
+    protected TangkiServiceInterface $tangkiService;
+
+    public function __construct(TangkiServiceInterface $tangkiService)
+    {
+        $this->tangkiService = $tangkiService;
+    }
+
     public function index()
     {
         $transactions = Auth::user()->transactions()->with(['bill.items.product'])->latest()->take(5)->get();
@@ -35,7 +42,7 @@ class TangkiController extends Controller
         $billId = 'TOPUP-' . strtoupper(uniqid());
 
         try {
-            TangkiService::refill($user, $amount, $billId);
+            $this->tangkiService->refillBalance($user, $amount, $billId);
 
             return response()->json([
                 'status' => 'success',

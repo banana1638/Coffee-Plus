@@ -2,12 +2,19 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Favorite;
+use App\Contracts\FavoriteServiceInterface;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class FavoriteController extends Controller
 {
+    protected FavoriteServiceInterface $favoriteService;
+
+    public function __construct(FavoriteServiceInterface $favoriteService)
+    {
+        $this->favoriteService = $favoriteService;
+    }
+
     public function toggle(Request $request)
     {
         $request->validate([
@@ -18,67 +25,39 @@ class FavoriteController extends Controller
             'remark' => 'nullable|string',
         ]);
 
-        $user = Auth::user();
+        $status = $this->favoriteService->toggle(
+            Auth::user(),
+            (int) $request->product_id,
+            $request->size,
+            $request->temp,
+            $request->input('addons', []) ?? [],
+            $request->remark
+        );
 
-        $addonsArray = $request->addons ?? [];
-        sort($addonsArray);
-
-        /** @var \App\Models\Favorite|null $favorite */
-        $favorite = Favorite::where('user_id', $user->id)
-            ->where('product_id', $request->product_id)
-            ->where('size', $request->size)
-            ->where('temp', $request->temp)
-            ->get()
-            ->first(function ($item) use ($addonsArray) {
-                $itemAddons = is_array($item->addons) ? $item->addons : [];
-                sort($itemAddons);
-                return $itemAddons === $addonsArray;
-            });
-
-        if ($favorite) {
-            $favorite->delete();
-            return response()->json(['status' => 'removed']);
-        }
-
-        $favorite = new Favorite();
-        $favorite->user_id = $user->id;
-        $favorite->product_id = $request->product_id;
-        $favorite->size = $request->size;
-        $favorite->temp = $request->temp;
-        $favorite->addons = $addonsArray;
-        $favorite->remark = $request->remark ?? '';
-        $favorite->save();
-
-        return response()->json(['status' => 'added']);
+        return response()->json(['status' => $status]);
     }
 
     public function check(Request $request)
     {
         $user = Auth::user();
-        if (!$user)
+        if (!$user) {
             return response()->json(['is_favorite' => false]);
+        }
 
-        $addonsArray = $request->addons ?? [];
-        sort($addonsArray);
-
-        $isFavorite = Favorite::where('user_id', $user->id)
-            ->where('product_id', $request->product_id)
-            ->where('size', $request->size)
-            ->where('temp', $request->temp)
-            ->get()
-            ->contains(function ($item) use ($addonsArray) {
-                $itemAddons = is_array($item->addons) ? $item->addons : [];
-                sort($itemAddons);
-                return $itemAddons === $addonsArray;
-            });
+        $isFavorite = $this->favoriteService->check(
+            $user,
+            (int) $request->product_id,
+            $request->size,
+            $request->temp,
+            $request->input('addons', []) ?? []
+        );
 
         return response()->json(['is_favorite' => $isFavorite]);
     }
 
     public function destroy($id)
     {
-        $favorite = Favorite::where('user_id', Auth::id())->findOrFail($id);
-        $favorite->delete();
+        $this->favoriteService->delete(Auth::user(), (int) $id);
         return response()->json(['status' => 'success']);
     }
 }

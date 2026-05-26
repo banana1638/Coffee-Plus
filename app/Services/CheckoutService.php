@@ -2,11 +2,20 @@
 
 namespace App\Services;
 
-use App\Models\{CartItem, Order, OrderItem, Transaction, User};
+use App\Contracts\CheckoutServiceInterface;
+use App\Contracts\TangkiServiceInterface;
+use App\Models\{CartItem, Order, OrderItem, User};
 use Illuminate\Support\Facades\DB;
 
-class CheckoutService
+class CheckoutService implements CheckoutServiceInterface
 {
+    protected TangkiServiceInterface $tangkiService;
+
+    public function __construct(TangkiServiceInterface $tangkiService)
+    {
+        $this->tangkiService = $tangkiService;
+    }
+
     /**
      * Process checkout
      */
@@ -58,11 +67,8 @@ class CheckoutService
                 // OZ 兑换逻辑
                 // =========================
                 if ($isRedeem) {
-
                     $ozNeeded = (int) ($itemTotal * 100);
-
                     $totalOzToDrain += $ozNeeded;
-
                     $orderItem->oz_at_time = $ozNeeded;
                     $orderItem->price_at_time = 0;
                 }
@@ -71,9 +77,7 @@ class CheckoutService
                 // 现金支付逻辑
                 // =========================
                 else {
-
                     $totalCashToPay += $itemTotal;
-
                     $orderItem->oz_at_time = 0;
                     $orderItem->price_at_time = $unitPrice;
 
@@ -85,36 +89,27 @@ class CheckoutService
             }
 
             // =========================
-            // 余额检查
+            // 余额/OZ 检查与扣除
             // =========================
-            if ($user->tangki_oz < $totalOzToDrain) {
-                throw new \Exception(
-                    "Insufficient OZ Balance. Required: " . number_format($totalOzToDrain)
-                );
-            }
-
-            if ($user->tangki_balance < $totalCashToPay) {
-                throw new \Exception(
-                    "Insufficient Balance. Required: RM " . number_format($totalCashToPay, 2)
-                );
-            }
-
-            // =========================
-            // 更新用户资产
-            // =========================
-
-            // 扣 OZ（兑换）
             if ($totalOzToDrain > 0) {
-                $user->tangki_oz -= $totalOzToDrain;
+                $description = "OZ Redeem (Order: {$order->bill_id})";
+                $drained = $this->tangkiService->drainOz($user, $totalOzToDrain, $order->bill_id, $description);
+                if (!$drained) {
+                    throw new \Exception(
+                        "Insufficient OZ Balance. Required: " . number_format($totalOzToDrain)
+                    );
+                }
             }
 
-            // 扣 balance + 加奖励 OZ
             if ($totalCashToPay > 0) {
-                $user->tangki_balance -= $totalCashToPay;
-                $user->tangki_oz += $totalRewardOz;
+                $description = "Cash Reward (Order: {$order->bill_id})";
+                $deducted = $this->tangkiService->deductBalanceAndRewardOz($user, $totalCashToPay, $totalRewardOz, $order->bill_id, $description);
+                if (!$deducted) {
+                    throw new \Exception(
+                        "Insufficient Balance. Required: RM " . number_format($totalCashToPay, 2)
+                    );
+                }
             }
-
-            $user->save();
 
             // =========================
             // 更新订单
@@ -125,54 +120,11 @@ class CheckoutService
             $order->save();
 
             // =========================
-            // 交易记录
-            // =========================
-
-            if ($totalOzToDrain > 0) {
-                $this->logTransaction(
-                    $user->id,
-                    $order->bill_id,
-                    -$totalOzToDrain,
-                    'drain',
-                    "OZ Redeem (Order: {$order->bill_id})"
-                );
-            }
-
-            if ($totalRewardOz > 0) {
-                $this->logTransaction(
-                    $user->id,
-                    $order->bill_id,
-                    $totalRewardOz,
-                    'refill',
-                    "Cash Reward (Order: {$order->bill_id})"
-                );
-            }
-
-            // =========================
             // 清空购物车
             // =========================
             CartItem::where('user_id', $user->id)->delete();
 
             return $order;
         });
-    }
-
-    /**
-     * Log transaction
-     */
-    private function logTransaction(
-        int $userId,
-        string $billId,
-        int $delta,
-        string $type,
-        string $desc
-    ): void {
-        $transaction = new Transaction();
-        $transaction->user_id = $userId;
-        $transaction->bill_id = $billId;
-        $transaction->oz_delta = $delta;
-        $transaction->type = $type;
-        $transaction->description = $desc;
-        $transaction->save();
     }
 }

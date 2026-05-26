@@ -84,6 +84,8 @@ class ProfileController extends Controller
             $token->delete();
         }
 
+        $user->delete();
+
         return response()->json([
             'status' => 'success',
             'message' => 'Account deleted successfully.'

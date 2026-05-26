@@ -2,15 +2,16 @@
 
 namespace App\Http\Controllers\API;
 
+use App\Contracts\CheckoutServiceInterface;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Api\OrderResource;
 
 class OrderController extends Controller
 {
-    protected $checkoutService;
+    protected CheckoutServiceInterface $checkoutService;
 
-    public function __construct(\App\Services\CheckoutService $checkoutService)
+    public function __construct(CheckoutServiceInterface $checkoutService)
     {
         $this->checkoutService = $checkoutService;
     }

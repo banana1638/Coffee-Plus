@@ -2,16 +2,23 @@
 
 namespace App\Http\Controllers\API;
 
-use App\Models\Favorite;
+use App\Contracts\FavoriteServiceInterface;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Api\FavoriteResource;
 
 class FavoriteController extends Controller
 {
+    protected FavoriteServiceInterface $favoriteService;
+
+    public function __construct(FavoriteServiceInterface $favoriteService)
+    {
+        $this->favoriteService = $favoriteService;
+    }
+
     public function index(Request $request)
     {
-        $favorites = $request->user()->favorites()->with('product')->latest()->get();
+        $favorites = $this->favoriteService->getFavorites($request->user());
         return FavoriteResource::collection($favorites);
     }
 
@@ -25,40 +32,25 @@ class FavoriteController extends Controller
             'remark' => 'nullable|string',
         ]);
 
-        $addonsArray = $request->addons ?? [];
-        sort($addonsArray);
+        try {
+            $favorite = $this->favoriteService->add(
+                $request->user(),
+                (int) $request->product_id,
+                $request->size,
+                $request->temp,
+                $request->input('addons', []) ?? [],
+                $request->remark
+            );
 
-        $existing = $request->user()->favorites()
-            ->where('product_id', $request->product_id)
-            ->where('size', $request->size)
-            ->where('temp', $request->temp)
-            ->get()
-            ->first(function ($item) use ($addonsArray) {
-                $itemAddons = is_array($item->addons) ? $item->addons : [];
-                sort($itemAddons);
-                return $itemAddons === $addonsArray;
-            });
-
-        if ($existing) {
-            return response()->json(['message' => 'Favorite already exists'], 409);
+            return new FavoriteResource($favorite->load('product'));
+        } catch (\Exception $e) {
+            return response()->json(['message' => $e->getMessage()], $e->getCode() ?: 400);
         }
-
-        $favorite = new Favorite();
-        $favorite->user_id = $request->user()->id;
-        $favorite->product_id = $request->product_id;
-        $favorite->size = $request->size;
-        $favorite->temp = $request->temp;
-        $favorite->addons = $addonsArray;
-        $favorite->remark = $request->remark;
-        $favorite->save();
-
-        return new FavoriteResource($favorite->load('product'));
     }
 
     public function destroy($id)
     {
-        $favorite = auth()->user()->favorites()->findOrFail($id);
-        $favorite->delete();
+        $this->favoriteService->delete(auth()->user(), (int) $id);
 
         return response()->json(['message' => 'Favorite removed']);
     }

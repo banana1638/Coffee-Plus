@@ -2,14 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Contracts\CheckoutServiceInterface;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class OrderController extends Controller
 {
-    protected $checkoutService;
+    protected CheckoutServiceInterface $checkoutService;
 
-    public function __construct(\App\Services\CheckoutService $checkoutService)
+    public function __construct(CheckoutServiceInterface $checkoutService)
     {
         $this->checkoutService = $checkoutService;
     }

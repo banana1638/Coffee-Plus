@@ -23,7 +23,7 @@ class AuthenticatedSessionController extends Controller
                 return response()->json(['message' => 'Logged in successfully.']);
             }
 
-            return redirect()->intended('dashboard');
+            return redirect()->intended(route('dashboard'));
         }
 
         if ($request->wantsJson()) {

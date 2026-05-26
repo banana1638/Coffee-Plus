@@ -3,18 +3,28 @@
 namespace App\Services\Payment;
 
 use App\Contracts\PaymentCompletionHandler;
-use App\Services\Payment\RefillHandler;
-use App\Services\Payment\StripeCheckoutHandler;
 use Exception;
 
 class PaymentHandlerFactory
 {
-    private array $handlers = [
-        'refill' => RefillHandler::class,
-        'checkout' => StripeCheckoutHandler::class,
-    ];
+    private array $handlers;
+
+    public function __construct(array $handlers = [])
+    {
+        $this->handlers = $handlers;
+    }
 
     /**
+     * Register a new payment completion handler dynamically (OCP compliance).
+     */
+    public function registerHandler(string $type, string $handlerClass): void
+    {
+        $this->handlers[$type] = $handlerClass;
+    }
+
+    /**
+     * Resolve the completion handler instance by type.
+     *
      * @param string $type
      * @return PaymentCompletionHandler
      * @throws Exception
