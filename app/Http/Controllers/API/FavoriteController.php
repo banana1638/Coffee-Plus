@@ -42,7 +42,7 @@ class FavoriteController extends Controller
                 $request->remark
             );
 
-            return new FavoriteResource($favorite->load('product'));
+            return (new FavoriteResource($favorite->load('product')))->response()->setStatusCode(201);
         } catch (\Exception $e) {
             return response()->json(['message' => $e->getMessage()], $e->getCode() ?: 400);
         }
