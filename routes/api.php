@@ -3,6 +3,7 @@
 use App\Http\Controllers\API\Auth\LoginController;
 use App\Http\Controllers\API\Auth\RegisterController;
 use App\Http\Controllers\API\CartController;
+use App\Http\Controllers\API\CouponController;
 use App\Http\Controllers\API\DashboardController;
 use App\Http\Controllers\API\FavoriteController;
 use App\Http\Controllers\API\OrderController;
@@ -43,6 +44,7 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     Route::post('/checkout', [OrderController::class, 'checkout'])->middleware('throttle:10,1');
+    Route::get('/coupons/validate', [CouponController::class, 'validateCode'])->middleware('throttle:30,1');
     Route::get('/orders', [OrderController::class, 'index']);
     Route::get('/orders/{order}', [OrderController::class, 'show']);
     Route::post('/orders/{order}/cancel', [OrderController::class, 'cancel'])->middleware('throttle:10,1');
