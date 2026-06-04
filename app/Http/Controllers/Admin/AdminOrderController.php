@@ -6,6 +6,7 @@ use App\Exports\OrdersExport;
 use App\Http\Controllers\Controller;
 use App\Exceptions\OrderException;
 use App\Models\Order;
+use App\Models\Transaction;
 use Illuminate\Http\Request;
 use App\Services\OrderService;
 use Maatwebsite\Excel\Facades\Excel;
@@ -69,6 +70,20 @@ class AdminOrderController extends Controller
     public function exportPage()
     {
         return view('admin.orders.export');
+    }
+
+    public function refunds(Request $request)
+    {
+        $query = Transaction::where('type', 'refund')
+            ->with(['user', 'bill']);
+
+        if ($request->filled('search_id')) {
+            $query->where('bill_id', 'LIKE', "%{$request->search_id}%");
+        }
+
+        $refunds = $query->latest()->paginate(15)->withQueryString();
+
+        return view('admin.orders.refunds', compact('refunds'));
     }
 
     public function export(Request $request) 

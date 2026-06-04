@@ -39,6 +39,7 @@ Route::middleware(['auth:admin'])->group(function () {
     Route::prefix('orders')->name('orders.')->group(function () {
         Route::get('/export-center', [AdminOrderController::class, 'exportPage'])->name('export.page');
         Route::get('/export/download', [AdminOrderController::class, 'export'])->name('export.download');
+        Route::get('/refunds', [AdminOrderController::class, 'refunds'])->name('refunds');
         Route::post('/complete-by-code', [AdminOrderController::class, 'completeByPickupCode'])->name('complete-by-code');
         Route::get('/', [AdminOrderController::class, 'index'])->name('index');
         Route::get('/{order}', [AdminOrderController::class, 'show'])->name('show');

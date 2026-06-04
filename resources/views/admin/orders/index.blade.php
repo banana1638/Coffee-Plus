@@ -23,6 +23,10 @@
                     </svg>
                     Export Center
                 </a>
+                <a href="{{ route('admin.orders.refunds') }}"
+                    class="px-5 py-2.5 bg-white border border-red-100 text-red-600 text-[10px] font-black uppercase tracking-widest rounded-2xl hover:bg-red-600 hover:text-white hover:border-red-600 transition-all shadow-sm active:scale-95">
+                    Refunds
+                </a>
             </div>
 
             <div class="flex p-1 bg-gray-200/50 rounded-2xl mb-6">
