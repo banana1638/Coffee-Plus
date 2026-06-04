@@ -73,6 +73,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/{bill_id}', 'showOrderDetail');
     });
 
+    Route::get('/refunds', [TransactionController::class, 'refunds']);
+
     Route::apiResource('favorites', FavoriteController::class)->middleware('throttle:30,1');
 
     // Shared recipes

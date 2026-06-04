@@ -47,4 +47,27 @@ class TransactionController extends Controller
             'order' => new OrderResource($order),
         ]);
     }
+
+    public function refunds(Request $request)
+    {
+        $query = Transaction::where('user_id', Auth::id())
+            ->where('type', 'refund')
+            ->with(['bill.items.product']);
+
+        if ($request->filled('search_id')) {
+            $query->where('bill_id', 'LIKE', "%{$request->search_id}%");
+        }
+
+        $refunds = $query->latest()->paginate(15);
+
+        return response()->json([
+            'refunds' => TransactionResource::collection($refunds),
+            'meta' => [
+                'current_page' => $refunds->currentPage(),
+                'last_page' => $refunds->lastPage(),
+                'per_page' => $refunds->perPage(),
+                'total' => $refunds->total(),
+            ],
+        ]);
+    }
 }
