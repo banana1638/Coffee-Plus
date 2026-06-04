@@ -17,9 +17,12 @@ class OrderResource extends JsonResource
         return [
             'id' => $this->id,
             'bill_id' => $this->bill_id,
+            'pickup_code' => $this->pickup_code,
+            'pickup_qr_payload' => $this->pickup_qr_payload,
             'status' => $this->status,
             'created_at' => $this->created_at->format('Y-m-d H:i'),
             'cancelled_at' => $this->cancelled_at?->format('Y-m-d H:i'),
+            'completed_at' => $this->completed_at?->format('Y-m-d H:i'),
             'can_cancel' => $this->canBeCancelled(),
             'subtotal' => (float) $this->subtotal,
             'final_amount' => (float) $this->final_amount,

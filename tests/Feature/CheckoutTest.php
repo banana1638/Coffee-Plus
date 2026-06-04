@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\CartItem;
+use App\Models\Admin;
 use App\Models\Coupon;
 use App\Models\Menu;
 use App\Models\Order;
@@ -224,5 +225,54 @@ class CheckoutTest extends TestCase
 
         $response->assertStatus(422)
             ->assertJsonPath('message', 'Only pending orders can be cancelled.');
+    }
+
+    public function test_checkout_generates_pickup_code_and_qr_payload(): void
+    {
+        $user = User::factory()->create(['tangki_balance' => 20.00]);
+        $product = $this->createProduct();
+        $this->addCartItem($user, $product);
+
+        $response = $this->actingAs($user)->postJson('/api/checkout');
+
+        $response->assertStatus(200);
+
+        $pickupCode = $response->json('data.pickup_code');
+        $this->assertNotEmpty($pickupCode);
+        $this->assertStringStartsWith('PU', $pickupCode);
+        $this->assertSame(
+            'COFFEEPLUS|' . $response->json('data.bill_id') . '|' . $pickupCode,
+            $response->json('data.pickup_qr_payload')
+        );
+    }
+
+    public function test_admin_can_complete_order_by_pickup_code(): void
+    {
+        $admin = new Admin();
+        $admin->name = 'Staff';
+        $admin->email = 'staff@example.test';
+        $admin->password = 'password';
+        $admin->role = 'staff';
+        $admin->save();
+
+        $user = User::factory()->create(['tangki_balance' => 20.00]);
+        $product = $this->createProduct();
+        $this->addCartItem($user, $product);
+
+        $checkout = $this->actingAs($user)->postJson('/api/checkout');
+        $checkout->assertStatus(200);
+
+        $pickupCode = $checkout->json('data.pickup_code');
+
+        $response = $this->actingAs($admin, 'admin')->post(route('admin.orders.complete-by-code'), [
+            'pickup_code' => strtolower($pickupCode),
+        ]);
+
+        $order = Order::findOrFail($checkout->json('data.id'));
+
+        $response->assertRedirect(route('admin.orders.show', $order));
+        $order->refresh();
+        $this->assertSame('completed', $order->status);
+        $this->assertNotNull($order->completed_at);
     }
 }

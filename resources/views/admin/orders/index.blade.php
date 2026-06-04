@@ -32,6 +32,17 @@
                 </div>
             </div>
 
+            <form action="{{ route('admin.orders.complete-by-code') }}" method="POST"
+                class="mb-6 flex gap-2 bg-white border border-gray-100 rounded-2xl p-2 shadow-sm">
+                @csrf
+                <input name="pickup_code" type="text" maxlength="12" placeholder="Pickup code"
+                    class="flex-1 border-0 bg-gray-50 rounded-xl text-xs font-black uppercase tracking-widest focus:ring-blue-500">
+                <button type="submit"
+                    class="px-5 bg-gray-900 text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-blue-600 transition">
+                    Verify
+                </button>
+            </form>
+
             <div class="space-y-4">
                 @forelse($orders as $order)
                     <div
@@ -49,6 +60,11 @@
 
                                 <h3 class="font-black text-gray-900 leading-tight text-lg italic uppercase">
                                     #{{ $order->bill_id }}</h3>
+                                @if($order->pickup_code)
+                                    <p class="text-[10px] text-gray-500 font-black mt-1 uppercase tracking-widest">
+                                        Pickup: {{ $order->pickup_code }}
+                                    </p>
+                                @endif
                                 <p class="text-[10px] text-gray-400 font-bold mt-1 uppercase tracking-widest">Customer:
                                     {{ $order->user->name }}</p>
 

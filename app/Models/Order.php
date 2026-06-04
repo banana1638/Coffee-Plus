@@ -18,11 +18,21 @@ class Order extends Model
     protected $casts = [
         'pickup_time' => 'datetime',
         'cancelled_at' => 'datetime',
+        'completed_at' => 'datetime',
     ];
 
     public function canBeCancelled(): bool
     {
         return $this->status === 'pending';
+    }
+
+    public function getPickupQrPayloadAttribute(): ?string
+    {
+        if (!$this->pickup_code) {
+            return null;
+        }
+
+        return "COFFEEPLUS|{$this->bill_id}|{$this->pickup_code}";
     }
 
     public function user()

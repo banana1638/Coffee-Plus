@@ -4,14 +4,18 @@ namespace App\Http\Controllers\Admin;
 
 use App\Exports\OrdersExport;
 use App\Http\Controllers\Controller;
+use App\Exceptions\OrderException;
 use App\Models\Order;
-use App\Notifications\OrderCompletedNotification;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
+use App\Services\OrderService;
 use Maatwebsite\Excel\Facades\Excel;
 
 class AdminOrderController extends Controller
 {
+    public function __construct(private readonly OrderService $orderService)
+    {
+    }
+
     public function index()
     {
         $orders = Order::with('user', 'items.product')->latest()->paginate(10);
@@ -26,12 +30,29 @@ class AdminOrderController extends Controller
 
     public function complete(Order $order)
     {
-        DB::transaction(function () use ($order) {
-            $order->status = 'completed'; 
-            $order->save();
-            $order->user->notify(new OrderCompletedNotification($order));
-        });
-        return back()->with('success', 'Order marked as completed.');
+        try {
+            $this->orderService->complete($order);
+
+            return back()->with('success', 'Order marked as completed.');
+        } catch (OrderException $e) {
+            return back()->with('error', $e->getMessage());
+        }
+    }
+
+    public function completeByPickupCode(Request $request)
+    {
+        $validated = $request->validate([
+            'pickup_code' => ['required', 'string', 'max:12'],
+        ]);
+
+        try {
+            $order = $this->orderService->completeByPickupCode($validated['pickup_code']);
+
+            return redirect()->route('admin.orders.show', $order)
+                ->with('success', 'Pickup code verified. Order marked as completed.');
+        } catch (OrderException $e) {
+            return back()->with('error', $e->getMessage());
+        }
     }
 
     public function exportPage()

@@ -9,6 +9,7 @@ use App\Models\{CartItem, Coupon, Order, OrderItem, User};
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Cache;
 use App\Events\OrderPlaced;
+use Illuminate\Support\Str;
 
 class CheckoutService implements CheckoutServiceInterface
 {
@@ -47,6 +48,7 @@ class CheckoutService implements CheckoutServiceInterface
                 $order = new Order();
                 $order->user_id = $user->id;
                 $order->bill_id = 'CP-' . strtoupper(uniqid());
+                $order->pickup_code = $this->generatePickupCode();
                 $order->status = 'pending';
                 $order->subtotal = 0;
                 $order->final_amount = 0;
@@ -124,5 +126,14 @@ class CheckoutService implements CheckoutServiceInterface
         } finally {
             $lock->release();
         }
+    }
+
+    private function generatePickupCode(): string
+    {
+        do {
+            $code = 'PU' . strtoupper(Str::random(6));
+        } while (Order::where('pickup_code', $code)->exists());
+
+        return $code;
     }
 }

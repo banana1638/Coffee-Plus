@@ -26,6 +26,16 @@
                         <span class="text-gray-800">{{ $order->bill_id }}</span>
                     </div>
 
+                    @if($order->pickup_code)
+                        <div class="mb-8 p-5 bg-gray-50 rounded-3xl border border-gray-100 text-center">
+                            <p class="text-[10px] text-gray-400 font-black uppercase tracking-[0.25em] mb-3">Pickup QR</p>
+                            <img class="w-40 h-40 mx-auto rounded-xl bg-white p-2 border border-gray-100"
+                                src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data={{ urlencode($order->pickup_qr_payload) }}"
+                                alt="Pickup QR code">
+                            <p class="mt-4 text-2xl font-black tracking-[0.25em] text-gray-900">{{ $order->pickup_code }}</p>
+                        </div>
+                    @endif
+
                     <div class="space-y-3 mb-8">
                         <div class="flex justify-between items-center text-sm">
                             <span class="text-gray-500 font-medium">Date</span>

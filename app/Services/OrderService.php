@@ -6,6 +6,7 @@ use App\Exceptions\OrderException;
 use App\Models\Order;
 use App\Models\Transaction;
 use App\Models\User;
+use App\Notifications\OrderCompletedNotification;
 use Illuminate\Support\Facades\DB;
 
 class OrderService
@@ -77,6 +78,43 @@ class OrderService
 
             return $lockedOrder->fresh(['items.product']);
         });
+    }
+
+    public function complete(Order $order): Order
+    {
+        return DB::transaction(function () use ($order) {
+            $lockedOrder = Order::where('id', $order->id)
+                ->with('user')
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            if ($lockedOrder->status === 'cancelled') {
+                throw new OrderException('Cancelled orders cannot be completed.');
+            }
+
+            if ($lockedOrder->status === 'completed') {
+                return $lockedOrder;
+            }
+
+            $lockedOrder->status = 'completed';
+            $lockedOrder->completed_at = now();
+            $lockedOrder->save();
+            $lockedOrder->user->notify(new OrderCompletedNotification($lockedOrder));
+
+            return $lockedOrder->fresh(['items.product', 'user']);
+        });
+    }
+
+    public function completeByPickupCode(string $pickupCode): Order
+    {
+        $normalizedCode = strtoupper(trim($pickupCode));
+        $order = Order::where('pickup_code', $normalizedCode)->first();
+
+        if (!$order) {
+            throw new OrderException('Pickup code not found.', 404);
+        }
+
+        return $this->complete($order);
     }
 
     private function calculateCashRewardOz(Order $order): int
