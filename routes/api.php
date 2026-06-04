@@ -7,6 +7,7 @@ use App\Http\Controllers\API\DashboardController;
 use App\Http\Controllers\API\FavoriteController;
 use App\Http\Controllers\API\OrderController;
 use App\Http\Controllers\API\ProductController;
+use App\Http\Controllers\API\ProductReviewController;
 use App\Http\Controllers\API\ProfileController;
 use App\Http\Controllers\API\SharedRecipeController;
 use App\Http\Controllers\API\TangkiController;
@@ -22,6 +23,7 @@ use Illuminate\Support\Facades\Route;
 // Public routes
 Route::post('/login', [LoginController::class, 'login']);
 Route::post('/register', [RegisterController::class, 'register']);
+Route::get('/products/{product}/reviews', [ProductReviewController::class, 'index']);
 Route::get('/products/{id}', [ProductController::class, 'show']);
 
 /*
@@ -44,6 +46,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/orders', [OrderController::class, 'index']);
     Route::get('/orders/{order}', [OrderController::class, 'show']);
     Route::post('/orders/{order}/cancel', [OrderController::class, 'cancel'])->middleware('throttle:10,1');
+    Route::post('/orders/{order}/reviews', [ProductReviewController::class, 'store'])->middleware('throttle:10,1');
 
     Route::controller(ProfileController::class)->prefix('profile')->group(function () {
         Route::get('/', 'edit');
