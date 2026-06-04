@@ -27,6 +27,9 @@
                         <div>
                             <span class="text-blue-600 font-bold text-sm uppercase tracking-widest">Premium Selection</span>
                             <h1 class="text-4xl font-black text-gray-900 mt-1">{{ $product->name }}</h1>
+                            <p class="mt-3 text-sm font-bold text-gray-500">
+                                {{ number_format($product->average_rating, 1) }} / 5 from {{ $product->reviews_count }} reviews
+                            </p>
                         </div>
                         <button type="button" onclick="toggleFavorite()" id="favoriteBtn" class="p-4 bg-white rounded-3xl shadow-xl shadow-gray-200/50 border border-gray-100 text-gray-300 hover:text-red-500 transition-all active:scale-95 group">
                             <svg id="favoriteIcon" class="w-8 h-8 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -109,6 +112,25 @@
                         </div>
                     </div>
                 </form>
+
+                <div class="lg:col-span-2 bg-white rounded-[2rem] p-8 border border-gray-100 shadow-sm">
+                    <h3 class="text-xs font-black uppercase tracking-[0.2em] text-gray-400 mb-5">Customer Reviews</h3>
+                    <div class="space-y-4">
+                        @forelse($product->reviews->sortByDesc('created_at')->take(10) as $review)
+                            <div class="p-4 bg-gray-50 rounded-2xl">
+                                <div class="flex justify-between">
+                                    <p class="font-black text-gray-800">{{ $review->user->name ?? 'Customer' }}</p>
+                                    <p class="text-xs font-black text-yellow-600">{{ $review->rating }} / 5</p>
+                                </div>
+                                @if($review->comment)
+                                    <p class="mt-2 text-sm font-bold text-gray-500">{{ $review->comment }}</p>
+                                @endif
+                            </div>
+                        @empty
+                            <p class="text-sm font-bold text-gray-400">No reviews yet.</p>
+                        @endforelse
+                    </div>
+                </div>
             </div>
         </div>
     </div>

@@ -32,7 +32,7 @@ class TransactionController extends Controller
     public function showOrderDetail($bill_id)
     {
         $order = Order::where('bill_id', $bill_id)
-            ->with(['items.product'])
+            ->with(['items.product', 'reviews'])
             ->firstOrFail();
         if ($order->user_id !== Auth::id()) {
             abort(403, 'Unauthorized');

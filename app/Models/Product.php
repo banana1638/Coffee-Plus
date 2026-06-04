@@ -27,4 +27,19 @@ class Product extends Model
     {
         return $this->hasMany(ProductAddon::class);
     }
+
+    public function reviews()
+    {
+        return $this->hasMany(ProductReview::class);
+    }
+
+    public function getAverageRatingAttribute(): float
+    {
+        return round((float) $this->reviews()->avg('rating'), 1);
+    }
+
+    public function getReviewsCountAttribute(): int
+    {
+        return (int) $this->reviews()->count();
+    }
 }

@@ -77,6 +77,11 @@
                         <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-50 pb-2">Items Purchased</p>
                         
                         @foreach($order->items as $item)
+                            @php
+                                $existingReview = $order->reviews
+                                    ->where('product_id', $item->product_id)
+                                    ->first();
+                            @endphp
                             <div class="flex justify-between items-start">
                                 <div class="flex flex-col flex-1 pr-4">
                                     <span class="text-sm font-black text-gray-800 leading-tight">
@@ -110,6 +115,40 @@
                                     @endif
 
                                     <span class="text-[10px] text-gray-400 font-bold mt-1">Quantity: {{ $item->quantity }}</span>
+
+                                    @if($order->status === 'completed')
+                                        @if($existingReview)
+                                            <div class="mt-3 p-3 bg-yellow-50 rounded-2xl border border-yellow-100">
+                                                <p class="text-[10px] font-black text-yellow-700 uppercase tracking-widest">
+                                                    Your rating: {{ $existingReview->rating }} / 5
+                                                </p>
+                                                @if($existingReview->comment)
+                                                    <p class="mt-1 text-xs text-yellow-800 font-bold">{{ $existingReview->comment }}</p>
+                                                @endif
+                                            </div>
+                                        @else
+                                            <form action="{{ route('orders.reviews.store', $order) }}" method="POST"
+                                                class="mt-3 p-3 bg-gray-50 rounded-2xl border border-gray-100 space-y-3">
+                                                @csrf
+                                                <input type="hidden" name="product_id" value="{{ $item->product_id }}">
+                                                <div class="flex gap-2">
+                                                    <select name="rating" required
+                                                        class="border-0 bg-white rounded-xl text-xs font-black focus:ring-blue-500">
+                                                        <option value="">Rating</option>
+                                                        @for($rating = 5; $rating >= 1; $rating--)
+                                                            <option value="{{ $rating }}">{{ $rating }} / 5</option>
+                                                        @endfor
+                                                    </select>
+                                                    <button type="submit"
+                                                        class="px-4 bg-gray-900 text-white rounded-xl text-[10px] font-black uppercase tracking-widest">
+                                                        Review
+                                                    </button>
+                                                </div>
+                                                <textarea name="comment" rows="2" maxlength="1000" placeholder="Comment"
+                                                    class="w-full border-0 bg-white rounded-xl text-xs font-bold focus:ring-blue-500"></textarea>
+                                            </form>
+                                        @endif
+                                    @endif
                                 </div>
 
                                 <div class="flex flex-col items-end">

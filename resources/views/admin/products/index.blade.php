@@ -55,6 +55,9 @@
                             <td class="px-8 py-5">
                                 <p class="text-blue-600 font-black text-lg">RM {{ number_format($product->price, 2) }}</p>
                                 <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">{{ $product->oz_redeem_value }} oz redeem</p>
+                                <p class="text-[10px] text-yellow-600 font-black uppercase tracking-widest mt-1">
+                                    {{ number_format($product->average_rating, 1) }}/5 reviews
+                                </p>
                             </td>
                             <td class="px-8 py-5 text-right">
                                 <div class="flex justify-end gap-3 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-all">

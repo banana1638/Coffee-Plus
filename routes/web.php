@@ -11,6 +11,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\TangkiController;
 use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\ProductReviewController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
@@ -33,6 +34,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::post('/order/checkout', [OrderController::class, 'checkout'])->name('order.checkout');
     Route::post('/orders/{order}/cancel', [OrderController::class, 'cancel'])->name('order.cancel');
+    Route::post('/orders/{order}/reviews', [ProductReviewController::class, 'store'])->name('orders.reviews.store');
 
     // Stripe Routes
     Route::post('/stripe/checkout', [PaymentController::class, 'checkout'])->name('stripe.checkout');
