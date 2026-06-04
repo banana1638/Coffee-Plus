@@ -20,12 +20,25 @@ class RegisteredUserController extends Controller
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
+        $referrerId = null;
+        if ($request->filled('ref')) {
+            try {
+                $decoded = base64_decode($request->ref);
+                if (is_numeric($decoded)) {
+                    $referrerId = (int) $decoded;
+                }
+            } catch (\Exception $e) {
+                // Ignore invalid referrer code
+            }
+        }
+
         $user = new User();
         $user->name = $request->name;
         $user->email = $request->email;
         $user->password = Hash::make($request->password);
         $user->tangki_balance = 0;
         $user->tangki_oz = 0;
+        $user->referrer_id = $referrerId;
         $user->save();
 
         Auth::login($user);

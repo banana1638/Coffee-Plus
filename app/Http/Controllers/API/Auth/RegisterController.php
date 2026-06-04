@@ -24,12 +24,25 @@ class RegisterController extends Controller
             'address' => 'nullable|string|max:500',
         ]);
 
+        $referrerId = null;
+        if ($request->filled('ref')) {
+            try {
+                $decoded = base64_decode($request->ref);
+                if (is_numeric($decoded)) {
+                    $referrerId = (int) $decoded;
+                }
+            } catch (\Exception $e) {
+                // Ignore invalid referrer code
+            }
+        }
+
         $user = new User();
         $user->name = $request->name;
         $user->email = $request->email;
         $user->password = Hash::make($request->password);
         $user->phone = $request->phone;
         $user->address = $request->address;
+        $user->referrer_id = $referrerId;
         $user->save();
 
         $token = $user->createToken('api_token')->plainTextToken;

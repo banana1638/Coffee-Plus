@@ -47,21 +47,24 @@ class TangkiService implements TangkiServiceInterface
      */
     public function drainOz(User $user, int $ozAmount, string $billId, string $description = 'Redeemed items'): bool
     {
-        if ($user->tangki_oz < $ozAmount) {
-            return false;
-        }
+        return DB::transaction(function () use ($user, $ozAmount, $billId, $description) {
+            $userObj = User::where('id', $user->id)->lockForUpdate()->first();
+            if (!$userObj || $userObj->tangki_oz < $ozAmount) {
+                return false;
+            }
 
-        $user->decrement('tangki_oz', $ozAmount);
+            $userObj->decrement('tangki_oz', $ozAmount);
 
-        $transaction = new Transaction();
-        $transaction->user_id = $user->id;
-        $transaction->bill_id = $billId;
-        $transaction->oz_delta = -$ozAmount;
-        $transaction->type = 'drain';
-        $transaction->description = $description;
-        $transaction->save();
+            $transaction = new Transaction();
+            $transaction->user_id = $userObj->id;
+            $transaction->bill_id = $billId;
+            $transaction->oz_delta = -$ozAmount;
+            $transaction->type = 'drain';
+            $transaction->description = $description;
+            $transaction->save();
 
-        return true;
+            return true;
+        });
     }
 
     /**
@@ -69,23 +72,26 @@ class TangkiService implements TangkiServiceInterface
      */
     public function deductBalanceAndRewardOz(User $user, float $amount, int $rewardOz, string $billId, string $description): bool
     {
-        if ($user->tangki_balance < $amount) {
-            return false;
-        }
+        return DB::transaction(function () use ($user, $amount, $rewardOz, $billId, $description) {
+            $userObj = User::where('id', $user->id)->lockForUpdate()->first();
+            if (!$userObj || $userObj->tangki_balance < $amount) {
+                return false;
+            }
 
-        $user->decrement('tangki_balance', $amount);
-        if ($rewardOz > 0) {
-            $user->increment('tangki_oz', $rewardOz);
+            $userObj->decrement('tangki_balance', $amount);
+            if ($rewardOz > 0) {
+                $userObj->increment('tangki_oz', $rewardOz);
 
-            $transaction = new Transaction();
-            $transaction->user_id = $user->id;
-            $transaction->bill_id = $billId;
-            $transaction->oz_delta = $rewardOz;
-            $transaction->type = 'refill';
-            $transaction->description = $description;
-            $transaction->save();
-        }
+                $transaction = new Transaction();
+                $transaction->user_id = $userObj->id;
+                $transaction->bill_id = $billId;
+                $transaction->oz_delta = $rewardOz;
+                $transaction->type = 'refill';
+                $transaction->description = $description;
+                $transaction->save();
+            }
 
-        return true;
+            return true;
+        });
     }
 }

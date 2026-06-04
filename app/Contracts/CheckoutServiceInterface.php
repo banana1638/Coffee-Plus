@@ -12,8 +12,10 @@ interface CheckoutServiceInterface
      *
      * @param User $user
      * @param array $useOzIds Cart item IDs that are paid using OZ
+     * @param string|null $couponCode
+     * @param string|null $pickupTime
      * @return Order
      * @throws \Exception
      */
-    public function processCheckout(User $user, array $useOzIds): Order;
+    public function processCheckout(User $user, array $useOzIds, ?string $couponCode = null, ?string $pickupTime = null): Order;
 }

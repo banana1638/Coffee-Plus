@@ -3,12 +3,16 @@
 namespace App\Http\Controllers\API;
 
 use App\Contracts\FavoriteServiceInterface;
-use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Api\FavoriteResource;
+use App\Http\Requests\API\StoreFavoriteRequest;
+use App\Traits\ApiResponse;
+use Illuminate\Http\Request;
 
 class FavoriteController extends Controller
 {
+    use ApiResponse;
+
     protected FavoriteServiceInterface $favoriteService;
 
     public function __construct(FavoriteServiceInterface $favoriteService)
@@ -22,16 +26,8 @@ class FavoriteController extends Controller
         return FavoriteResource::collection($favorites);
     }
 
-    public function store(Request $request)
+    public function store(StoreFavoriteRequest $request)
     {
-        $request->validate([
-            'product_id' => 'required|exists:products,id',
-            'size' => 'required|string',
-            'temp' => 'required|string',
-            'addons' => 'array',
-            'remark' => 'nullable|string',
-        ]);
-
         try {
             $favorite = $this->favoriteService->add(
                 $request->user(),
@@ -42,9 +38,13 @@ class FavoriteController extends Controller
                 $request->remark
             );
 
-            return (new FavoriteResource($favorite->load('product')))->response()->setStatusCode(201);
+            return $this->success(
+                new FavoriteResource($favorite->load('product')),
+                'Favorite added successfully!',
+                201
+            );
         } catch (\Exception $e) {
-            return response()->json(['message' => $e->getMessage()], $e->getCode() ?: 400);
+            return $this->error($e->getMessage(), $e->getCode() ?: 400);
         }
     }
 
@@ -52,6 +52,6 @@ class FavoriteController extends Controller
     {
         $this->favoriteService->delete(auth()->user(), (int) $id);
 
-        return response()->json(['message' => 'Favorite removed']);
+        return $this->success(null, 'Favorite removed');
     }
 }

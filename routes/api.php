@@ -1,16 +1,17 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\API\CartController;
-use App\Http\Controllers\API\OrderController;
-use App\Http\Controllers\API\TangkiController;
-use App\Http\Controllers\API\ProductController;
-use App\Http\Controllers\API\ProfileController;
-use App\Http\Controllers\API\DashboardController;
-use App\Http\Controllers\API\TransactionController;
 use App\Http\Controllers\API\Auth\LoginController;
 use App\Http\Controllers\API\Auth\RegisterController;
+use App\Http\Controllers\API\CartController;
+use App\Http\Controllers\API\DashboardController;
 use App\Http\Controllers\API\FavoriteController;
+use App\Http\Controllers\API\OrderController;
+use App\Http\Controllers\API\ProductController;
+use App\Http\Controllers\API\ProfileController;
+use App\Http\Controllers\API\SharedRecipeController;
+use App\Http\Controllers\API\TangkiController;
+use App\Http\Controllers\API\TransactionController;
+use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
@@ -18,24 +19,20 @@ use App\Http\Controllers\API\FavoriteController;
 |--------------------------------------------------------------------------
 */
 
-// --- 公共路由 ---
+// Public routes
 Route::post('/login', [LoginController::class, 'login']);
 Route::post('/register', [RegisterController::class, 'register']);
 Route::get('/products/{id}', [ProductController::class, 'show']);
 
-/**
- * 优化后的 Dashboard 路由
- * 使用 Sanctum 内置的 guard 尝试获取用户信息，避免手动解析 Token。
- * 如果没有 Token，auth:sanctum 不会报错，只是 auth()->user() 为空。
+/*
+ * Dashboard can also be viewed by guests.
  */
 Route::get('/dashboard', [DashboardController::class, 'index']);
 
-// --- 受保护路由 ---
+// Protected routes
 Route::middleware('auth:sanctum')->group(function () {
-
     Route::post('/logout', [LoginController::class, 'logout']);
 
-    // 购物车：使用 controller 方法简化
     Route::controller(CartController::class)->prefix('cart')->group(function () {
         Route::get('/', 'index');
         Route::post('/add', 'add');
@@ -43,9 +40,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/remove', 'destroy');
     });
 
-    Route::post('/checkout', [OrderController::class, 'checkout']);
+    Route::post('/checkout', [OrderController::class, 'checkout'])->middleware('throttle:10,1');
 
-    // 个人资料：符合 RESTful 风格的更新/删除
     Route::controller(ProfileController::class)->prefix('profile')->group(function () {
         Route::get('/', 'edit');
         Route::post('/update', 'update');
@@ -57,17 +53,24 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/notifications/batch-delete', 'batchDeleteNotifications');
     });
 
-    // 储水箱 (Tangki)
+    // Tangki
     Route::controller(TangkiController::class)->prefix('tangki')->group(function () {
         Route::get('/', 'index');
-        Route::post('/refill', 'refill');
+        Route::post('/refill', 'refill')->middleware('throttle:10,1');
     });
 
-    // 交易记录
+    // Transactions
     Route::controller(TransactionController::class)->prefix('transactions')->group(function () {
         Route::get('/', 'index');
         Route::get('/{bill_id}', 'showOrderDetail');
     });
 
-    Route::apiResource('favorites', FavoriteController::class);
+    Route::apiResource('favorites', FavoriteController::class)->middleware('throttle:30,1');
+
+    // Shared recipes
+    Route::controller(SharedRecipeController::class)->prefix('recipes')->group(function () {
+        Route::get('/', 'index');
+        Route::post('/', 'store');
+        Route::post('/{id}/import', 'import');
+    });
 });

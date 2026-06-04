@@ -3,12 +3,16 @@
 namespace App\Http\Controllers\API;
 
 use App\Contracts\CheckoutServiceInterface;
-use Illuminate\Http\Request;
+use App\Exceptions\CheckoutException;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Api\OrderResource;
+use App\Http\Requests\API\CheckoutRequest;
+use App\Traits\ApiResponse;
 
 class OrderController extends Controller
 {
+    use ApiResponse;
+
     protected CheckoutServiceInterface $checkoutService;
 
     public function __construct(CheckoutServiceInterface $checkoutService)
@@ -16,25 +20,32 @@ class OrderController extends Controller
         $this->checkoutService = $checkoutService;
     }
 
-    public function checkout(Request $request)
+    public function checkout(CheckoutRequest $request)
     {
         $useOzIds = $request->input('use_oz', []);
+        $couponCode = $request->input('coupon_code');
+        $pickupTime = $request->input('pickup_time');
 
         try {
-            $order = $this->checkoutService->processCheckout($request->user(), $useOzIds);
+            $order = $this->checkoutService->processCheckout(
+                $request->user(),
+                $useOzIds,
+                $couponCode,
+                $pickupTime
+            );
 
             $order->load(['items.product']);
 
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Enjoy your coffee! Order #' . $order->bill_id . ' placed.',
-                'order' => new OrderResource($order)
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'status' => 'error',
-                'message' => $e->getMessage(),
-            ], 500);
+            return $this->success(
+                new OrderResource($order),
+                'Enjoy your coffee! Order #' . $order->bill_id . ' placed.'
+            );
+        } catch (CheckoutException $e) {
+            return $this->error($e->getMessage(), $e->statusCode());
+        } catch (\Throwable $e) {
+            report($e);
+
+            return $this->error('Checkout failed. Please try again.', 500);
         }
     }
 }
