@@ -53,6 +53,35 @@ class OrderController extends Controller
         }
     }
 
+    public function index()
+    {
+        $orders = Order::where('user_id', request()->user()->id)
+            ->with(['items.product'])
+            ->latest()
+            ->paginate(15);
+
+        return $this->success([
+            'orders' => OrderResource::collection($orders),
+            'meta' => [
+                'current_page' => $orders->currentPage(),
+                'last_page' => $orders->lastPage(),
+                'per_page' => $orders->perPage(),
+                'total' => $orders->total(),
+            ],
+        ]);
+    }
+
+    public function show(Order $order)
+    {
+        if ($order->user_id !== request()->user()->id) {
+            return $this->error('Order not found.', 404);
+        }
+
+        $order->load(['items.product']);
+
+        return $this->success(new OrderResource($order));
+    }
+
     public function cancel(Order $order)
     {
         try {
