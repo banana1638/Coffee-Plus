@@ -23,7 +23,7 @@ class OrderService
                 throw new OrderException('You are not allowed to cancel this order.', 403);
             }
 
-            if ($lockedOrder->status !== 'pending') {
+            if ($lockedOrder->status !== Order::STATUS_PENDING) {
                 throw new OrderException('Only pending orders can be cancelled.');
             }
 
@@ -72,7 +72,7 @@ class OrderService
 
             $this->reverseReferralReward($lockedOrder);
 
-            $lockedOrder->status = 'cancelled';
+            $lockedOrder->status = Order::STATUS_CANCELLED;
             $lockedOrder->cancelled_at = now();
             $lockedOrder->save();
 
@@ -88,15 +88,19 @@ class OrderService
                 ->lockForUpdate()
                 ->firstOrFail();
 
-            if ($lockedOrder->status === 'cancelled') {
+            if ($lockedOrder->status === Order::STATUS_CANCELLED) {
                 throw new OrderException('Cancelled orders cannot be completed.');
             }
 
-            if ($lockedOrder->status === 'completed') {
+            if ($lockedOrder->status === Order::STATUS_COMPLETED) {
                 return $lockedOrder;
             }
 
-            $lockedOrder->status = 'completed';
+            if ($lockedOrder->status !== Order::STATUS_READY) {
+                throw new OrderException('Only ready for pickup orders can be completed.');
+            }
+
+            $lockedOrder->status = Order::STATUS_COMPLETED;
             $lockedOrder->completed_at = now();
             $lockedOrder->save();
             $lockedOrder->user->notify(new OrderCompletedNotification($lockedOrder));
@@ -115,6 +119,38 @@ class OrderService
         }
 
         return $this->complete($order);
+    }
+
+    public function advanceStatus(Order $order): Order
+    {
+        return DB::transaction(function () use ($order) {
+            $lockedOrder = Order::where('id', $order->id)
+                ->with(['items.product', 'user'])
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            if ($lockedOrder->status === Order::STATUS_CANCELLED) {
+                throw new OrderException('Cancelled orders cannot be updated.');
+            }
+
+            $nextStatus = $lockedOrder->nextStatus();
+            if (!$nextStatus) {
+                throw new OrderException('Order status cannot be advanced.');
+            }
+
+            if ($nextStatus === Order::STATUS_COMPLETED) {
+                $lockedOrder->completed_at = now();
+            }
+
+            $lockedOrder->status = $nextStatus;
+            $lockedOrder->save();
+
+            if ($nextStatus === Order::STATUS_COMPLETED) {
+                $lockedOrder->user->notify(new OrderCompletedNotification($lockedOrder));
+            }
+
+            return $lockedOrder->fresh(['items.product', 'user']);
+        });
     }
 
     private function calculateCashRewardOz(Order $order): int

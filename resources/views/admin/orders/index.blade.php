@@ -97,12 +97,12 @@
                                         View Detail
                                     </a>
 
-                                    @if($order->status !== 'completed')
-                                        <form action="{{ route('admin.orders.complete', $order) }}" method="POST">
+                                    @if($order->canAdvanceStatus())
+                                        <form action="{{ route('admin.orders.advance-status', $order) }}" method="POST">
                                             @csrf @method('PATCH')
-                                            <button type="submit" onclick="return confirm('Confirm complete?')"
+                                            <button type="submit" onclick="return confirm('Move order to {{ str_replace('_', ' ', $order->nextStatus()) }}?')"
                                                 class="px-4 py-2 bg-gray-900 text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-blue-600 transition-all active:scale-95 shadow-md">
-                                                Complete
+                                                {{ str_replace('_', ' ', $order->nextStatus()) }}
                                             </button>
                                         </form>
                                     @endif

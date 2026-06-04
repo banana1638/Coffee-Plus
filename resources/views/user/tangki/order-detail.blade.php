@@ -47,6 +47,32 @@
                         </div>
                     </div>
 
+                    @php
+                        $steps = [
+                            'pending' => 'Pending',
+                            'preparing' => 'Preparing',
+                            'ready_for_pickup' => 'Ready',
+                            'completed' => 'Completed',
+                        ];
+                        $activeStep = $order->statusStep();
+                    @endphp
+
+                    @if($order->status !== 'cancelled')
+                        <div class="mb-8">
+                            <div class="grid grid-cols-4 gap-2">
+                                @foreach($steps as $key => $label)
+                                    @php $stepIndex = $loop->iteration; @endphp
+                                    <div class="text-center">
+                                        <div class="h-2 rounded-full {{ $stepIndex <= $activeStep ? 'bg-blue-600' : 'bg-gray-200' }}"></div>
+                                        <p class="mt-2 text-[9px] font-black uppercase tracking-tight {{ $stepIndex <= $activeStep ? 'text-blue-600' : 'text-gray-400' }}">
+                                            {{ $label }}
+                                        </p>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                    @endif
+
                     <div class="space-y-4">
                         <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-50 pb-2">Items Purchased</p>
                         

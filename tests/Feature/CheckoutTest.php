@@ -263,16 +263,80 @@ class CheckoutTest extends TestCase
         $checkout->assertStatus(200);
 
         $pickupCode = $checkout->json('data.pickup_code');
+        $order = Order::findOrFail($checkout->json('data.id'));
+        $order->status = Order::STATUS_READY;
+        $order->save();
 
         $response = $this->actingAs($admin, 'admin')->post(route('admin.orders.complete-by-code'), [
             'pickup_code' => strtolower($pickupCode),
         ]);
 
-        $order = Order::findOrFail($checkout->json('data.id'));
-
         $response->assertRedirect(route('admin.orders.show', $order));
         $order->refresh();
         $this->assertSame('completed', $order->status);
         $this->assertNotNull($order->completed_at);
+    }
+
+    public function test_admin_can_advance_order_status_flow(): void
+    {
+        $admin = new Admin();
+        $admin->name = 'Staff';
+        $admin->email = 'flow@example.test';
+        $admin->password = 'password';
+        $admin->role = 'staff';
+        $admin->save();
+
+        $user = User::factory()->create(['tangki_balance' => 20.00]);
+        $product = $this->createProduct();
+        $this->addCartItem($user, $product);
+
+        $checkout = $this->actingAs($user)->postJson('/api/checkout');
+        $checkout->assertStatus(200)
+            ->assertJsonPath('data.status', Order::STATUS_PENDING)
+            ->assertJsonPath('data.next_status', Order::STATUS_PREPARING);
+
+        $order = Order::findOrFail($checkout->json('data.id'));
+
+        $this->actingAs($admin, 'admin')
+            ->patch(route('admin.orders.advance-status', $order))
+            ->assertSessionHas('success');
+        $order->refresh();
+        $this->assertSame(Order::STATUS_PREPARING, $order->status);
+
+        $this->actingAs($admin, 'admin')
+            ->patch(route('admin.orders.advance-status', $order))
+            ->assertSessionHas('success');
+        $order->refresh();
+        $this->assertSame(Order::STATUS_READY, $order->status);
+
+        $this->actingAs($admin, 'admin')
+            ->patch(route('admin.orders.advance-status', $order))
+            ->assertSessionHas('success');
+        $order->refresh();
+        $this->assertSame(Order::STATUS_COMPLETED, $order->status);
+        $this->assertNotNull($order->completed_at);
+    }
+
+    public function test_pickup_code_cannot_complete_order_before_ready_status(): void
+    {
+        $admin = new Admin();
+        $admin->name = 'Staff';
+        $admin->email = 'not-ready@example.test';
+        $admin->password = 'password';
+        $admin->role = 'staff';
+        $admin->save();
+
+        $user = User::factory()->create(['tangki_balance' => 20.00]);
+        $product = $this->createProduct();
+        $this->addCartItem($user, $product);
+
+        $checkout = $this->actingAs($user)->postJson('/api/checkout');
+        $checkout->assertStatus(200);
+
+        $response = $this->actingAs($admin, 'admin')->post(route('admin.orders.complete-by-code'), [
+            'pickup_code' => $checkout->json('data.pickup_code'),
+        ]);
+
+        $response->assertSessionHas('error', 'Only ready for pickup orders can be completed.');
     }
 }

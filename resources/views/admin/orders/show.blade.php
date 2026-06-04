@@ -92,12 +92,12 @@
                         </div>
                     </div>
 
-                    @if($order->status !== 'completed')
+                    @if($order->canAdvanceStatus())
                         <div class="mt-10">
-                            <form action="{{ route('admin.orders.complete', $order) }}" method="POST">
+                            <form action="{{ route('admin.orders.advance-status', $order) }}" method="POST">
                                 @csrf @method('PATCH')
                                 <button type="submit" class="w-full py-5 bg-blue-600 hover:bg-blue-500 text-white rounded-2xl font-black text-xs uppercase tracking-[0.3em] transition-all shadow-xl shadow-blue-900/20 active:scale-95">
-                                    Mark as Completed
+                                    Move to {{ str_replace('_', ' ', $order->nextStatus()) }}
                                 </button>
                             </form>
                         </div>

@@ -39,6 +39,17 @@ class AdminOrderController extends Controller
         }
     }
 
+    public function advanceStatus(Order $order)
+    {
+        try {
+            $this->orderService->advanceStatus($order);
+
+            return back()->with('success', 'Order status updated.');
+        } catch (OrderException $e) {
+            return back()->with('error', $e->getMessage());
+        }
+    }
+
     public function completeByPickupCode(Request $request)
     {
         $validated = $request->validate([

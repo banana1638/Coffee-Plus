@@ -39,6 +39,7 @@ Route::middleware(['auth:admin'])->group(function () {
         Route::post('/complete-by-code', [AdminOrderController::class, 'completeByPickupCode'])->name('complete-by-code');
         Route::get('/', [AdminOrderController::class, 'index'])->name('index');
         Route::get('/{order}', [AdminOrderController::class, 'show'])->name('show');
+        Route::match(['post', 'patch'], '/{order}/advance-status', [AdminOrderController::class, 'advanceStatus'])->name('advance-status');
         Route::match(['post', 'patch'], '/{order}/complete', [AdminOrderController::class, 'complete'])->name('complete');
     });
 });

@@ -20,6 +20,8 @@ class OrderResource extends JsonResource
             'pickup_code' => $this->pickup_code,
             'pickup_qr_payload' => $this->pickup_qr_payload,
             'status' => $this->status,
+            'status_step' => $this->statusStep(),
+            'next_status' => $this->nextStatus(),
             'created_at' => $this->created_at->format('Y-m-d H:i'),
             'cancelled_at' => $this->cancelled_at?->format('Y-m-d H:i'),
             'completed_at' => $this->completed_at?->format('Y-m-d H:i'),

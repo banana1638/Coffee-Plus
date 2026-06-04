@@ -9,10 +9,22 @@ class Order extends Model
 {
     use HasFactory;
 
+    public const STATUS_PENDING = 'pending';
+    public const STATUS_PREPARING = 'preparing';
+    public const STATUS_READY = 'ready_for_pickup';
+    public const STATUS_COMPLETED = 'completed';
+    public const STATUS_CANCELLED = 'cancelled';
+
+    public const STATUS_FLOW = [
+        self::STATUS_PENDING,
+        self::STATUS_PREPARING,
+        self::STATUS_READY,
+        self::STATUS_COMPLETED,
+    ];
 
     protected $attributes = [
         'oz_used' => 0,
-        'status' => 'pending',
+        'status' => self::STATUS_PENDING,
     ];
 
     protected $casts = [
@@ -23,7 +35,30 @@ class Order extends Model
 
     public function canBeCancelled(): bool
     {
-        return $this->status === 'pending';
+        return $this->status === self::STATUS_PENDING;
+    }
+
+    public function nextStatus(): ?string
+    {
+        $currentIndex = array_search($this->status, self::STATUS_FLOW, true);
+
+        if ($currentIndex === false) {
+            return null;
+        }
+
+        return self::STATUS_FLOW[$currentIndex + 1] ?? null;
+    }
+
+    public function canAdvanceStatus(): bool
+    {
+        return $this->nextStatus() !== null;
+    }
+
+    public function statusStep(): int
+    {
+        $currentIndex = array_search($this->status, self::STATUS_FLOW, true);
+
+        return $currentIndex === false ? 0 : $currentIndex + 1;
     }
 
     public function getPickupQrPayloadAttribute(): ?string
