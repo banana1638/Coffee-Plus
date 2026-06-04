@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\AdminOrderController;
+use App\Http\Controllers\Admin\CouponAdminController;
 use App\Http\Controllers\Admin\LoginController;
 use App\Http\Controllers\Admin\ProductAdminController;
 use App\Http\Controllers\Admin\DashboardController;
@@ -32,6 +33,8 @@ Route::middleware(['auth:admin'])->group(function () {
         Route::put('/{id}', 'update')->name('update');
         Route::delete('/{id}', 'destroy')->name('destroy');
     });
+
+    Route::resource('coupons', CouponAdminController::class)->except(['show']);
 
     Route::prefix('orders')->name('orders.')->group(function () {
         Route::get('/export-center', [AdminOrderController::class, 'exportPage'])->name('export.page');
