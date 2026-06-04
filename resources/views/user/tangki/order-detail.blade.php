@@ -33,7 +33,7 @@
                         </div>
                         <div class="flex justify-between items-center text-sm">
                             <span class="text-gray-500 font-medium">Status</span>
-                            <span class="bg-green-100 text-green-600 text-[10px] font-black px-2 py-1 rounded-md uppercase">{{ $order->status }}</span>
+                            <span class="{{ $order->status === 'cancelled' ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600' }} text-[10px] font-black px-2 py-1 rounded-md uppercase">{{ $order->status }}</span>
                         </div>
                     </div>
 
@@ -120,6 +120,16 @@
                             </span>
                         </div>
                     </div>
+
+                    @if($order->canBeCancelled())
+                        <form action="{{ route('order.cancel', $order) }}" method="POST" class="mt-8">
+                            @csrf
+                            <button type="submit" onclick="return confirm('Cancel this order and refund to Tangki?')"
+                                class="w-full py-4 bg-red-600 hover:bg-red-500 text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em] transition-all shadow-lg active:scale-95">
+                                Cancel Order
+                            </button>
+                        </form>
+                    @endif
                 </div>
 
                 <div class="p-8 bg-gray-50/50 border-t border-gray-100 flex flex-col items-center">

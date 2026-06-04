@@ -41,6 +41,7 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     Route::post('/checkout', [OrderController::class, 'checkout'])->middleware('throttle:10,1');
+    Route::post('/orders/{order}/cancel', [OrderController::class, 'cancel'])->middleware('throttle:10,1');
 
     Route::controller(ProfileController::class)->prefix('profile')->group(function () {
         Route::get('/', 'edit');

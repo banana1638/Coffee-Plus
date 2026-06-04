@@ -19,6 +19,8 @@ class OrderResource extends JsonResource
             'bill_id' => $this->bill_id,
             'status' => $this->status,
             'created_at' => $this->created_at->format('Y-m-d H:i'),
+            'cancelled_at' => $this->cancelled_at?->format('Y-m-d H:i'),
+            'can_cancel' => $this->canBeCancelled(),
             'subtotal' => (float) $this->subtotal,
             'final_amount' => (float) $this->final_amount,
             'coupon_discount' => (float) ($this->coupon_discount ?? 0),

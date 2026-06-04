@@ -15,6 +15,16 @@ class Order extends Model
         'status' => 'pending',
     ];
 
+    protected $casts = [
+        'pickup_time' => 'datetime',
+        'cancelled_at' => 'datetime',
+    ];
+
+    public function canBeCancelled(): bool
+    {
+        return $this->status === 'pending';
+    }
+
     public function user()
     {
         return $this->belongsTo(User::class);

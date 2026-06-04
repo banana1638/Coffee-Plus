@@ -32,6 +32,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 
     Route::post('/order/checkout', [OrderController::class, 'checkout'])->name('order.checkout');
+    Route::post('/orders/{order}/cancel', [OrderController::class, 'cancel'])->name('order.cancel');
 
     // Stripe Routes
     Route::post('/stripe/checkout', [PaymentController::class, 'checkout'])->name('stripe.checkout');

@@ -145,4 +145,84 @@ class CheckoutTest extends TestCase
         $coupon->refresh();
         $this->assertSame(1, $coupon->used_count);
     }
+
+    public function test_user_can_cancel_pending_cash_order_and_receive_tangki_refund(): void
+    {
+        $user = User::factory()->create(['tangki_balance' => 20.00]);
+        $product = $this->createProduct();
+        $this->addCartItem($user, $product);
+
+        $checkout = $this->actingAs($user)->postJson('/api/checkout');
+        $checkout->assertStatus(200);
+
+        $orderId = $checkout->json('data.id');
+
+        $user->refresh();
+        $this->assertEquals('10.00', $user->tangki_balance);
+        $this->assertSame(500, $user->tangki_oz);
+
+        $response = $this->actingAs($user)->postJson("/api/orders/{$orderId}/cancel");
+
+        $response->assertStatus(200)
+            ->assertJsonPath('data.status', 'cancelled')
+            ->assertJsonPath('data.can_cancel', false);
+
+        $user->refresh();
+        $this->assertEquals('20.00', $user->tangki_balance);
+        $this->assertSame(0, $user->tangki_oz);
+        $this->assertDatabaseHas('transactions', [
+            'user_id' => $user->id,
+            'type' => 'refund',
+            'oz_delta' => 0,
+        ]);
+        $this->assertDatabaseHas('transactions', [
+            'user_id' => $user->id,
+            'type' => 'refund',
+            'oz_delta' => -500,
+        ]);
+    }
+
+    public function test_user_can_cancel_pending_oz_order_and_receive_oz_refund(): void
+    {
+        $user = User::factory()->create([
+            'tangki_balance' => 0.00,
+            'tangki_oz' => 1000,
+        ]);
+        $product = $this->createProduct();
+        $cartItem = $this->addCartItem($user, $product);
+
+        $checkout = $this->actingAs($user)->postJson('/api/checkout', [
+            'use_oz' => [$cartItem->id],
+        ]);
+        $checkout->assertStatus(200);
+
+        $user->refresh();
+        $this->assertSame(0, $user->tangki_oz);
+
+        $response = $this->actingAs($user)->postJson('/api/orders/' . $checkout->json('data.id') . '/cancel');
+
+        $response->assertStatus(200);
+
+        $user->refresh();
+        $this->assertSame(1000, $user->tangki_oz);
+    }
+
+    public function test_completed_order_cannot_be_cancelled(): void
+    {
+        $user = User::factory()->create(['tangki_balance' => 20.00]);
+        $product = $this->createProduct();
+        $this->addCartItem($user, $product);
+
+        $checkout = $this->actingAs($user)->postJson('/api/checkout');
+        $checkout->assertStatus(200);
+
+        $order = Order::findOrFail($checkout->json('data.id'));
+        $order->status = 'completed';
+        $order->save();
+
+        $response = $this->actingAs($user)->postJson("/api/orders/{$order->id}/cancel");
+
+        $response->assertStatus(422)
+            ->assertJsonPath('message', 'Only pending orders can be cancelled.');
+    }
 }

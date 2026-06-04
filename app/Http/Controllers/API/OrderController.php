@@ -8,16 +8,20 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\Api\OrderResource;
 use App\Http\Requests\API\CheckoutRequest;
 use App\Traits\ApiResponse;
+use App\Models\Order;
+use App\Services\OrderService;
 
 class OrderController extends Controller
 {
     use ApiResponse;
 
     protected CheckoutServiceInterface $checkoutService;
+    protected OrderService $orderService;
 
-    public function __construct(CheckoutServiceInterface $checkoutService)
+    public function __construct(CheckoutServiceInterface $checkoutService, OrderService $orderService)
     {
         $this->checkoutService = $checkoutService;
+        $this->orderService = $orderService;
     }
 
     public function checkout(CheckoutRequest $request)
@@ -46,6 +50,24 @@ class OrderController extends Controller
             report($e);
 
             return $this->error('Checkout failed. Please try again.', 500);
+        }
+    }
+
+    public function cancel(Order $order)
+    {
+        try {
+            $order = $this->orderService->cancel($order, request()->user());
+
+            return $this->success(
+                new OrderResource($order),
+                'Order cancelled and refunded to Tangki.'
+            );
+        } catch (\App\Exceptions\OrderException $e) {
+            return $this->error($e->getMessage(), $e->statusCode());
+        } catch (\Throwable $e) {
+            report($e);
+
+            return $this->error('Order cancellation failed. Please try again.', 500);
         }
     }
 }
