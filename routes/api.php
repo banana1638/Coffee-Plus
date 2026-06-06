@@ -23,8 +23,8 @@ use Illuminate\Support\Facades\Route;
 */
 
 // Public routes
-Route::post('/login', [LoginController::class, 'login']);
-Route::post('/register', [RegisterController::class, 'register']);
+Route::post('/login', [LoginController::class, 'login'])->middleware('throttle:5,1');
+Route::post('/register', [RegisterController::class, 'register'])->middleware('throttle:3,1');
 Route::post('/stripe/webhook', StripeWebhookController::class);
 Route::get('/products/{product}/reviews', [ProductReviewController::class, 'index']);
 Route::get('/products/{id}', [ProductController::class, 'show']);
@@ -45,8 +45,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/remove', 'destroy');
     });
 
-    Route::post('/checkout', [OrderController::class, 'checkout'])->middleware('throttle:10,1');
-    Route::get('/coupons/validate', [CouponController::class, 'validateCode'])->middleware('throttle:30,1');
+    Route::post('/checkout', [OrderController::class, 'checkout'])->middleware('throttle:3,1');
+    Route::get('/coupons/validate', [CouponController::class, 'validateCode'])->middleware('throttle:10,1');
     Route::get('/orders', [OrderController::class, 'index']);
     Route::get('/orders/{order}', [OrderController::class, 'show']);
     Route::post('/orders/{order}/cancel', [OrderController::class, 'cancel'])->middleware('throttle:10,1');
@@ -66,7 +66,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // Tangki
     Route::controller(TangkiController::class)->prefix('tangki')->group(function () {
         Route::get('/', 'index');
-        Route::post('/refill', 'refill')->middleware('throttle:10,1');
+        Route::post('/refill', 'refill')->middleware('throttle:5,1');
     });
 
     // Transactions

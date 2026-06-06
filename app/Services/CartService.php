@@ -23,6 +23,8 @@ class CartService implements CartServiceInterface
      */
     public function add(User $user, int $productId, int $quantity, string $size, string $temp, array $addons): CartItem
     {
+        $this->assertValidQuantity($quantity);
+
         $product = Product::findOrFail($productId);
         $finalUnitPrice = $this->pricingService->calculateUnitPrice($product, $size, $addons);
 
@@ -42,6 +44,8 @@ class CartService implements CartServiceInterface
             });
 
         if ($cartItem) {
+            $this->assertValidQuantity($cartItem->quantity + $quantity);
+
             $cartItem->quantity += $quantity;
             $cartItem->unit_price = $finalUnitPrice;
             $cartItem->save();
@@ -73,6 +77,8 @@ class CartService implements CartServiceInterface
      */
     public function updateQuantity(User $user, ?int $cartItemId, ?int $productId, int $quantity): void
     {
+        $this->assertValidQuantity($quantity);
+
         if ($cartItemId) {
             CartItem::where('user_id', $user->id)
                 ->where('id', $cartItemId)
@@ -114,5 +120,12 @@ class CartService implements CartServiceInterface
     public function clearCart(User $user): void
     {
         CartItem::where('user_id', $user->id)->delete();
+    }
+
+    private function assertValidQuantity(int $quantity): void
+    {
+        if ($quantity < 1 || $quantity > 99) {
+            throw new \InvalidArgumentException('Cart quantity must be between 1 and 99.');
+        }
     }
 }
