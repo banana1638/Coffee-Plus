@@ -1,0 +1,97 @@
+<?php
+
+namespace Tests\Feature;
+
+use App\Models\Order;
+use App\Models\PaymentEvent;
+use App\Models\Transaction;
+use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
+
+class StripeWebhookTest extends TestCase
+{
+    use RefreshDatabase;
+
+    private function stripeSignature(string $payload, string $secret): string
+    {
+        $timestamp = time();
+        $signature = hash_hmac('sha256', "{$timestamp}.{$payload}", $secret);
+
+        return "t={$timestamp},v1={$signature}";
+    }
+
+    private function checkoutCompletedPayload(User $user, string $eventId, string $sessionId): string
+    {
+        return json_encode([
+            'id' => $eventId,
+            'object' => 'event',
+            'type' => 'checkout.session.completed',
+            'data' => [
+                'object' => [
+                    'id' => $sessionId,
+                    'object' => 'checkout.session',
+                    'amount_total' => 1000,
+                    'currency' => 'myr',
+                    'payment_status' => 'paid',
+                    'metadata' => [
+                        'type' => 'refill',
+                        'user_id' => (string) $user->id,
+                        'amount' => '10.00',
+                    ],
+                ],
+            ],
+        ], JSON_UNESCAPED_SLASHES);
+    }
+
+    public function test_stripe_webhook_rejects_invalid_signature(): void
+    {
+        config(['services.stripe.webhook' => 'whsec_test']);
+
+        $payload = json_encode(['id' => 'evt_bad', 'type' => 'checkout.session.completed']);
+
+        $this->call('POST', '/api/stripe/webhook', [], [], [], [
+            'CONTENT_TYPE' => 'application/json',
+            'HTTP_STRIPE_SIGNATURE' => 't=1,v1=bad',
+        ], $payload)->assertStatus(400);
+    }
+
+    public function test_stripe_webhook_processes_checkout_session_once(): void
+    {
+        config(['services.stripe.webhook' => 'whsec_test']);
+
+        $user = User::factory()->create();
+        $payload = $this->checkoutCompletedPayload($user, 'evt_1', 'cs_test_once');
+        $signature = $this->stripeSignature($payload, 'whsec_test');
+
+        $this->call('POST', '/api/stripe/webhook', [], [], [], [
+            'CONTENT_TYPE' => 'application/json',
+            'HTTP_STRIPE_SIGNATURE' => $signature,
+        ], $payload)->assertStatus(200);
+
+        $duplicatePayload = $this->checkoutCompletedPayload($user, 'evt_2', 'cs_test_once');
+        $duplicateSignature = $this->stripeSignature($duplicatePayload, 'whsec_test');
+
+        $this->call('POST', '/api/stripe/webhook', [], [], [], [
+            'CONTENT_TYPE' => 'application/json',
+            'HTTP_STRIPE_SIGNATURE' => $duplicateSignature,
+        ], $duplicatePayload)->assertStatus(200)
+            ->assertJsonPath('duplicate', true);
+
+        $this->assertSame(1, Order::where('bill_id', 'like', 'TOPUP-%')->count());
+        $this->assertSame(1, Transaction::where('type', 'refill')->count());
+        $this->assertSame(1, PaymentEvent::where('status', 'processed')->count());
+    }
+
+    public function test_stripe_success_redirect_does_not_process_payment_business_logic(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user)
+            ->get(route('stripe.success', ['session_id' => 'cs_fake']))
+            ->assertRedirect(route('dashboard'));
+
+        $this->assertDatabaseCount('orders', 0);
+        $this->assertDatabaseCount('transactions', 0);
+    }
+}

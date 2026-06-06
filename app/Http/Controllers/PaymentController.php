@@ -67,23 +67,7 @@ class PaymentController extends Controller
 
     public function success(Request $request)
     {
-        $sessionId = $request->input('session_id');
-
-        $result = $this->gateway->getSessionData($sessionId);
-
-        if (!$result->isSuccess()) {
-            return redirect()->route('cart.index')->with('error', 'Payment failed.');
-        }
-
-        $user = Auth::user();
-
-        // Ensure user is not null (route is protected by auth)
-        if (!$user) {
-            abort(403);
-        }
-
-        $this->handlerFactory->make($result->getType())->handle($result, $user);
-
-        return redirect()->route('dashboard')->with('success', 'Payment processed!');
+        return redirect()->route('dashboard')
+            ->with('success', 'Payment received. We are confirming it with Stripe.');
     }
 }

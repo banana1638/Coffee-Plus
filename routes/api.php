@@ -11,6 +11,7 @@ use App\Http\Controllers\API\ProductController;
 use App\Http\Controllers\API\ProductReviewController;
 use App\Http\Controllers\API\ProfileController;
 use App\Http\Controllers\API\SharedRecipeController;
+use App\Http\Controllers\API\StripeWebhookController;
 use App\Http\Controllers\API\TangkiController;
 use App\Http\Controllers\API\TransactionController;
 use Illuminate\Support\Facades\Route;
@@ -24,6 +25,7 @@ use Illuminate\Support\Facades\Route;
 // Public routes
 Route::post('/login', [LoginController::class, 'login']);
 Route::post('/register', [RegisterController::class, 'register']);
+Route::post('/stripe/webhook', StripeWebhookController::class);
 Route::get('/products/{product}/reviews', [ProductReviewController::class, 'index']);
 Route::get('/products/{id}', [ProductController::class, 'show']);
 
