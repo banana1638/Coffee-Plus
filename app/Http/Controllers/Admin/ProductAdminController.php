@@ -32,6 +32,8 @@ class ProductAdminController extends Controller
             'price' => 'required|numeric',
             'menu_id' => 'required',
             'oz_redeem_value' => 'nullable|numeric',
+            'track_stock' => 'nullable|boolean',
+            'stock' => 'nullable|integer|min:0|required_if:track_stock,1',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
         ]);
 
@@ -40,6 +42,8 @@ class ProductAdminController extends Controller
         $product->price = $request->price;
         $product->menu_id = $request->menu_id;
         $product->oz_redeem_value = $request->oz_redeem_value ?? 0;
+        $product->track_stock = $request->boolean('track_stock');
+        $product->stock = $product->track_stock ? (int) $request->input('stock', 0) : null;
 
         if ($request->hasFile('image')) {
             $product->image = $this->storeProductImage($request);
@@ -51,6 +55,8 @@ class ProductAdminController extends Controller
             'price',
             'menu_id',
             'oz_redeem_value',
+            'track_stock',
+            'stock',
             'image',
         ]));
 
@@ -77,13 +83,15 @@ class ProductAdminController extends Controller
 
     public function update(Request $request, $id) {
         $product = Product::findOrFail($id);
-        $oldValues = $product->only(['name', 'price', 'menu_id', 'oz_redeem_value', 'image']);
+        $oldValues = $product->only(['name', 'price', 'menu_id', 'oz_redeem_value', 'track_stock', 'stock', 'image']);
         
         $request->validate([
             'name' => 'required|max:255', 
             'price' => 'required|numeric',
             'menu_id' => 'required',
             'oz_redeem_value' => 'nullable|numeric',
+            'track_stock' => 'nullable|boolean',
+            'stock' => 'nullable|integer|min:0|required_if:track_stock,1',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
         ]);
 
@@ -91,6 +99,8 @@ class ProductAdminController extends Controller
         $product->price = $request->price;
         $product->menu_id = $request->menu_id;
         $product->oz_redeem_value = $request->oz_redeem_value;
+        $product->track_stock = $request->boolean('track_stock');
+        $product->stock = $product->track_stock ? (int) $request->input('stock', 0) : null;
 
         if ($request->hasFile('image')) {
             if ($product->image && File::exists(public_path('images/products/'.$product->image))) {
@@ -106,6 +116,8 @@ class ProductAdminController extends Controller
             'price',
             'menu_id',
             'oz_redeem_value',
+            'track_stock',
+            'stock',
             'image',
         ]));
 
@@ -129,7 +141,7 @@ class ProductAdminController extends Controller
 
     public function destroy($id) {
         $product = Product::findOrFail($id);
-        $oldValues = $product->only(['name', 'price', 'menu_id', 'oz_redeem_value', 'image']);
+        $oldValues = $product->only(['name', 'price', 'menu_id', 'oz_redeem_value', 'track_stock', 'stock', 'image']);
 
         if ($product->image && File::exists(public_path('images/products/'.$product->image))) {
             File::delete(public_path('images/products/'.$product->image));

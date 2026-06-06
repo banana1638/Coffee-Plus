@@ -26,6 +26,7 @@
                             <th class="px-8 py-5 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Product info</th>
                             <th class="px-8 py-5 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Category</th>
                             <th class="px-8 py-5 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Pricing</th>
+                            <th class="px-8 py-5 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Stock</th>
                             <th class="px-8 py-5 text-[10px] font-bold text-gray-400 uppercase tracking-widest text-right">Management</th>
                         </tr>
                     </thead>
@@ -58,6 +59,17 @@
                                 <p class="text-[10px] text-yellow-600 font-black uppercase tracking-widest mt-1">
                                     {{ number_format($product->average_rating, 1) }}/5 reviews
                                 </p>
+                            </td>
+                            <td class="px-8 py-5">
+                                @if($product->track_stock)
+                                    <span class="inline-flex items-center px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest {{ (int) $product->stock <= 5 ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-600' }}">
+                                        {{ (int) $product->stock }} in stock
+                                    </span>
+                                @else
+                                    <span class="inline-flex items-center px-4 py-1.5 bg-gray-100 text-gray-500 rounded-full text-[10px] font-black uppercase tracking-widest">
+                                        Not tracked
+                                    </span>
+                                @endif
                             </td>
                             <td class="px-8 py-5 text-right">
                                 <div class="flex justify-end gap-3 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-all">

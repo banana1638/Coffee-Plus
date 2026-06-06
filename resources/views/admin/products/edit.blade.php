@@ -61,6 +61,24 @@
                                 @endforeach
                             </select>
                         </div>
+
+                        <div class="md:col-span-2 bg-gray-50 rounded-[2rem] p-6 border border-gray-100">
+                            <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                                <div>
+                                    <label for="track-stock-edit" class="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-1">Stock Tracking</label>
+                                    <p class="text-xs font-bold text-gray-500">Enable this when the product has limited inventory.</p>
+                                </div>
+                                <label class="inline-flex items-center gap-3 cursor-pointer">
+                                    <input id="track-stock-edit" type="checkbox" name="track_stock" value="1" {{ old('track_stock', $product->track_stock) ? 'checked' : '' }} class="w-5 h-5 rounded-lg border-gray-300 text-blue-600 focus:ring-blue-500">
+                                    <span class="text-xs font-black text-gray-700 uppercase tracking-widest">Track Stock</span>
+                                </label>
+                            </div>
+
+                            <div class="mt-5">
+                                <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-4 mb-2 block">Current Stock</label>
+                                <input type="number" min="0" name="stock" value="{{ old('stock', $product->stock) }}" class="w-full px-8 py-5 bg-white border-none rounded-[1.5rem] focus:ring-4 focus:ring-blue-500/5 transition-all font-bold text-gray-800 placeholder:text-gray-300" placeholder="e.g. 25">
+                            </div>
+                        </div>
                     </div>
 
                         <div class="md:col-span-2 space-y-4">
