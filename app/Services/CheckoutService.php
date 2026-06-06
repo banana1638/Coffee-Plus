@@ -6,6 +6,7 @@ use App\Contracts\CheckoutServiceInterface;
 use App\Contracts\TangkiServiceInterface;
 use App\Exceptions\CheckoutException;
 use App\Models\{CartItem, Coupon, Order, OrderItem, User};
+use Illuminate\Contracts\Cache\LockTimeoutException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Cache;
 use App\Events\OrderPlaced;
@@ -25,8 +26,11 @@ class CheckoutService implements CheckoutServiceInterface
      */
     public function processCheckout(User $user, array $useOzIds, ?string $couponCode = null, ?string $pickupTime = null): Order
     {
-        $lock = Cache::lock('checkout_user_' . $user->id, 10);
-        if (!$lock->get()) {
+        $lock = Cache::lock('checkout_user_' . $user->id, 60);
+
+        try {
+            $lock->block(5);
+        } catch (LockTimeoutException) {
             throw new CheckoutException('Another checkout operation is in progress. Please try again.', 409);
         }
 
@@ -130,10 +134,14 @@ class CheckoutService implements CheckoutServiceInterface
 
     private function generatePickupCode(): string
     {
-        do {
+        for ($attempt = 0; $attempt < 5; $attempt++) {
             $code = 'PU' . strtoupper(Str::random(6));
-        } while (Order::where('pickup_code', $code)->exists());
 
-        return $code;
+            if (!Order::where('pickup_code', $code)->exists()) {
+                return $code;
+            }
+        }
+
+        throw new CheckoutException('Unable to generate pickup code. Please try again.');
     }
 }
