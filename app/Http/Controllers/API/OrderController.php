@@ -98,9 +98,13 @@ class OrderController extends Controller
         ]);
     }
 
-    public function show(Order $order)
+    public function show($order)
     {
-        if ($order->user_id !== request()->user()->id) {
+        $order = Order::where('user_id', request()->user()->id)
+            ->where('id', $order)
+            ->first();
+
+        if (!$order) {
             return $this->error('Order not found.', 404);
         }
 
@@ -109,9 +113,17 @@ class OrderController extends Controller
         return $this->success(new OrderResource($order));
     }
 
-    public function cancel(Order $order)
+    public function cancel($order)
     {
         try {
+            $order = Order::where('user_id', request()->user()->id)
+                ->where('id', $order)
+                ->first();
+
+            if (!$order) {
+                return $this->error('Order not found.', 404);
+            }
+
             $order = $this->orderService->cancel($order, request()->user());
 
             return $this->success(

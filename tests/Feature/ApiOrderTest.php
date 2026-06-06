@@ -84,4 +84,15 @@ class ApiOrderTest extends TestCase
             ->getJson("/api/orders/{$order->id}")
             ->assertStatus(404);
     }
+
+    public function test_user_cannot_cancel_another_users_order(): void
+    {
+        $user = User::factory()->create();
+        $otherUser = User::factory()->create();
+        $order = $this->createOrder($otherUser, 'CP-CANCEL-PRIVATE');
+
+        $this->actingAs($user)
+            ->postJson("/api/orders/{$order->id}/cancel")
+            ->assertStatus(404);
+    }
 }

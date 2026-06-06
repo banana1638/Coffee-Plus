@@ -110,4 +110,20 @@ class ApiProductReviewTest extends TestCase
             ->assertStatus(422)
             ->assertJsonPath('message', 'Only completed orders can be reviewed.');
     }
+
+    public function test_user_cannot_review_another_users_order_via_api(): void
+    {
+        $owner = User::factory()->create();
+        $otherUser = User::factory()->create();
+        $product = $this->createProduct();
+        $order = $this->createOrderWithProduct($owner, $product, Order::STATUS_COMPLETED);
+
+        $this->actingAs($otherUser)
+            ->postJson("/api/orders/{$order->id}/reviews", [
+                'product_id' => $product->id,
+                'rating' => 5,
+                'comment' => 'Private order',
+            ])
+            ->assertStatus(404);
+    }
 }

@@ -37,11 +37,9 @@ class TransactionController extends Controller
     public function showOrderDetail($bill_id)
     {
         $order = Order::where('bill_id', $bill_id)
+            ->where('user_id', Auth::id())
             ->with(['items.product'])
             ->firstOrFail();
-        if ($order->user_id !== Auth::id()) {
-            abort(403, 'Unauthorized');
-        }
 
         return response()->json([
             'order' => new OrderResource($order),

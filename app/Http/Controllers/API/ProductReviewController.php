@@ -33,7 +33,7 @@ class ProductReviewController extends Controller
         ]);
     }
 
-    public function store(Request $request, Order $order)
+    public function store(Request $request, $order)
     {
         $validated = $request->validate([
             'product_id' => ['required', 'exists:products,id'],
@@ -41,7 +41,11 @@ class ProductReviewController extends Controller
             'comment' => ['nullable', 'string', 'max:1000'],
         ]);
 
-        if ($order->user_id !== $request->user()->id) {
+        $order = Order::where('user_id', $request->user()->id)
+            ->where('id', $order)
+            ->first();
+
+        if (!$order) {
             return $this->error('Order not found.', 404);
         }
 
