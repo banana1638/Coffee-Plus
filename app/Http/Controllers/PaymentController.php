@@ -27,6 +27,8 @@ class PaymentController extends Controller
         $user = Auth::user();
         $cartItems = CartItem::where('user_id', $user->id)->with('product')->get();
         $useOzIds = $request->input('use_oz', []);
+        $couponCode = $request->input('coupon_code');
+        $pickupTime = $request->input('pickup_time');
 
         if ($cartItems->isEmpty()) {
             return redirect()->route('cart.index')->with('error', 'Your cart is empty.');
@@ -59,7 +61,9 @@ class PaymentController extends Controller
         $url = $this->gateway->createCheckoutUrl($user, $items, [
             'type' => 'checkout',
             'user_id' => $user->id,
-            'use_oz' => json_encode($useOzIds)
+            'coupon_code' => $couponCode,
+            'pickup_time' => $pickupTime,
+            'use_oz' => json_encode($useOzIds),
         ]);
 
         return Redirect::away($url);

@@ -25,6 +25,11 @@ class StripeCheckoutHandler implements PaymentCompletionHandler
             $useOzIds = json_decode($metadata['use_oz'], true) ?? [];
         }
 
-        return $this->checkoutService->processCheckout($user, $useOzIds);
+        return $this->checkoutService->processCheckout(
+            $user,
+            $useOzIds,
+            $metadata['coupon_code'] ?? null,
+            $metadata['pickup_time'] ?? null
+        );
     }
 }
