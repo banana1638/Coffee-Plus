@@ -7,19 +7,23 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
 use App\Contracts\PaymentGatewayInterface;
+use App\Services\CartSnapshotService;
 use App\Services\Payment\PaymentHandlerFactory;
 
 class PaymentController extends Controller
 {
     private PaymentGatewayInterface $gateway;
     private PaymentHandlerFactory $handlerFactory;
+    private CartSnapshotService $cartSnapshotService;
 
     public function __construct(
         PaymentGatewayInterface $gateway,
-        PaymentHandlerFactory $handlerFactory
+        PaymentHandlerFactory $handlerFactory,
+        CartSnapshotService $cartSnapshotService
     ) {
         $this->gateway = $gateway;
         $this->handlerFactory = $handlerFactory;
+        $this->cartSnapshotService = $cartSnapshotService;
     }
 
     public function checkout(Request $request)
@@ -34,22 +38,24 @@ class PaymentController extends Controller
             return redirect()->route('cart.index')->with('error', 'Your cart is empty.');
         }
 
+        $snapshot = $this->cartSnapshotService->createFromCart($user, $useOzIds, $couponCode, $pickupTime);
+
         $items = [];
-        foreach ($cartItems as $item) {
-            if (in_array($item->id, $useOzIds)) {
-                continue; // Skip items paid with OZ
+        foreach ($snapshot->items_json as $item) {
+            if ($item['paid_with_oz']) {
+                continue;
             }
 
             $items[] = [
                 'price_data' => [
                     'currency' => 'myr',
                     'product_data' => [
-                        'name' => $item->product->name,
-                        'description' => "{$item->size}, {$item->temp}" . (!empty($item->addons) ? ", +" . implode(', ', $item->addons) : ""),
+                        'name' => $item['product_name'],
+                        'description' => "{$item['size']}, {$item['temp']}" . (!empty($item['addons']) ? ", +" . implode(', ', $item['addons']) : ""),
                     ],
-                    'unit_amount' => (int) ($item->unit_price * 100),
+                    'unit_amount' => (int) $item['unit_price_cents'],
                 ],
-                'quantity' => $item->quantity,
+                'quantity' => (int) $item['quantity'],
             ];
         }
 
@@ -61,6 +67,7 @@ class PaymentController extends Controller
         $url = $this->gateway->createCheckoutUrl($user, $items, [
             'type' => 'checkout',
             'user_id' => $user->id,
+            'cart_snapshot_id' => $snapshot->id,
             'coupon_code' => $couponCode,
             'pickup_time' => $pickupTime,
             'use_oz' => json_encode($useOzIds),

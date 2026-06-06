@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Contracts\PaymentGatewayInterface;
 use App\DataTransferObjects\PaymentResult;
+use App\Models\CartSnapshot;
 use App\Models\CartItem;
 use App\Models\Menu;
 use App\Models\Order;
@@ -72,29 +73,72 @@ class StripeMetadataTest extends TestCase
 
         $this->assertSame('checkout', $gateway->metadata['type']);
         $this->assertSame($user->id, $gateway->metadata['user_id']);
+        $this->assertNotEmpty($gateway->metadata['cart_snapshot_id']);
         $this->assertSame('SAVE5', $gateway->metadata['coupon_code']);
         $this->assertSame('2026-06-06 15:00:00', $gateway->metadata['pickup_time']);
         $this->assertSame(json_encode([$cartItem->id]), $gateway->metadata['use_oz']);
+        $this->assertDatabaseHas('cart_snapshots', [
+            'id' => $gateway->metadata['cart_snapshot_id'],
+            'user_id' => $user->id,
+            'final_amount_cents' => 1200,
+        ]);
     }
 
-    public function test_stripe_checkout_handler_passes_full_metadata_to_checkout_service(): void
+    public function test_stripe_checkout_handler_processes_cart_snapshot(): void
     {
         $user = User::factory()->create();
+        $snapshot = new CartSnapshot();
+        $snapshot->user_id = $user->id;
+        $snapshot->items_json = [];
+        $snapshot->subtotal_cents = 1200;
+        $snapshot->discount_cents = 0;
+        $snapshot->oz_used = 0;
+        $snapshot->final_amount_cents = 1200;
+        $snapshot->status = CartSnapshot::STATUS_PENDING;
+        $snapshot->expires_at = now()->addMinutes(30);
+        $snapshot->save();
 
         $checkoutService = Mockery::mock(CheckoutService::class);
-        $checkoutService->shouldReceive('processCheckout')
+        $checkoutService->shouldReceive('processCartSnapshot')
             ->once()
-            ->with($user, [10, 11], 'SAVE5', '2026-06-06 15:00:00')
+            ->withArgs(fn ($passedUser, $passedSnapshot, $sessionId) =>
+                $passedUser->is($user)
+                && $passedSnapshot->is($snapshot)
+                && $sessionId === 'cs_snapshot'
+            )
             ->andReturn(new Order());
 
         $handler = new StripeCheckoutHandler($checkoutService);
 
+        $handler->handle(new PaymentResult('success', 12.00, [
+            'type' => 'checkout',
+            'cart_snapshot_id' => $snapshot->id,
+        ], 'cs_snapshot'), $user);
+    }
+
+    public function test_stripe_checkout_handler_rejects_snapshot_amount_mismatch(): void
+    {
+        $user = User::factory()->create();
+        $snapshot = new CartSnapshot();
+        $snapshot->user_id = $user->id;
+        $snapshot->items_json = [];
+        $snapshot->subtotal_cents = 1200;
+        $snapshot->discount_cents = 0;
+        $snapshot->oz_used = 0;
+        $snapshot->final_amount_cents = 1200;
+        $snapshot->status = CartSnapshot::STATUS_PENDING;
+        $snapshot->expires_at = now()->addMinutes(30);
+        $snapshot->save();
+
+        $handler = new StripeCheckoutHandler(Mockery::mock(CheckoutService::class));
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('Stripe payment amount does not match cart snapshot.');
+
         $handler->handle(new PaymentResult('success', 10.00, [
             'type' => 'checkout',
-            'use_oz' => json_encode([10, 11]),
-            'coupon_code' => 'SAVE5',
-            'pickup_time' => '2026-06-06 15:00:00',
-        ]), $user);
+            'cart_snapshot_id' => $snapshot->id,
+        ], 'cs_snapshot'), $user);
     }
 
     private function createProduct(): Product

@@ -5,7 +5,7 @@ namespace App\Services;
 use App\Contracts\CheckoutServiceInterface;
 use App\Contracts\TangkiServiceInterface;
 use App\Exceptions\CheckoutException;
-use App\Models\{CartItem, Coupon, Order, OrderItem, User};
+use App\Models\{CartItem, CartSnapshot, Coupon, Order, OrderItem, User};
 use Illuminate\Contracts\Cache\LockTimeoutException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Cache;
@@ -143,5 +143,86 @@ class CheckoutService implements CheckoutServiceInterface
         }
 
         throw new CheckoutException('Unable to generate pickup code. Please try again.');
+    }
+
+    public function processCartSnapshot(User $user, CartSnapshot $snapshot, string $paymentSessionId): Order
+    {
+        if ($snapshot->user_id !== $user->id) {
+            throw new CheckoutException('Cart snapshot does not belong to this user.', 403);
+        }
+
+        return DB::transaction(function () use ($user, $snapshot, $paymentSessionId) {
+            $lockedSnapshot = CartSnapshot::where('id', $snapshot->id)->lockForUpdate()->firstOrFail();
+
+            if ($lockedSnapshot->status === CartSnapshot::STATUS_PROCESSED) {
+                $existingOrder = Order::where('bill_id', 'CP-' . strtoupper($paymentSessionId))->first();
+                if ($existingOrder) {
+                    return $existingOrder;
+                }
+
+                throw new CheckoutException('Cart snapshot has already been processed.', 409);
+            }
+
+            if ($lockedSnapshot->expires_at->isPast()) {
+                $lockedSnapshot->status = CartSnapshot::STATUS_EXPIRED;
+                $lockedSnapshot->save();
+
+                throw new CheckoutException('Cart snapshot has expired.');
+            }
+
+            $order = new Order();
+            $order->user_id = $user->id;
+            $order->bill_id = 'CP-' . strtoupper($paymentSessionId);
+            $order->pickup_code = $this->generatePickupCode();
+            $order->status = Order::STATUS_PENDING;
+            $order->subtotal = $lockedSnapshot->subtotal_cents / 100;
+            $order->final_amount = $lockedSnapshot->final_amount_cents / 100;
+            $order->oz_used = $lockedSnapshot->oz_used;
+            $order->pickup_time = $lockedSnapshot->pickup_time;
+            $order->save();
+
+            $totalRewardOz = 0;
+
+            foreach ($lockedSnapshot->items_json as $item) {
+                $orderItem = new OrderItem();
+                $orderItem->order_id = $order->id;
+                $orderItem->product_id = $item['product_id'];
+                $orderItem->quantity = $item['quantity'];
+                $orderItem->options = [
+                    'size' => $item['size'],
+                    'temp' => $item['temp'],
+                    'addons' => $item['addons'],
+                ];
+                $orderItem->price = $item['product_price_cents'] / 100;
+                $orderItem->price_at_time = $item['paid_with_oz'] ? 0 : ($item['unit_price_cents'] / 100);
+                $orderItem->oz_at_time = $item['paid_with_oz'] ? ($item['unit_price_cents'] * $item['quantity']) : 0;
+                $orderItem->save();
+
+                if (!$item['paid_with_oz']) {
+                    $totalRewardOz += (int) (($item['unit_price_cents'] * $item['quantity']) / 2);
+                }
+            }
+
+            if ($lockedSnapshot->coupon_code) {
+                $coupon = Coupon::where('code', $lockedSnapshot->coupon_code)->lockForUpdate()->first();
+                if ($coupon) {
+                    $coupon->markUsed();
+                }
+            }
+
+            $lockedSnapshot->status = CartSnapshot::STATUS_PROCESSED;
+            $lockedSnapshot->save();
+
+            event(new OrderPlaced(
+                $order,
+                $user,
+                [],
+                0,
+                $lockedSnapshot->oz_used,
+                $totalRewardOz
+            ));
+
+            return $order;
+        });
     }
 }
