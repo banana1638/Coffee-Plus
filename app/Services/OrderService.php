@@ -12,7 +12,10 @@ use Illuminate\Support\Facades\DB;
 
 class OrderService
 {
-    public function __construct(private readonly LedgerService $ledgerService)
+    public function __construct(
+        private readonly LedgerService $ledgerService,
+        private readonly OrderStateMachine $orderStateMachine
+    )
     {
     }
 
@@ -85,9 +88,7 @@ class OrderService
             $this->reverseReferralReward($lockedOrder);
             $this->restoreStock($lockedOrder);
 
-            $lockedOrder->status = Order::STATUS_CANCELLED;
-            $lockedOrder->cancelled_at = now();
-            $lockedOrder->save();
+            $this->orderStateMachine->transition($lockedOrder, Order::STATUS_CANCELLED);
 
             return $lockedOrder->fresh(['items.product']);
         });
@@ -113,9 +114,7 @@ class OrderService
                 throw new OrderException('Only ready for pickup orders can be completed.');
             }
 
-            $lockedOrder->status = Order::STATUS_COMPLETED;
-            $lockedOrder->completed_at = now();
-            $lockedOrder->save();
+            $this->orderStateMachine->transition($lockedOrder, Order::STATUS_COMPLETED);
             $lockedOrder->user->notify(new OrderCompletedNotification($lockedOrder));
 
             return $lockedOrder->fresh(['items.product', 'user']);
@@ -151,12 +150,7 @@ class OrderService
                 throw new OrderException('Order status cannot be advanced.');
             }
 
-            if ($nextStatus === Order::STATUS_COMPLETED) {
-                $lockedOrder->completed_at = now();
-            }
-
-            $lockedOrder->status = $nextStatus;
-            $lockedOrder->save();
+            $this->orderStateMachine->transition($lockedOrder, $nextStatus);
 
             if ($nextStatus === Order::STATUS_COMPLETED) {
                 $lockedOrder->user->notify(new OrderCompletedNotification($lockedOrder));
