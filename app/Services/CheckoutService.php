@@ -155,7 +155,8 @@ class CheckoutService implements CheckoutServiceInterface
             $lockedSnapshot = CartSnapshot::where('id', $snapshot->id)->lockForUpdate()->firstOrFail();
 
             if ($lockedSnapshot->status === CartSnapshot::STATUS_PROCESSED) {
-                $existingOrder = Order::where('bill_id', 'CP-' . strtoupper($paymentSessionId))->first();
+                $existingOrder = Order::where('payment_session_id', $paymentSessionId)->first()
+                    ?? Order::where('bill_id', 'CP-' . strtoupper($paymentSessionId))->first();
                 if ($existingOrder) {
                     return $existingOrder;
                 }
@@ -173,6 +174,8 @@ class CheckoutService implements CheckoutServiceInterface
             $order = new Order();
             $order->user_id = $user->id;
             $order->bill_id = 'CP-' . strtoupper($paymentSessionId);
+            $order->payment_session_id = $paymentSessionId;
+            $order->cart_snapshot_id = $lockedSnapshot->id;
             $order->pickup_code = $this->generatePickupCode();
             $order->status = Order::STATUS_PENDING;
             $order->subtotal = $lockedSnapshot->subtotal_cents / 100;

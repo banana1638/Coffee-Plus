@@ -52,7 +52,7 @@ class WalletLedgerTest extends TestCase
         $product = $this->createProduct();
         $this->addCartItem($user, $product);
 
-        $this->actingAs($user)->postJson('/api/checkout')->assertStatus(200);
+        $this->apiCheckout($user)->assertStatus(200);
 
         $user->refresh();
         $this->assertEquals('10.00', $user->tangki_balance);
@@ -70,7 +70,7 @@ class WalletLedgerTest extends TestCase
         $product = $this->createProduct();
         $this->addCartItem($user, $product);
 
-        $checkout = $this->actingAs($user)->postJson('/api/checkout');
+        $checkout = $this->apiCheckout($user);
         $checkout->assertStatus(200);
 
         $this->actingAs($user)->postJson('/api/orders/' . $checkout->json('data.id') . '/cancel')

@@ -51,7 +51,7 @@ class CheckoutTest extends TestCase
     {
         $user = User::factory()->create(['tangki_balance' => 20.00]);
 
-        $response = $this->actingAs($user)->postJson('/api/checkout');
+        $response = $this->apiCheckout($user);
 
         $response->assertStatus(422)
             ->assertJson([
@@ -79,7 +79,7 @@ class CheckoutTest extends TestCase
 
         $this->addCartItem($user, $product);
 
-        $this->actingAs($user)->postJson('/api/checkout')->assertStatus(200);
+        $this->apiCheckout($user)->assertStatus(200);
 
         $referrer->refresh();
         $this->assertEquals('5.00', $referrer->tangki_balance);
@@ -115,7 +115,7 @@ class CheckoutTest extends TestCase
 
         $this->addCartItem($user, $product);
 
-        $this->actingAs($user)->postJson('/api/checkout')->assertStatus(200);
+        $this->apiCheckout($user)->assertStatus(200);
 
         $referrer->refresh();
         $this->assertEquals('0.00', $referrer->tangki_balance);
@@ -136,7 +136,7 @@ class CheckoutTest extends TestCase
         $coupon->used_count = 1;
         $coupon->save();
 
-        $response = $this->actingAs($user)->postJson('/api/checkout', [
+        $response = $this->apiCheckout($user, [
             'coupon_code' => 'USEDUP',
         ]);
 
@@ -153,7 +153,7 @@ class CheckoutTest extends TestCase
         $product = $this->createProduct();
         $this->addCartItem($user, $product);
 
-        $checkout = $this->actingAs($user)->postJson('/api/checkout');
+        $checkout = $this->apiCheckout($user);
         $checkout->assertStatus(200);
 
         $orderId = $checkout->json('data.id');
@@ -192,7 +192,7 @@ class CheckoutTest extends TestCase
         $product = $this->createProduct();
         $cartItem = $this->addCartItem($user, $product);
 
-        $checkout = $this->actingAs($user)->postJson('/api/checkout', [
+        $checkout = $this->apiCheckout($user, [
             'use_oz' => [$cartItem->id],
         ]);
         $checkout->assertStatus(200);
@@ -214,7 +214,7 @@ class CheckoutTest extends TestCase
         $product = $this->createProduct();
         $this->addCartItem($user, $product);
 
-        $checkout = $this->actingAs($user)->postJson('/api/checkout');
+        $checkout = $this->apiCheckout($user);
         $checkout->assertStatus(200);
 
         $order = Order::findOrFail($checkout->json('data.id'));
@@ -233,7 +233,7 @@ class CheckoutTest extends TestCase
         $product = $this->createProduct();
         $this->addCartItem($user, $product);
 
-        $response = $this->actingAs($user)->postJson('/api/checkout');
+        $response = $this->apiCheckout($user);
 
         $response->assertStatus(200);
 
@@ -259,7 +259,7 @@ class CheckoutTest extends TestCase
         $product = $this->createProduct();
         $this->addCartItem($user, $product);
 
-        $checkout = $this->actingAs($user)->postJson('/api/checkout');
+        $checkout = $this->apiCheckout($user);
         $checkout->assertStatus(200);
 
         $pickupCode = $checkout->json('data.pickup_code');
@@ -290,7 +290,7 @@ class CheckoutTest extends TestCase
         $product = $this->createProduct();
         $this->addCartItem($user, $product);
 
-        $checkout = $this->actingAs($user)->postJson('/api/checkout');
+        $checkout = $this->apiCheckout($user);
         $checkout->assertStatus(200)
             ->assertJsonPath('data.status', Order::STATUS_PENDING)
             ->assertJsonPath('data.next_status', Order::STATUS_PREPARING);
@@ -330,7 +330,7 @@ class CheckoutTest extends TestCase
         $product = $this->createProduct();
         $this->addCartItem($user, $product);
 
-        $checkout = $this->actingAs($user)->postJson('/api/checkout');
+        $checkout = $this->apiCheckout($user);
         $checkout->assertStatus(200);
 
         $response = $this->actingAs($admin, 'admin')->post(route('admin.orders.complete-by-code'), [

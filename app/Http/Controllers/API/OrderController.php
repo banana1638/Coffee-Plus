@@ -9,6 +9,7 @@ use App\Http\Resources\Api\OrderResource;
 use App\Http\Requests\API\CheckoutRequest;
 use App\Traits\ApiResponse;
 use App\Models\Order;
+use App\Services\IdempotencyService;
 use App\Services\OrderService;
 
 class OrderController extends Controller
@@ -17,11 +18,17 @@ class OrderController extends Controller
 
     protected CheckoutServiceInterface $checkoutService;
     protected OrderService $orderService;
+    protected IdempotencyService $idempotencyService;
 
-    public function __construct(CheckoutServiceInterface $checkoutService, OrderService $orderService)
+    public function __construct(
+        CheckoutServiceInterface $checkoutService,
+        OrderService $orderService,
+        IdempotencyService $idempotencyService
+    )
     {
         $this->checkoutService = $checkoutService;
         $this->orderService = $orderService;
+        $this->idempotencyService = $idempotencyService;
     }
 
     public function checkout(CheckoutRequest $request)
@@ -29,20 +36,40 @@ class OrderController extends Controller
         $useOzIds = $request->input('use_oz', []);
         $couponCode = $request->input('coupon_code');
         $pickupTime = $request->input('pickup_time');
+        $idempotencyKey = $request->input('idempotency_key');
+        $requestHash = IdempotencyService::hashPayload([
+            'use_oz' => $useOzIds,
+            'coupon_code' => $couponCode,
+            'pickup_time' => $pickupTime,
+        ]);
 
         try {
-            $order = $this->checkoutService->processCheckout(
+            $result = $this->idempotencyService->run(
                 $request->user(),
-                $useOzIds,
-                $couponCode,
-                $pickupTime
+                $idempotencyKey,
+                'api.checkout',
+                $requestHash,
+                function () use ($request, $useOzIds, $couponCode, $pickupTime) {
+                    $order = $this->checkoutService->processCheckout(
+                        $request->user(),
+                        $useOzIds,
+                        $couponCode,
+                        $pickupTime
+                    );
+
+                    return [
+                        'order_id' => $order->id,
+                        'message' => 'Enjoy your coffee! Order #' . $order->bill_id . ' placed.',
+                    ];
+                }
             );
 
+            $order = Order::with(['items.product'])->findOrFail($result['order_id']);
             $order->load(['items.product']);
 
             return $this->success(
                 new OrderResource($order),
-                'Enjoy your coffee! Order #' . $order->bill_id . ' placed.'
+                $result['message']
             );
         } catch (CheckoutException $e) {
             return $this->error($e->getMessage(), $e->statusCode());
