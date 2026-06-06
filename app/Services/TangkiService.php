@@ -10,6 +10,10 @@ use Illuminate\Support\Facades\DB;
 
 class TangkiService implements TangkiServiceInterface
 {
+    public function __construct(private readonly LedgerService $ledgerService)
+    {
+    }
+
     /**
      * Refill user's account balance and reward them with OZ.
      */
@@ -18,7 +22,14 @@ class TangkiService implements TangkiServiceInterface
         $ozToInject = (int) ($amount * 10);
 
         DB::transaction(function () use ($user, $amount, $ozToInject, $billId) {
-            $user->increment('tangki_balance', $amount);
+            $this->ledgerService->credit(
+                $user,
+                (int) round($amount * 100),
+                'stripe_refill',
+                $billId,
+                "stripe_refill:{$billId}",
+                'Refilled RM' . number_format($amount, 2)
+            );
             $user->increment('tangki_oz', $ozToInject);
 
             $order = new Order();
@@ -78,7 +89,21 @@ class TangkiService implements TangkiServiceInterface
                 return false;
             }
 
-            $userObj->decrement('tangki_balance', $amount);
+            if ($amount > 0) {
+                $ledger = $this->ledgerService->debit(
+                    $userObj,
+                    (int) round($amount * 100),
+                    'order_payment',
+                    $billId,
+                    "order_payment:{$billId}",
+                    $description
+                );
+
+                if (!$ledger) {
+                    return false;
+                }
+            }
+
             if ($rewardOz > 0) {
                 $userObj->increment('tangki_oz', $rewardOz);
 

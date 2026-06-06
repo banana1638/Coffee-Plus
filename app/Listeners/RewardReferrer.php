@@ -6,9 +6,14 @@ use App\Events\OrderPlaced;
 use App\Models\User;
 use App\Models\Order;
 use App\Models\Transaction;
+use App\Services\LedgerService;
 
 class RewardReferrer
 {
+    public function __construct(private readonly LedgerService $ledgerService)
+    {
+    }
+
     public function handle(OrderPlaced $event): void
     {
         $user = $event->user;
@@ -28,7 +33,14 @@ class RewardReferrer
 
             $referrer = User::find($user->referrer_id);
             if ($referrer) {
-                $referrer->increment('tangki_balance', 5.00);
+                $this->ledgerService->credit(
+                    $referrer,
+                    500,
+                    'referral_reward',
+                    $event->order->bill_id,
+                    "referral_reward:{$event->order->bill_id}:{$referrer->id}",
+                    "Referral Reward: referred user {$user->name} placed first order"
+                );
                 $referrer->increment('tangki_oz', 50);
 
                 $transaction = new Transaction();

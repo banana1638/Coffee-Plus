@@ -11,6 +11,10 @@ use Illuminate\Support\Facades\DB;
 
 class OrderService
 {
+    public function __construct(private readonly LedgerService $ledgerService)
+    {
+    }
+
     public function cancel(Order $order, User $user): Order
     {
         return DB::transaction(function () use ($order, $user) {
@@ -34,7 +38,14 @@ class OrderService
             $rewardOz = $this->calculateCashRewardOz($lockedOrder);
 
             if ($cashRefund > 0) {
-                $lockedUser->increment('tangki_balance', $cashRefund);
+                $this->ledgerService->credit(
+                    $lockedUser,
+                    (int) round($cashRefund * 100),
+                    'refund',
+                    $lockedOrder->bill_id,
+                    "refund:cash:{$lockedOrder->bill_id}",
+                    'Cancelled order refund: RM ' . number_format($cashRefund, 2)
+                );
                 $this->recordTransaction(
                     $lockedUser->id,
                     $lockedOrder->bill_id,
@@ -175,7 +186,17 @@ class OrderService
             return;
         }
 
-        $referrer->decrement('tangki_balance', min((float) $referrer->tangki_balance, 5.00));
+        $referralCashReversalCents = min((int) round(((float) $referrer->tangki_balance) * 100), 500);
+        if ($referralCashReversalCents > 0) {
+            $this->ledgerService->debit(
+                $referrer,
+                $referralCashReversalCents,
+                'refund',
+                $order->bill_id,
+                "refund:referral_cash:{$order->bill_id}",
+                'Cancelled order referral cash reward reversal'
+            );
+        }
         $reversedOz = min((int) $referrer->tangki_oz, 50);
 
         if ($reversedOz > 0) {
