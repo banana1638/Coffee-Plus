@@ -8,6 +8,7 @@ use App\Models\Menu;
 use App\Services\AuditLogService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Str;
 
 class ProductAdminController extends Controller
 {
@@ -41,10 +42,7 @@ class ProductAdminController extends Controller
         $product->oz_redeem_value = $request->oz_redeem_value ?? 0;
 
         if ($request->hasFile('image')) {
-            $image = $request->file('image');
-            $filename = time() . '_' . $image->getClientOriginalName();
-            $image->move(public_path('images/products'), $filename);
-            $product->image = $filename;
+            $product->image = $this->storeProductImage($request);
         }
 
         $product->save();
@@ -85,7 +83,8 @@ class ProductAdminController extends Controller
             'name' => 'required|max:255', 
             'price' => 'required|numeric',
             'menu_id' => 'required',
-            'oz_redeem_value' => 'nullable|numeric'
+            'oz_redeem_value' => 'nullable|numeric',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
         ]);
 
         $product->name = $request->name;
@@ -98,10 +97,7 @@ class ProductAdminController extends Controller
                 File::delete(public_path('images/products/'.$product->image));
             }
             
-            $image = $request->file('image');
-            $filename = time() . '_' . $image->getClientOriginalName();
-            $image->move(public_path('images/products'), $filename);
-            $product->image = $filename;
+            $product->image = $this->storeProductImage($request);
         }
 
         $product->save();
@@ -142,5 +138,14 @@ class ProductAdminController extends Controller
         $product->delete();
         $this->auditLogService->record('product.delete', $product, $oldValues, null);
         return back()->with('success', 'Product deleted!');
+    }
+
+    private function storeProductImage(Request $request): string
+    {
+        $image = $request->file('image');
+        $filename = (string) Str::uuid() . '.' . $image->extension();
+        $image->move(public_path('images/products'), $filename);
+
+        return $filename;
     }
 }
