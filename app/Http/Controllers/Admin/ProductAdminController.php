@@ -5,11 +5,16 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Product;
 use App\Models\Menu;
+use App\Services\AuditLogService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
 
 class ProductAdminController extends Controller
 {
+    public function __construct(private readonly AuditLogService $auditLogService)
+    {
+    }
+
     public function index() {
         $products = Product::with('menu')->latest()->get();
         return view('admin.products.index', compact('products'));
@@ -43,6 +48,13 @@ class ProductAdminController extends Controller
         }
 
         $product->save();
+        $this->auditLogService->record('product.create', $product, null, $product->only([
+            'name',
+            'price',
+            'menu_id',
+            'oz_redeem_value',
+            'image',
+        ]));
 
         if ($request->has('addons') && is_array($request->addons)) {
             foreach ($request->addons as $addonData) {
@@ -67,6 +79,7 @@ class ProductAdminController extends Controller
 
     public function update(Request $request, $id) {
         $product = Product::findOrFail($id);
+        $oldValues = $product->only(['name', 'price', 'menu_id', 'oz_redeem_value', 'image']);
         
         $request->validate([
             'name' => 'required|max:255', 
@@ -92,6 +105,13 @@ class ProductAdminController extends Controller
         }
 
         $product->save();
+        $this->auditLogService->record('product.update', $product, $oldValues, $product->only([
+            'name',
+            'price',
+            'menu_id',
+            'oz_redeem_value',
+            'image',
+        ]));
 
         if ($request->has('addons') && is_array($request->addons)) {
             $product->addons()->delete();
@@ -113,12 +133,14 @@ class ProductAdminController extends Controller
 
     public function destroy($id) {
         $product = Product::findOrFail($id);
+        $oldValues = $product->only(['name', 'price', 'menu_id', 'oz_redeem_value', 'image']);
 
         if ($product->image && File::exists(public_path('images/products/'.$product->image))) {
             File::delete(public_path('images/products/'.$product->image));
         }
 
         $product->delete();
+        $this->auditLogService->record('product.delete', $product, $oldValues, null);
         return back()->with('success', 'Product deleted!');
     }
 }

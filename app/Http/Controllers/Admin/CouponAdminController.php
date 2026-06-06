@@ -4,11 +4,16 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Coupon;
+use App\Services\AuditLogService;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
 class CouponAdminController extends Controller
 {
+    public function __construct(private readonly AuditLogService $auditLogService)
+    {
+    }
+
     public function index()
     {
         $coupons = Coupon::latest()->paginate(15);
@@ -29,6 +34,13 @@ class CouponAdminController extends Controller
         $this->fillCoupon($coupon, $validated);
         $coupon->used_count = 0;
         $coupon->save();
+        $this->auditLogService->record('coupon.create', $coupon, null, $coupon->only([
+            'code',
+            'type',
+            'value',
+            'expires_at',
+            'usage_limit',
+        ]));
 
         return redirect()->route('admin.coupons.index')->with('success', 'Coupon created.');
     }
@@ -42,15 +54,25 @@ class CouponAdminController extends Controller
     {
         $validated = $request->validate($this->rules($coupon));
 
+        $oldValues = $coupon->only(['code', 'type', 'value', 'expires_at', 'usage_limit']);
         $this->fillCoupon($coupon, $validated);
         $coupon->save();
+        $this->auditLogService->record('coupon.update', $coupon, $oldValues, $coupon->only([
+            'code',
+            'type',
+            'value',
+            'expires_at',
+            'usage_limit',
+        ]));
 
         return redirect()->route('admin.coupons.index')->with('success', 'Coupon updated.');
     }
 
     public function destroy(Coupon $coupon)
     {
+        $oldValues = $coupon->only(['code', 'type', 'value', 'expires_at', 'usage_limit']);
         $coupon->delete();
+        $this->auditLogService->record('coupon.delete', $coupon, $oldValues, null);
 
         return back()->with('success', 'Coupon deleted.');
     }

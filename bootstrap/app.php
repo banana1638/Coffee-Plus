@@ -20,6 +20,10 @@ return Application::configure(basePath: dirname(__DIR__))
         },
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->alias([
+            'admin.permission' => \App\Http\Middleware\AdminPermission::class,
+        ]);
+
         $middleware->redirectGuestsTo(function ($request) {
             if ($request->is('admin') || $request->is('admin/*')) {
                 return route('admin.login');

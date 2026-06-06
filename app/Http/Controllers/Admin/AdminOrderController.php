@@ -8,12 +8,16 @@ use App\Exceptions\OrderException;
 use App\Models\Order;
 use App\Models\Transaction;
 use Illuminate\Http\Request;
+use App\Services\AuditLogService;
 use App\Services\OrderService;
 use Maatwebsite\Excel\Facades\Excel;
 
 class AdminOrderController extends Controller
 {
-    public function __construct(private readonly OrderService $orderService)
+    public function __construct(
+        private readonly OrderService $orderService,
+        private readonly AuditLogService $auditLogService
+    )
     {
     }
 
@@ -32,7 +36,13 @@ class AdminOrderController extends Controller
     public function complete(Order $order)
     {
         try {
-            $this->orderService->complete($order);
+            $oldStatus = $order->status;
+            $updatedOrder = $this->orderService->complete($order);
+            $this->auditLogService->record('order.status.update', $updatedOrder, [
+                'status' => $oldStatus,
+            ], [
+                'status' => $updatedOrder->status,
+            ]);
 
             return back()->with('success', 'Order marked as completed.');
         } catch (OrderException $e) {
@@ -43,7 +53,13 @@ class AdminOrderController extends Controller
     public function advanceStatus(Order $order)
     {
         try {
-            $this->orderService->advanceStatus($order);
+            $oldStatus = $order->status;
+            $updatedOrder = $this->orderService->advanceStatus($order);
+            $this->auditLogService->record('order.status.update', $updatedOrder, [
+                'status' => $oldStatus,
+            ], [
+                'status' => $updatedOrder->status,
+            ]);
 
             return back()->with('success', 'Order status updated.');
         } catch (OrderException $e) {
@@ -59,6 +75,10 @@ class AdminOrderController extends Controller
 
         try {
             $order = $this->orderService->completeByPickupCode($validated['pickup_code']);
+            $this->auditLogService->record('order.pickup.complete', $order, null, [
+                'status' => $order->status,
+                'pickup_code' => $validated['pickup_code'],
+            ]);
 
             return redirect()->route('admin.orders.show', $order)
                 ->with('success', 'Pickup code verified. Order marked as completed.');
