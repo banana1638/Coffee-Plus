@@ -18,6 +18,14 @@ class RewardReferrer
             ->count();
 
         if ($user->referrer_id && $completedProductOrderCount === 1) {
+            $markedForReward = User::where('id', $user->id)
+                ->where('referral_rewarded', false)
+                ->update(['referral_rewarded' => true]);
+
+            if ($markedForReward !== 1) {
+                return;
+            }
+
             $referrer = User::find($user->referrer_id);
             if ($referrer) {
                 $referrer->increment('tangki_balance', 5.00);

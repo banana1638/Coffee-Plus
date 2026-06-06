@@ -22,18 +22,14 @@ class RegisterController extends Controller
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
             'phone' => 'nullable|string|max:20',
             'address' => 'nullable|string|max:500',
+            'ref' => ['nullable', 'uuid'],
         ]);
 
         $referrerId = null;
+        $referrer = null;
         if ($request->filled('ref')) {
-            try {
-                $decoded = base64_decode($request->ref);
-                if (is_numeric($decoded)) {
-                    $referrerId = (int) $decoded;
-                }
-            } catch (\Exception $e) {
-                // Ignore invalid referrer code
-            }
+            $referrer = User::where('referral_code', $request->ref)->first();
+            $referrerId = $referrer?->id;
         }
 
         $user = new User();
@@ -43,6 +39,7 @@ class RegisterController extends Controller
         $user->phone = $request->phone;
         $user->address = $request->address;
         $user->referrer_id = $referrerId;
+        $user->referred_by = $referrerId;
         $user->save();
 
         $token = $user->createToken('api_token')->plainTextToken;

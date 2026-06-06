@@ -189,6 +189,8 @@ class OrderService
             'refund',
             'Cancelled order referral reward reversal'
         );
+
+        User::where('id', $order->user_id)->update(['referral_rewarded' => false]);
     }
 
     private function recordTransaction(

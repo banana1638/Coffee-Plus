@@ -18,18 +18,14 @@ class RegisteredUserController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            'ref' => ['nullable', 'uuid'],
         ]);
 
         $referrerId = null;
+        $referrer = null;
         if ($request->filled('ref')) {
-            try {
-                $decoded = base64_decode($request->ref);
-                if (is_numeric($decoded)) {
-                    $referrerId = (int) $decoded;
-                }
-            } catch (\Exception $e) {
-                // Ignore invalid referrer code
-            }
+            $referrer = User::where('referral_code', $request->ref)->first();
+            $referrerId = $referrer?->id;
         }
 
         $user = new User();
@@ -39,6 +35,7 @@ class RegisteredUserController extends Controller
         $user->tangki_balance = 0;
         $user->tangki_oz = 0;
         $user->referrer_id = $referrerId;
+        $user->referred_by = $referrerId;
         $user->save();
 
         Auth::login($user);

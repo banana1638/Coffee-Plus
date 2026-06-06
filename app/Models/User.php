@@ -129,6 +129,10 @@ class User extends Authenticatable
             if (empty($user->uuid)) {
                 $user->uuid = (string) Str::uuid();
             }
+
+            if (empty($user->referral_code)) {
+                $user->referral_code = (string) Str::uuid();
+            }
         });
 
         static::observe(UserObserver::class);
@@ -156,7 +160,7 @@ class User extends Authenticatable
 
     public function getInviterUrlAttribute()
     {
-        return url('/register?ref=' . base64_encode($this->id));
+        return url('/register?ref=' . $this->referral_code);
     }
 
     public function cartItems()
