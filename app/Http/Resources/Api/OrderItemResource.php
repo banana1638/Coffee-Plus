@@ -15,6 +15,7 @@ class OrderItemResource extends JsonResource
             'product_name' => $this->product->name ?? 'Deleted Product',
             'quantity' => $this->quantity,
             'price_at_time' => (float) $this->price_at_time,
+            'price_at_time_cents' => (int) ($this->price_at_time_cents ?? round(((float) $this->price_at_time) * 100)),
             'oz_at_time' => (float) ($this->oz_at_time ?? 0),
             'customizations' => [
                 'size' => $options['size'] ?? 'N/A',

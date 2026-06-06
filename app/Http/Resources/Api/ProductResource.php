@@ -21,6 +21,7 @@ class ProductResource extends JsonResource
             'description' => $this->description,
             'image_url' => $this->image ? asset('storage/' . $this->image) : null,
             'base_price' => (float) $this->price,
+            'base_price_cents' => (int) ($this->price_cents ?? round(((float) $this->price) * 100)),
             'category_id' => $this->menu_id,
             'is_available' => (bool) ($this->is_active ?? true),
             'addons' => $this->addons,

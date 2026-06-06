@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Support\Money;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 
@@ -11,6 +13,16 @@ class Coupon extends Model
         'expires_at' => 'datetime',
         'value' => 'decimal:2',
     ];
+
+    protected function value(): Attribute
+    {
+        return Attribute::make(
+            set: fn ($value) => [
+                'value' => $value,
+                'value_cents' => $this->type === 'fixed' ? Money::toCents($value) : null,
+            ],
+        );
+    }
 
     /**
      * Check if the coupon is valid for use.
@@ -33,12 +45,16 @@ class Coupon extends Model
      */
     public function calculateDiscount(float $subtotal): float
     {
+        return Money::fromCents($this->calculateDiscountCents(Money::toCents($subtotal)));
+    }
+
+    public function calculateDiscountCents(int $subtotalCents): int
+    {
         if ($this->type === 'percent') {
-            return round($subtotal * ($this->value / 100), 2);
+            return (int) round($subtotalCents * (((float) $this->value) / 100));
         }
 
-        // Fixed discount, capped at subtotal
-        return min($this->value, $subtotal);
+        return min((int) ($this->value_cents ?? Money::toCents($this->value)), $subtotalCents);
     }
 
     /**

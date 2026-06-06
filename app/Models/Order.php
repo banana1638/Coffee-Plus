@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Support\Money;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
@@ -32,6 +34,26 @@ class Order extends Model
         'cancelled_at' => 'datetime',
         'completed_at' => 'datetime',
     ];
+
+    protected function subtotal(): Attribute
+    {
+        return Attribute::make(
+            set: fn ($value) => [
+                'subtotal' => $value,
+                'subtotal_cents' => Money::toCents($value),
+            ],
+        );
+    }
+
+    protected function finalAmount(): Attribute
+    {
+        return Attribute::make(
+            set: fn ($value) => [
+                'final_amount' => $value,
+                'final_amount_cents' => Money::toCents($value),
+            ],
+        );
+    }
 
     public function canBeCancelled(): bool
     {

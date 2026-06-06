@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Support\Money;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 
 class CartItem extends Model
@@ -14,8 +16,18 @@ class CartItem extends Model
         return $this->belongsTo(Product::class);
     }
 
+    protected function unitPrice(): Attribute
+    {
+        return Attribute::make(
+            set: fn ($value) => [
+                'unit_price' => $value,
+                'unit_price_cents' => Money::toCents($value),
+            ],
+        );
+    }
+
     public function getRequiredOzAttribute()
     {
-        return ($this->unit_price * $this->quantity) * 100;
+        return ($this->unit_price_cents ?? Money::toCents($this->unit_price)) * $this->quantity;
     }
 }

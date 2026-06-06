@@ -10,6 +10,7 @@ use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Support\Str;
 use Illuminate\Database\Eloquent\Casts\Attribute;
+use App\Support\Money;
 
 /**
  * @property string|null $phone
@@ -92,6 +93,16 @@ class User extends Authenticatable
                 $this->_pendingPlaintext['address'] = $value;
                 return $value;
             },
+        );
+    }
+
+    protected function tangkiBalance(): Attribute
+    {
+        return Attribute::make(
+            set: fn ($value) => [
+                'tangki_balance' => $value,
+                'tangki_balance_cents' => Money::toCents($value),
+            ],
         );
     }
 

@@ -22,7 +22,9 @@ class CartResource extends JsonResource
             'temp' => $this->temp,
             'addons' => $this->addons ?? [],
             'unit_price' => (float) $this->unit_price,
+            'unit_price_cents' => (int) ($this->unit_price_cents ?? round(((float) $this->unit_price) * 100)),
             'total_item_price' => (float) ($this->unit_price * $this->quantity),
+            'total_item_price_cents' => (int) (($this->unit_price_cents ?? round(((float) $this->unit_price) * 100)) * $this->quantity),
         ];
     }
 }

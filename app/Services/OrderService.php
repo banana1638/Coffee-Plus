@@ -8,6 +8,7 @@ use App\Models\Product;
 use App\Models\Transaction;
 use App\Models\User;
 use App\Notifications\OrderCompletedNotification;
+use App\Support\Money;
 use Illuminate\Support\Facades\DB;
 
 class OrderService
@@ -37,14 +38,15 @@ class OrderService
 
             $lockedUser = User::where('id', $user->id)->lockForUpdate()->firstOrFail();
 
-            $cashRefund = (float) $lockedOrder->final_amount;
+            $cashRefundCents = (int) ($lockedOrder->final_amount_cents ?? Money::toCents($lockedOrder->final_amount));
+            $cashRefund = Money::fromCents($cashRefundCents);
             $ozRefund = (int) $lockedOrder->oz_used;
             $rewardOz = $this->calculateCashRewardOz($lockedOrder);
 
             if ($cashRefund > 0) {
                 $this->ledgerService->credit(
                     $lockedUser,
-                    (int) round($cashRefund * 100),
+                    $cashRefundCents,
                     'refund',
                     $lockedOrder->bill_id,
                     "refund:cash:{$lockedOrder->bill_id}",
@@ -164,7 +166,7 @@ class OrderService
     {
         return $order->items
             ->filter(fn ($item) => (int) $item->oz_at_time === 0)
-            ->sum(fn ($item) => (int) (((float) $item->price_at_time * (int) $item->quantity * 100) / 2));
+            ->sum(fn ($item) => (int) (((int) ($item->price_at_time_cents ?? Money::toCents($item->price_at_time)) * (int) $item->quantity) / 2));
     }
 
     private function reverseReferralReward(Order $order): void
@@ -182,7 +184,7 @@ class OrderService
             return;
         }
 
-        $referralCashReversalCents = min((int) round(((float) $referrer->tangki_balance) * 100), 500);
+        $referralCashReversalCents = min((int) ($referrer->tangki_balance_cents ?? Money::toCents($referrer->tangki_balance)), 500);
         if ($referralCashReversalCents > 0) {
             $this->ledgerService->debit(
                 $referrer,

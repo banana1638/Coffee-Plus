@@ -7,6 +7,7 @@ use App\Models\CartItem;
 use App\Models\CartSnapshot;
 use App\Models\Coupon;
 use App\Models\User;
+use App\Support\Money;
 use Illuminate\Support\Facades\DB;
 
 class CartSnapshotService
@@ -29,7 +30,7 @@ class CartSnapshotService
             $ozUsed = 0;
 
             foreach ($cartItems as $item) {
-                $unitPriceCents = (int) round(((float) $item->unit_price) * 100);
+                $unitPriceCents = (int) ($item->unit_price_cents ?? Money::toCents($item->unit_price));
                 $lineTotalCents = $unitPriceCents * (int) $item->quantity;
                 $paidWithOz = in_array($item->id, $useOzIds);
 
@@ -45,7 +46,7 @@ class CartSnapshotService
                     'cart_item_id' => $item->id,
                     'product_id' => $item->product_id,
                     'product_name' => $item->product->name,
-                    'product_price_cents' => (int) round(((float) $item->product->price) * 100),
+                    'product_price_cents' => (int) ($item->product->price_cents ?? Money::toCents($item->product->price)),
                     'quantity' => (int) $item->quantity,
                     'size' => $item->size,
                     'temp' => $item->temp,
@@ -59,7 +60,7 @@ class CartSnapshotService
             if ($couponCode && $cashSubtotalCents > 0) {
                 $coupon = Coupon::where('code', $couponCode)->first();
                 if ($coupon && $coupon->isValid()) {
-                    $discountCents = (int) round($coupon->calculateDiscount($cashSubtotalCents / 100) * 100);
+                    $discountCents = $coupon->calculateDiscountCents($cashSubtotalCents);
                 }
             }
 

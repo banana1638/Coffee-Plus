@@ -165,7 +165,8 @@ class CheckoutTest extends TestCase
             'coupon_code' => 'ONCE5',
         ]);
         $first->assertStatus(200)
-            ->assertJsonPath('data.final_amount', 5);
+            ->assertJsonPath('data.final_amount', 5)
+            ->assertJsonPath('data.final_amount_cents', 500);
 
         $this->assertDatabaseHas('coupon_redemptions', [
             'coupon_id' => $coupon->id,
@@ -180,7 +181,8 @@ class CheckoutTest extends TestCase
             'coupon_code' => 'ONCE5',
         ]);
         $second->assertStatus(200)
-            ->assertJsonPath('data.final_amount', 10);
+            ->assertJsonPath('data.final_amount', 10)
+            ->assertJsonPath('data.final_amount_cents', 1000);
 
         $coupon->refresh();
         $this->assertSame(1, $coupon->used_count);

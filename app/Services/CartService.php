@@ -7,6 +7,8 @@ use App\Contracts\PricingServiceInterface;
 use App\Models\CartItem;
 use App\Models\Product;
 use App\Models\User;
+use App\Services\PricingService;
+use App\Support\Money;
 use Illuminate\Support\Collection;
 
 class CartService implements CartServiceInterface
@@ -26,7 +28,10 @@ class CartService implements CartServiceInterface
         $this->assertValidQuantity($quantity);
 
         $product = Product::findOrFail($productId);
-        $finalUnitPrice = $this->pricingService->calculateUnitPrice($product, $size, $addons);
+        $finalUnitPriceCents = $this->pricingService instanceof PricingService
+            ? $this->pricingService->calculateUnitPriceCents($product, $size, $addons)
+            : Money::toCents($this->pricingService->calculateUnitPrice($product, $size, $addons));
+        $finalUnitPrice = Money::fromCents($finalUnitPriceCents);
 
         $addonsArray = $addons;
         sort($addonsArray);
@@ -48,6 +53,7 @@ class CartService implements CartServiceInterface
 
             $cartItem->quantity += $quantity;
             $cartItem->unit_price = $finalUnitPrice;
+            $cartItem->unit_price_cents = $finalUnitPriceCents;
             $cartItem->save();
         } else {
             $cartItem = new CartItem();
@@ -58,6 +64,7 @@ class CartService implements CartServiceInterface
             $cartItem->temp = $temp;
             $cartItem->addons = $addonsArray;
             $cartItem->unit_price = $finalUnitPrice;
+            $cartItem->unit_price_cents = $finalUnitPriceCents;
             $cartItem->save();
         }
 

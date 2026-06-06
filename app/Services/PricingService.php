@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Contracts\PricingServiceInterface;
 use App\Models\Product;
+use App\Support\Money;
 
 class PricingService implements PricingServiceInterface
 {
@@ -12,15 +13,21 @@ class PricingService implements PricingServiceInterface
      */
     public function calculateUnitPrice(Product $product, string $size, array $selectedAddons): float
     {
+        return Money::fromCents($this->calculateUnitPriceCents($product, $size, $selectedAddons));
+    }
+
+    public function calculateUnitPriceCents(Product $product, string $size, array $selectedAddons): int
+    {
         $coffeeConfig = config('coffee.options');
 
-        $sizeExtra = collect($coffeeConfig['sizes'])
-            ->firstWhere('name', $size)['extra'] ?? 0;
+        $sizeExtraCents = Money::toCents(collect($coffeeConfig['sizes'])
+            ->firstWhere('name', $size)['extra'] ?? 0);
 
         $addonsTotal = $product->addons()
             ->whereIn('name', $selectedAddons)
-            ->sum('price');
+            ->get()
+            ->sum(fn ($addon) => (int) ($addon->price_cents ?? Money::toCents($addon->price)));
 
-        return $product->price + $sizeExtra + $addonsTotal;
+        return (int) ($product->price_cents ?? Money::toCents($product->price)) + $sizeExtraCents + (int) $addonsTotal;
     }
 }

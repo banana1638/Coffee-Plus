@@ -6,6 +6,7 @@ use App\Contracts\TangkiServiceInterface;
 use App\Models\User;
 use App\Models\Order;
 use App\Models\Transaction;
+use App\Support\Money;
 use Illuminate\Support\Facades\DB;
 
 class TangkiService implements TangkiServiceInterface
@@ -19,12 +20,13 @@ class TangkiService implements TangkiServiceInterface
      */
     public function refillBalance(User $user, float $amount, string $billId): bool
     {
+        $amountCents = Money::toCents($amount);
         $ozToInject = (int) ($amount * 10);
 
-        DB::transaction(function () use ($user, $amount, $ozToInject, $billId) {
+        DB::transaction(function () use ($user, $amount, $amountCents, $ozToInject, $billId) {
             $this->ledgerService->credit(
                 $user,
-                (int) round($amount * 100),
+                $amountCents,
                 'stripe_refill',
                 $billId,
                 "stripe_refill:{$billId}",
@@ -36,8 +38,10 @@ class TangkiService implements TangkiServiceInterface
             $order->user_id = $user->id;
             $order->bill_id = $billId;
             $order->subtotal = $amount;
+            $order->subtotal_cents = $amountCents;
             $order->oz_used = 0;
             $order->final_amount = $amount;
+            $order->final_amount_cents = $amountCents;
             $order->status = 'completed';
             $order->save();
 
@@ -85,14 +89,17 @@ class TangkiService implements TangkiServiceInterface
     {
         return DB::transaction(function () use ($user, $amount, $rewardOz, $billId, $description) {
             $userObj = User::where('id', $user->id)->lockForUpdate()->first();
-            if (!$userObj || $userObj->tangki_balance < $amount) {
+            $amountCents = Money::toCents($amount);
+            $balanceCents = (int) ($userObj?->tangki_balance_cents ?? Money::toCents($userObj?->tangki_balance));
+
+            if (!$userObj || $balanceCents < $amountCents) {
                 return false;
             }
 
-            if ($amount > 0) {
+            if ($amountCents > 0) {
                 $ledger = $this->ledgerService->debit(
                     $userObj,
-                    (int) round($amount * 100),
+                    $amountCents,
                     'order_payment',
                     $billId,
                     "order_payment:{$billId}",

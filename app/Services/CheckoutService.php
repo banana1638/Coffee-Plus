@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Cache;
 use App\Events\OrderPlaced;
 use App\Models\Product;
+use App\Support\Money;
 use Illuminate\Support\Str;
 
 class CheckoutService implements CheckoutServiceInterface
@@ -46,7 +47,7 @@ class CheckoutService implements CheckoutServiceInterface
 
             return DB::transaction(function () use ($user, $cartItems, $useOzIds, $couponCode, $pickupTime) {
 
-                $totalCashToPay = 0;
+                $totalCashToPayCents = 0;
                 $totalOzToDrain = 0;
                 $totalRewardOz = 0;
 
@@ -63,9 +64,10 @@ class CheckoutService implements CheckoutServiceInterface
                 foreach ($cartItems as $item) {
                     $this->deductStock($item->product_id, (int) $item->quantity);
 
-                    $unitPrice = $item->unit_price;
+                    $unitPriceCents = (int) ($item->unit_price_cents ?? Money::toCents($item->unit_price));
+                    $unitPrice = Money::fromCents($unitPriceCents);
                     $quantity = $item->quantity;
-                    $itemTotal = $unitPrice * $quantity;
+                    $itemTotalCents = $unitPriceCents * $quantity;
 
                     $isRedeem = in_array($item->id, $useOzIds);
 
@@ -78,43 +80,48 @@ class CheckoutService implements CheckoutServiceInterface
                         'temp' => $item->temp,
                         'addons' => $item->addons
                     ];
-                    $orderItem->price = $item->product->price;
+                    $orderItem->price = Money::fromCents((int) ($item->product->price_cents ?? Money::toCents($item->product->price)));
+                    $orderItem->price_cents = (int) ($item->product->price_cents ?? Money::toCents($item->product->price));
 
                     // OZ redemption
                     if ($isRedeem) {
-                        $ozNeeded = (int) ($itemTotal * 100);
+                        $ozNeeded = $itemTotalCents;
                         $totalOzToDrain += $ozNeeded;
                         $orderItem->oz_at_time = $ozNeeded;
                         $orderItem->price_at_time = 0;
+                        $orderItem->price_at_time_cents = 0;
                     }
 
                     else {
-                        $totalCashToPay += $itemTotal;
+                        $totalCashToPayCents += $itemTotalCents;
                         $orderItem->oz_at_time = 0;
                         $orderItem->price_at_time = $unitPrice;
+                        $orderItem->price_at_time_cents = $unitPriceCents;
 
                         // Reward OZ only for cash payments.
-                        $totalRewardOz += (int) (($itemTotal * 100) / 2);
+                        $totalRewardOz += (int) ($itemTotalCents / 2);
                     }
 
                     $orderItem->save();
                 }
 
                 // Coupon discount
-                $discount = 0;
-                if ($couponCode && $totalCashToPay > 0) {
+                $discountCents = 0;
+                if ($couponCode && $totalCashToPayCents > 0) {
                     $coupon = Coupon::where('code', $couponCode)->first();
                     if ($coupon && $coupon->isValid()) {
-                        $discount = $coupon->calculateDiscount($totalCashToPay);
-                        if (!$coupon->redeemForOrder($user, $order, (int) round($discount * 100))) {
-                            $discount = 0;
+                        $discountCents = $coupon->calculateDiscountCents($totalCashToPayCents);
+                        if (!$coupon->redeemForOrder($user, $order, $discountCents)) {
+                            $discountCents = 0;
                         }
                     }
                 }
 
                 // Update order totals
-                $order->subtotal = $totalCashToPay + ($totalOzToDrain / 100);
-                $order->final_amount = max(0, $totalCashToPay - $discount);
+                $order->subtotal = Money::fromCents($totalCashToPayCents + $totalOzToDrain);
+                $order->subtotal_cents = $totalCashToPayCents + $totalOzToDrain;
+                $order->final_amount = Money::fromCents(max(0, $totalCashToPayCents - $discountCents));
+                $order->final_amount_cents = max(0, $totalCashToPayCents - $discountCents);
                 $order->oz_used = $totalOzToDrain;
                 $order->pickup_time = $pickupTime;
                 $order->save();
@@ -124,7 +131,7 @@ class CheckoutService implements CheckoutServiceInterface
                     $order,
                     $user,
                     $useOzIds,
-                    $totalCashToPay,
+                    Money::fromCents($totalCashToPayCents - $discountCents),
                     $totalOzToDrain,
                     $totalRewardOz
                 ));
@@ -182,8 +189,10 @@ class CheckoutService implements CheckoutServiceInterface
             $order->cart_snapshot_id = $lockedSnapshot->id;
             $order->pickup_code = $this->generatePickupCode();
             $order->status = Order::STATUS_PENDING;
-            $order->subtotal = $lockedSnapshot->subtotal_cents / 100;
-            $order->final_amount = $lockedSnapshot->final_amount_cents / 100;
+            $order->subtotal = Money::fromCents($lockedSnapshot->subtotal_cents);
+            $order->subtotal_cents = $lockedSnapshot->subtotal_cents;
+            $order->final_amount = Money::fromCents($lockedSnapshot->final_amount_cents);
+            $order->final_amount_cents = $lockedSnapshot->final_amount_cents;
             $order->oz_used = $lockedSnapshot->oz_used;
             $order->pickup_time = $lockedSnapshot->pickup_time;
             $order->save();
@@ -202,8 +211,10 @@ class CheckoutService implements CheckoutServiceInterface
                     'temp' => $item['temp'],
                     'addons' => $item['addons'],
                 ];
-                $orderItem->price = $item['product_price_cents'] / 100;
-                $orderItem->price_at_time = $item['paid_with_oz'] ? 0 : ($item['unit_price_cents'] / 100);
+                $orderItem->price = Money::fromCents($item['product_price_cents']);
+                $orderItem->price_cents = $item['product_price_cents'];
+                $orderItem->price_at_time = $item['paid_with_oz'] ? 0 : Money::fromCents($item['unit_price_cents']);
+                $orderItem->price_at_time_cents = $item['paid_with_oz'] ? 0 : $item['unit_price_cents'];
                 $orderItem->oz_at_time = $item['paid_with_oz'] ? ($item['unit_price_cents'] * $item['quantity']) : 0;
                 $orderItem->save();
 

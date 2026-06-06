@@ -84,6 +84,17 @@ class WalletLedgerTest extends TestCase
         ]);
     }
 
+    public function test_cash_balance_cents_are_synced_with_ledger(): void
+    {
+        $user = User::factory()->create(['tangki_balance' => 0.00]);
+
+        app(TangkiService::class)->refillBalance($user, 12.34, 'TOPUP-CENTS');
+
+        $user->refresh();
+        $this->assertSame(1234, $user->tangki_balance_cents);
+        $this->assertEquals('12.34', $user->tangki_balance);
+    }
+
     private function createProduct(): Product
     {
         $menu = new Menu();

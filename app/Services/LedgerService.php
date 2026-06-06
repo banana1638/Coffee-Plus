@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\User;
 use App\Models\WalletLedger;
+use App\Support\Money;
 use Illuminate\Support\Facades\DB;
 
 class LedgerService
@@ -27,7 +28,10 @@ class LedgerService
             $beforeCents = $this->balanceCents($lockedUser);
             $afterCents = $beforeCents + $amountCents;
 
-            $lockedUser->forceFill(['tangki_balance' => $afterCents / 100])->save();
+            $lockedUser->forceFill([
+                'tangki_balance' => Money::fromCents($afterCents),
+                'tangki_balance_cents' => $afterCents,
+            ])->save();
 
             return WalletLedger::create([
                 'user_id' => $lockedUser->id,
@@ -67,7 +71,10 @@ class LedgerService
             }
 
             $afterCents = $beforeCents - $amountCents;
-            $lockedUser->forceFill(['tangki_balance' => $afterCents / 100])->save();
+            $lockedUser->forceFill([
+                'tangki_balance' => Money::fromCents($afterCents),
+                'tangki_balance_cents' => $afterCents,
+            ])->save();
 
             return WalletLedger::create([
                 'user_id' => $lockedUser->id,
@@ -86,6 +93,6 @@ class LedgerService
 
     private function balanceCents(User $user): int
     {
-        return (int) round(((float) $user->tangki_balance) * 100);
+        return (int) ($user->tangki_balance_cents ?? Money::toCents($user->tangki_balance));
     }
 }

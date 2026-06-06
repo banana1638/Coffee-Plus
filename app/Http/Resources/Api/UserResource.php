@@ -21,6 +21,7 @@ class UserResource extends JsonResource
             'phone' => $this->phone,
             'address' => $this->address,
             'balance' => (float) $this->tangki_balance,
+            'balance_cents' => (int) ($this->tangki_balance_cents ?? round(((float) $this->tangki_balance) * 100)),
             'oz' => (int) $this->tangki_oz,
         ];
     }
