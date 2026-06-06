@@ -101,10 +101,12 @@ class CheckoutService implements CheckoutServiceInterface
                 // Coupon discount
                 $discount = 0;
                 if ($couponCode && $totalCashToPay > 0) {
-                    $coupon = Coupon::where('code', $couponCode)->lockForUpdate()->first();
+                    $coupon = Coupon::where('code', $couponCode)->first();
                     if ($coupon && $coupon->isValid()) {
                         $discount = $coupon->calculateDiscount($totalCashToPay);
-                        $coupon->markUsed();
+                        if (!$coupon->redeemForOrder($user, $order, (int) round($discount * 100))) {
+                            $discount = 0;
+                        }
                     }
                 }
 
@@ -206,10 +208,10 @@ class CheckoutService implements CheckoutServiceInterface
                 }
             }
 
-            if ($lockedSnapshot->coupon_code) {
-                $coupon = Coupon::where('code', $lockedSnapshot->coupon_code)->lockForUpdate()->first();
-                if ($coupon) {
-                    $coupon->markUsed();
+            if ($lockedSnapshot->coupon_code && $lockedSnapshot->discount_cents > 0) {
+                $coupon = Coupon::where('code', $lockedSnapshot->coupon_code)->first();
+                if ($coupon && !$coupon->redeemForOrder($user, $order, $lockedSnapshot->discount_cents)) {
+                    throw new CheckoutException('Coupon can no longer be redeemed.');
                 }
             }
 

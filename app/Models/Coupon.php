@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
 class Coupon extends Model
 {
@@ -46,5 +47,41 @@ class Coupon extends Model
     public function markUsed(): void
     {
         $this->increment('used_count');
+    }
+
+    public function redeemForOrder(User $user, Order $order, int $discountCents): bool
+    {
+        if ($discountCents <= 0 || CouponRedemption::where('coupon_id', $this->id)->where('user_id', $user->id)->exists()) {
+            return false;
+        }
+
+        $updated = self::where('id', $this->id)
+            ->where(function ($query) {
+                $query->whereNull('usage_limit')
+                    ->orWhereColumn('used_count', '<', 'usage_limit');
+            })
+            ->update([
+                'used_count' => DB::raw('used_count + 1'),
+            ]);
+
+        if ($updated !== 1) {
+            return false;
+        }
+
+        CouponRedemption::create([
+            'coupon_id' => $this->id,
+            'user_id' => $user->id,
+            'order_id' => $order->id,
+            'discount_cents' => $discountCents,
+        ]);
+
+        $this->refresh();
+
+        return true;
+    }
+
+    public function redemptions()
+    {
+        return $this->hasMany(CouponRedemption::class);
     }
 }

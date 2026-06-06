@@ -147,6 +147,46 @@ class CheckoutTest extends TestCase
         $this->assertSame(1, $coupon->used_count);
     }
 
+    public function test_coupon_redemption_is_recorded_and_user_cannot_reuse_coupon(): void
+    {
+        $user = User::factory()->create(['tangki_balance' => 40.00]);
+        $product = $this->createProduct();
+        $this->addCartItem($user, $product);
+
+        $coupon = new Coupon();
+        $coupon->code = 'ONCE5';
+        $coupon->type = 'fixed';
+        $coupon->value = 5.00;
+        $coupon->usage_limit = 10;
+        $coupon->used_count = 0;
+        $coupon->save();
+
+        $first = $this->apiCheckout($user, [
+            'coupon_code' => 'ONCE5',
+        ]);
+        $first->assertStatus(200)
+            ->assertJsonPath('data.final_amount', 5);
+
+        $this->assertDatabaseHas('coupon_redemptions', [
+            'coupon_id' => $coupon->id,
+            'user_id' => $user->id,
+            'order_id' => $first->json('data.id'),
+            'discount_cents' => 500,
+        ]);
+
+        $this->addCartItem($user, $product);
+
+        $second = $this->apiCheckout($user, [
+            'coupon_code' => 'ONCE5',
+        ]);
+        $second->assertStatus(200)
+            ->assertJsonPath('data.final_amount', 10);
+
+        $coupon->refresh();
+        $this->assertSame(1, $coupon->used_count);
+        $this->assertDatabaseCount('coupon_redemptions', 1);
+    }
+
     public function test_user_can_cancel_pending_cash_order_and_receive_tangki_refund(): void
     {
         $user = User::factory()->create(['tangki_balance' => 20.00]);
