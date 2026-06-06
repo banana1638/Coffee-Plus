@@ -187,6 +187,42 @@ class CheckoutTest extends TestCase
         $this->assertDatabaseCount('coupon_redemptions', 1);
     }
 
+    public function test_checkout_rejects_when_tracked_stock_is_insufficient(): void
+    {
+        $user = User::factory()->create(['tangki_balance' => 20.00]);
+        $product = $this->createProduct();
+        $product->stock = 0;
+        $product->track_stock = true;
+        $product->save();
+        $this->addCartItem($user, $product);
+
+        $this->apiCheckout($user)
+            ->assertStatus(422)
+            ->assertJsonPath('message', 'Insufficient stock for Latte.');
+    }
+
+    public function test_cancelled_pending_order_restores_tracked_stock(): void
+    {
+        $user = User::factory()->create(['tangki_balance' => 20.00]);
+        $product = $this->createProduct();
+        $product->stock = 1;
+        $product->track_stock = true;
+        $product->save();
+        $this->addCartItem($user, $product);
+
+        $checkout = $this->apiCheckout($user);
+        $checkout->assertStatus(200);
+
+        $product->refresh();
+        $this->assertSame(0, $product->stock);
+
+        $this->actingAs($user)->postJson('/api/orders/' . $checkout->json('data.id') . '/cancel')
+            ->assertStatus(200);
+
+        $product->refresh();
+        $this->assertSame(1, $product->stock);
+    }
+
     public function test_user_can_cancel_pending_cash_order_and_receive_tangki_refund(): void
     {
         $user = User::factory()->create(['tangki_balance' => 20.00]);

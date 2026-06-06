@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Exceptions\OrderException;
 use App\Models\Order;
+use App\Models\Product;
 use App\Models\Transaction;
 use App\Models\User;
 use App\Notifications\OrderCompletedNotification;
@@ -82,6 +83,7 @@ class OrderService
             }
 
             $this->reverseReferralReward($lockedOrder);
+            $this->restoreStock($lockedOrder);
 
             $lockedOrder->status = Order::STATUS_CANCELLED;
             $lockedOrder->cancelled_at = now();
@@ -228,5 +230,14 @@ class OrderService
         $transaction->type = $type;
         $transaction->description = $description;
         $transaction->save();
+    }
+
+    private function restoreStock(Order $order): void
+    {
+        foreach ($order->items as $item) {
+            Product::where('id', $item->product_id)
+                ->where('track_stock', true)
+                ->increment('stock', (int) $item->quantity);
+        }
     }
 }

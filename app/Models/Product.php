@@ -10,6 +10,10 @@ class Product extends Model
     use SoftDeletes;
     protected $appends = ['image_url'];
 
+    protected $casts = [
+        'track_stock' => 'boolean',
+    ];
+
     public function getImageUrlAttribute()
     {
         if ($this->image) {

@@ -10,6 +10,7 @@ use Illuminate\Contracts\Cache\LockTimeoutException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Cache;
 use App\Events\OrderPlaced;
+use App\Models\Product;
 use Illuminate\Support\Str;
 
 class CheckoutService implements CheckoutServiceInterface
@@ -60,6 +61,7 @@ class CheckoutService implements CheckoutServiceInterface
                 $order->save();
 
                 foreach ($cartItems as $item) {
+                    $this->deductStock($item->product_id, (int) $item->quantity);
 
                     $unitPrice = $item->unit_price;
                     $quantity = $item->quantity;
@@ -189,6 +191,8 @@ class CheckoutService implements CheckoutServiceInterface
             $totalRewardOz = 0;
 
             foreach ($lockedSnapshot->items_json as $item) {
+                $this->deductStock((int) $item['product_id'], (int) $item['quantity']);
+
                 $orderItem = new OrderItem();
                 $orderItem->order_id = $order->id;
                 $orderItem->product_id = $item['product_id'];
@@ -229,5 +233,25 @@ class CheckoutService implements CheckoutServiceInterface
 
             return $order;
         });
+    }
+
+    private function deductStock(int $productId, int $quantity): void
+    {
+        $product = Product::where('id', $productId)->firstOrFail();
+
+        if (!$product->track_stock) {
+            return;
+        }
+
+        $updated = Product::where('id', $productId)
+            ->where('track_stock', true)
+            ->where('stock', '>=', $quantity)
+            ->update([
+                'stock' => DB::raw('stock - ' . $quantity),
+            ]);
+
+        if ($updated !== 1) {
+            throw new CheckoutException("Insufficient stock for {$product->name}.");
+        }
     }
 }
