@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Models\Order;
 use App\Models\Transaction;
 use App\Services\LedgerService;
+use Illuminate\Support\Facades\DB;
 
 class RewardReferrer
 {
@@ -23,16 +24,20 @@ class RewardReferrer
             ->count();
 
         if ($user->referrer_id && $completedProductOrderCount === 1) {
-            $markedForReward = User::where('id', $user->id)
-                ->where('referral_rewarded', false)
-                ->update(['referral_rewarded' => true]);
+            DB::transaction(function () use ($user, $event) {
+                $markedForReward = User::where('id', $user->id)
+                    ->where('referral_rewarded', false)
+                    ->update(['referral_rewarded' => true]);
 
-            if ($markedForReward !== 1) {
-                return;
-            }
+                if ($markedForReward !== 1) {
+                    return;
+                }
 
-            $referrer = User::find($user->referrer_id);
-            if ($referrer) {
+                $referrer = User::where('id', $user->referrer_id)->lockForUpdate()->first();
+                if (!$referrer) {
+                    throw new \RuntimeException('Referral reward referrer was not found.');
+                }
+
                 $this->ledgerService->credit(
                     $referrer,
                     500,
@@ -50,7 +55,7 @@ class RewardReferrer
                 $transaction->type = 'refill';
                 $transaction->description = "Referral Reward: referred user {$user->name} placed first order (Earned RM 5.00 & 50 OZ)";
                 $transaction->save();
-            }
+            }, 5);
         }
     }
 }
