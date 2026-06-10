@@ -8,7 +8,16 @@ class WalletLedger extends Model
 {
     protected $table = 'wallet_ledger';
 
-    protected $guarded = [];
+    protected $fillable = [
+        'user_id',
+        'type',
+        'amount_cents',
+        'balance_after_cents',
+        'description',
+        'idempotency_key',
+        'reference_type',
+        'reference_id',
+    ];
 
     public function user()
     {

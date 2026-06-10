@@ -39,9 +39,10 @@ class TelescopeServiceProvider extends TelescopeApplicationServiceProvider
             return;
         }
 
-        Telescope::hideRequestParameters(['_token']);
+        Telescope::hideRequestParameters(['_token', 'password', 'token', 'amount']);
 
         Telescope::hideRequestHeaders([
+            'authorization',
             'cookie',
             'x-csrf-token',
             'x-xsrf-token',
@@ -56,8 +57,10 @@ class TelescopeServiceProvider extends TelescopeApplicationServiceProvider
     protected function gate(): void
     {
         Gate::define('viewTelescope', function ($user) {
+            // Add admin emails here to grant Telescope access in non-local environments.
+            // Empty list = no one can access Telescope outside local env.
             return in_array($user->email, [
-                //
+                // 'admin@yourapp.com',
             ]);
         });
     }

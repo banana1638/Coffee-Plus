@@ -6,7 +6,14 @@ use Illuminate\Database\Eloquent\Model;
 
 class AuditLog extends Model
 {
-    protected $guarded = [];
+    protected $fillable = [
+        'actor_user_id',
+        'action',
+        'target_type',
+        'target_id',
+        'old_values_json',
+        'new_values_json',
+    ];
 
     protected $casts = [
         'old_values_json' => 'array',

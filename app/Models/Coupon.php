@@ -9,6 +9,16 @@ use Illuminate\Support\Facades\DB;
 
 class Coupon extends Model
 {
+    protected $fillable = [
+        'code',
+        'type',
+        'value',
+        'value_cents',
+        'usage_limit',
+        'used_count',
+        'expires_at',
+    ];
+
     protected $casts = [
         'expires_at' => 'datetime',
         'value' => 'decimal:2',

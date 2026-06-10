@@ -6,7 +6,13 @@ use Illuminate\Database\Eloquent\Model;
 
 class PaymentEvent extends Model
 {
-    protected $guarded = [];
+    protected $fillable = [
+        'session_id',
+        'event_type',
+        'user_id',
+        'payload_json',
+        'processed_at',
+    ];
 
     protected $casts = [
         'payload_json' => 'array',

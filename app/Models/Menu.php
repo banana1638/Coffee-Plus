@@ -8,6 +8,12 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Menu extends Model
 {
     use SoftDeletes;
+
+    protected $fillable = [
+        'name',
+        'slug',
+    ];
+
     public function products() {
         return $this->hasMany(Product::class);
     }

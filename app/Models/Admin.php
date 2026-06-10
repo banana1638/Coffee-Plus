@@ -9,6 +9,13 @@ class Admin extends Authenticatable
 {
     use Notifiable;
 
+    protected $fillable = [
+        'name',
+        'email',
+        'password',
+        'role',
+    ];
+
     private const ROLE_PERMISSIONS = [
         'super_admin' => ['*'],
         'owner' => ['*'],

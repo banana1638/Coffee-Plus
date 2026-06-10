@@ -6,6 +6,14 @@ use Illuminate\Database\Eloquent\Model;
 
 class SharedRecipe extends Model
 {
+    protected $fillable = [
+        'sender_id',
+        'recipient_id',
+        'product_id',
+        'addons',
+        'message',
+    ];
+
     protected $casts = [
         'addons' => 'array',
     ];

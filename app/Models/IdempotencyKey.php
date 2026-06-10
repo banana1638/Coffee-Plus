@@ -9,7 +9,14 @@ class IdempotencyKey extends Model
     public const STATUS_PROCESSING = 'processing';
     public const STATUS_COMPLETED = 'completed';
 
-    protected $guarded = [];
+    protected $fillable = [
+        'user_id',
+        'key',
+        'route',
+        'status',
+        'response_json',
+        'locked_until',
+    ];
 
     protected $casts = [
         'response_json' => 'array',

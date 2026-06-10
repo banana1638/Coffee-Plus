@@ -59,9 +59,16 @@ class ProfileController extends Controller
         $user->password = Hash::make($validated['password']);
         $user->save();
 
+        // Revoke all existing tokens to block unauthorized persistent access
+        $user->tokens()->delete();
+
+        // Issue a fresh token for the current session
+        $newToken = $user->createToken('api_token')->plainTextToken;
+
         return response()->json([
             'status' => 'success',
-            'message' => 'Password updated successfully.'
+            'message' => 'Password updated. Please use the new token.',
+            'access_token' => $newToken,
         ]);
     }
 

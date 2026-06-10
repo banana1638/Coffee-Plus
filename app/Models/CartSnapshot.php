@@ -10,6 +10,20 @@ class CartSnapshot extends Model
     public const STATUS_PROCESSED = 'processed';
     public const STATUS_EXPIRED = 'expired';
 
+    protected $fillable = [
+        'user_id',
+        'items_json',
+        'subtotal_cents',
+        'final_amount_cents',
+        'payment_method',
+        'status',
+        'stripe_session_id',
+        'pickup_time',
+        'expires_at',
+        'coupon_code',
+        'discount_cents',
+    ];
+
     protected $casts = [
         'items_json' => 'array',
         'pickup_time' => 'datetime',

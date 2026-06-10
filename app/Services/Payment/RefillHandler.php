@@ -18,9 +18,20 @@ class RefillHandler implements PaymentCompletionHandler
 
     public function handle(PaymentResult $result, User $user)
     {
-        $amount = (float) $result->metadata['amount'];
+        // Use the actual Stripe payment amount, NOT the user-controlled metadata
+        $paidAmount = $result->amount;
+        $metaAmount = (float) ($result->metadata['amount'] ?? 0);
+
+        // Cross-validate: allow 0.01 floating-point tolerance
+        if (abs($paidAmount - $metaAmount) > 0.01) {
+            report(new \RuntimeException(
+                "Refill amount mismatch: paid={$paidAmount} meta={$metaAmount} user={$user->id}"
+            ));
+            throw new \RuntimeException('Payment amount mismatch. Refill aborted.');
+        }
+
         $billId = 'TOPUP-' . strtoupper(uniqid());
 
-        return $this->tangkiService->refillBalance($user, $amount, $billId);
+        return $this->tangkiService->refillBalance($user, $paidAmount, $billId);
     }
 }

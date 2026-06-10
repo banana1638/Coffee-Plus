@@ -11,6 +11,24 @@ class Order extends Model
 {
     use HasFactory;
 
+    protected $fillable = [
+        'user_id',
+        'bill_id',
+        'pickup_code',
+        'status',
+        'subtotal',
+        'subtotal_cents',
+        'final_amount',
+        'final_amount_cents',
+        'payment_method',
+        'pickup_time',
+        'oz_used',
+        'cancelled_at',
+        'completed_at',
+        'coupon_code',
+        'discount_cents',
+    ];
+
     public const STATUS_PENDING = 'pending';
     public const STATUS_PREPARING = 'preparing';
     public const STATUS_READY = 'ready_for_pickup';

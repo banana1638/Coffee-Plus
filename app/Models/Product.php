@@ -12,6 +12,17 @@ class Product extends Model
     use SoftDeletes;
     protected $appends = ['image_url'];
 
+    protected $fillable = [
+        'menu_id',
+        'name',
+        'description',
+        'price',
+        'price_cents',
+        'image',
+        'stock',
+        'track_stock',
+    ];
+
     protected $casts = [
         'track_stock' => 'boolean',
     ];

@@ -66,7 +66,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // Tangki
     Route::controller(TangkiController::class)->prefix('tangki')->group(function () {
         Route::get('/', 'index');
-        Route::post('/refill', 'refill')->middleware('throttle:5,1');
+        Route::post('/refill', 'initiateRefill')->middleware('throttle:5,1');
     });
 
     // Transactions

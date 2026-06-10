@@ -9,6 +9,19 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class OrderItem extends Model
 {
+    protected $fillable = [
+        'order_id',
+        'product_id',
+        'product_name',
+        'quantity',
+        'price',
+        'price_cents',
+        'price_at_time',
+        'price_at_time_cents',
+        'options',
+        'oz_at_time',
+    ];
+
     protected $casts = [
         'options' => 'array',
     ];

@@ -8,6 +8,12 @@ use Illuminate\Database\Eloquent\Model;
 
 class ProductAddon extends Model
 {
+    protected $fillable = [
+        'product_id',
+        'name',
+        'price',
+        'price_cents',
+    ];
     protected function price(): Attribute
     {
         return Attribute::make(

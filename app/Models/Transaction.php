@@ -7,6 +7,15 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Transaction extends Model
 {
+    protected $fillable = [
+        'user_id',
+        'bill_id',
+        'type',
+        'amount',
+        'amount_cents',
+        'description',
+        'oz_delta',
+    ];
 
     protected $casts = [
         'oz_delta' => 'integer',

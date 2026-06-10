@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\API;
 
 use App\Contracts\TangkiServiceInterface;
+use App\Contracts\PaymentGatewayInterface;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Controller;
@@ -12,10 +13,12 @@ use App\Http\Resources\Api\UserResource;
 class TangkiController extends Controller
 {
     protected TangkiServiceInterface $tangkiService;
+    protected PaymentGatewayInterface $gateway;
 
-    public function __construct(TangkiServiceInterface $tangkiService)
+    public function __construct(TangkiServiceInterface $tangkiService, PaymentGatewayInterface $gateway)
     {
         $this->tangkiService = $tangkiService;
+        $this->gateway = $gateway;
     }
 
     public function index()
@@ -27,31 +30,45 @@ class TangkiController extends Controller
         ]);
     }
 
-    public function refill(Request $request)
+    /**
+     * Initiate a balance refill via Stripe Checkout.
+     * Actual balance crediting is handled by the Webhook → RefillHandler.
+     */
+    public function initiateRefill(Request $request)
     {
+        $request->validate([
+            'amount' => 'required|numeric|min:5|max:500',
+        ]);
+
+        /** @var \App\Models\User $user */
         $user = Auth::user();
-        $amount = floatval($request->input('amount'));
-
-        if ($amount <= 0) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Invalid amount.',
-            ], 400);
-        }
-
-        $billId = 'TOPUP-' . strtoupper(uniqid());
+        $amount = (float) $request->input('amount');
+        $amountCents = (int) round($amount * 100);
 
         try {
-            $this->tangkiService->refillBalance($user, $amount, $billId);
+            $url = $this->gateway->createCheckoutUrl($user, [
+                [
+                    'price_data' => [
+                        'currency' => 'myr',
+                        'product_data' => ['name' => 'Tangki Balance Refill'],
+                        'unit_amount' => $amountCents,
+                    ],
+                    'quantity' => 1,
+                ],
+            ], [
+                'type' => 'refill',
+                'user_id' => $user->id,
+                'amount' => (string) $amount,
+            ]);
 
             return response()->json([
                 'status' => 'success',
-                'message' => 'Refill successful!',
+                'redirect_url' => $url,
             ]);
         } catch (\Exception $e) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Transaction failed: ' . $e->getMessage(),
+                'message' => 'Failed to initiate refill. Please try again.',
             ], 500);
         }
     }
