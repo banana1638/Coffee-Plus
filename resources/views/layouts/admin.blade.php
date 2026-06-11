@@ -11,11 +11,11 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 
-<body class="font-sans antialiased bg-gray-50/50">
+<body class="bg-slate-50 font-sans text-slate-950 antialiased">
     <div class="min-h-screen">
         @include('layouts.admin-navigation')
 
-        <main>
+        <main class="min-h-screen lg:pl-72">
             {{ $slot }}
         </main>
     </div>

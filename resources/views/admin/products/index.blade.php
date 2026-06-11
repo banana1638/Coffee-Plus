@@ -1,104 +1,94 @@
 <x-admin-layout>
-    <div class="py-12 bg-gray-50/50 min-h-screen">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            
-            <div class="flex justify-between items-end mb-8">
-                <div>
-                    <h2 class="text-3xl font-black text-gray-900 tracking-tight">Product Manager</h2>
-                    <p class="text-gray-400 text-xs font-bold uppercase tracking-[0.2em] mt-1">Inventory Control</p>
-                </div>
-                @adminCan('product.create')
-                    <a href="{{ route('admin.products.create') }}" class="px-8 py-4 bg-gray-900 text-white rounded-[1.5rem] font-black text-sm shadow-xl shadow-gray-200 hover:bg-blue-600 transition-all hover:-translate-y-1">
-                        + ADD NEW COFFEE
-                    </a>
-                @endadminCan
-            </div>
+    <div class="px-4 py-6 sm:px-6 lg:px-8">
+        <div class="mx-auto max-w-[1500px] space-y-6">
+            <x-layout.page-header title="Product Manager" description="Desktop inventory control for menu items, pricing, ratings, and stock.">
+                <x-slot:actions>
+                    @adminCan('product.create')
+                        <x-ui.button :href="route('admin.products.create')" size="lg">
+                            Add New Coffee
+                        </x-ui.button>
+                    @endadminCan
+                </x-slot:actions>
+            </x-layout.page-header>
 
             @if(session('success'))
-                <div class="mb-6 p-4 bg-green-500 text-white rounded-2xl font-bold shadow-lg shadow-green-100 flex items-center gap-3">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                <div class="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-700">
                     {{ session('success') }}
                 </div>
             @endif
 
-            <div class="bg-white rounded-[2.5rem] shadow-sm border border-gray-100 overflow-hidden">
-                <table class="w-full text-left border-collapse">
-                    <thead class="bg-gray-50/50 border-b border-gray-50">
+            <x-ui.table-shell>
+                <table class="w-full min-w-[980px] text-left">
+                    <thead class="bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-500">
                         <tr>
-                            <th class="px-8 py-5 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Product info</th>
-                            <th class="px-8 py-5 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Category</th>
-                            <th class="px-8 py-5 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Pricing</th>
-                            <th class="px-8 py-5 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Stock</th>
+                            <th class="px-4 py-3">Product</th>
+                            <th class="px-4 py-3">Category</th>
+                            <th class="px-4 py-3">Pricing</th>
+                            <th class="px-4 py-3">Stock</th>
                             @if(Auth::guard('admin')->user()->canPerform('product.update') || Auth::guard('admin')->user()->canPerform('product.delete'))
-                                <th class="px-8 py-5 text-[10px] font-bold text-gray-400 uppercase tracking-widest text-right">Management</th>
+                                <th class="px-4 py-3 text-right">Management</th>
                             @endif
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-gray-50">
+                    <tbody class="divide-y divide-slate-200 bg-white text-sm">
                         @foreach($products as $product)
-                        <tr class="group hover:bg-gray-50/50 transition-all">
-                            <td class="px-8 py-5">
-                                <div class="flex items-center gap-5">
-                                    <div class="w-16 h-16 rounded-[1.2rem] bg-gray-100 overflow-hidden border border-gray-100 shrink-0">
-                                        @if($product->image)
-                                            <img src="{{ asset('images/products/'.$product->image) }}" class="w-full h-full object-cover">
-                                        @else
-                                            <div class="w-full h-full flex items-center justify-center text-[10px] text-gray-300 font-bold uppercase">No Img</div>
-                                        @endif
-                                    </div>
-                                    <div>
-                                        <p class="font-black text-gray-900 text-lg leading-tight">{{ $product->name }}</p>
-                                        <p class="text-[10px] text-gray-400 font-bold mt-1">ID: #{{ str_pad($product->id, 4, '0', STR_PAD_LEFT) }}</p>
-                                    </div>
-                                </div>
-                            </td>
-                            <td class="px-8 py-5">
-                                <span class="px-4 py-1.5 bg-gray-100 text-gray-500 rounded-full text-[10px] font-black uppercase tracking-widest">
-                                    {{ $product->menu->name ?? 'Uncategorized' }}
-                                </span>
-                            </td>
-                            <td class="px-8 py-5">
-                                <p class="text-blue-600 font-black text-lg">RM {{ number_format($product->price, 2) }}</p>
-                                <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">{{ $product->oz_redeem_value }} oz redeem</p>
-                                <p class="text-[10px] text-yellow-600 font-black uppercase tracking-widest mt-1">
-                                    {{ number_format($product->average_rating, 1) }}/5 reviews
-                                </p>
-                            </td>
-                            <td class="px-8 py-5">
-                                @if($product->track_stock)
-                                    <span class="inline-flex items-center px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest {{ (int) $product->stock <= 5 ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-600' }}">
-                                        {{ (int) $product->stock }} in stock
-                                    </span>
-                                @else
-                                    <span class="inline-flex items-center px-4 py-1.5 bg-gray-100 text-gray-500 rounded-full text-[10px] font-black uppercase tracking-widest">
-                                        Not tracked
-                                    </span>
-                                @endif
-                            </td>
-                            @if(Auth::guard('admin')->user()->canPerform('product.update') || Auth::guard('admin')->user()->canPerform('product.delete'))
-                                <td class="px-8 py-5 text-right">
-                                    <div class="flex justify-end gap-3 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-all">
-                                        @adminCan('product.update')
-                                            <a href="{{ route('admin.products.edit', $product->id) }}" class="px-5 py-2.5 bg-gray-900 text-white rounded-xl text-xs font-black hover:bg-blue-600 transition-all shadow-lg shadow-gray-200">
-                                                EDIT
-                                            </a>
-                                        @endadminCan
-                                        @adminCan('product.delete')
-                                            <form action="{{ route('admin.products.destroy', $product->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this product?');">
-                                                @csrf @method('DELETE')
-                                                <button type="submit" class="px-5 py-2.5 bg-red-50 text-red-600 rounded-xl text-xs font-black hover:bg-red-600 hover:text-white transition-all">
-                                                    DELETE
-                                                </button>
-                                            </form>
-                                        @endadminCan
+                            <tr class="group transition hover:bg-slate-50">
+                                <td class="px-4 py-3">
+                                    <div class="flex items-center gap-4">
+                                        <div class="h-14 w-14 shrink-0 overflow-hidden rounded-lg border border-slate-200 bg-slate-100">
+                                            @if($product->image)
+                                                <img src="{{ asset('images/products/'.$product->image) }}" class="h-full w-full object-cover" alt="{{ $product->name }}">
+                                            @else
+                                                <div class="flex h-full w-full items-center justify-center text-xs font-semibold text-slate-400">No Img</div>
+                                            @endif
+                                        </div>
+                                        <div>
+                                            <p class="font-semibold text-slate-950">{{ $product->name }}</p>
+                                            <p class="mt-1 text-xs text-slate-500">ID #{{ str_pad($product->id, 4, '0', STR_PAD_LEFT) }}</p>
+                                        </div>
                                     </div>
                                 </td>
-                            @endif
-                        </tr>
+                                <td class="px-4 py-3">
+                                    <x-ui.badge>{{ $product->menu->name ?? 'Uncategorized' }}</x-ui.badge>
+                                </td>
+                                <td class="px-4 py-3">
+                                    <p class="font-semibold text-slate-950">RM {{ number_format($product->price, 2) }}</p>
+                                    <p class="mt-1 text-xs text-slate-500">{{ $product->oz_redeem_value }} oz redeem</p>
+                                    <p class="mt-1 text-xs font-semibold text-amber-700">{{ number_format($product->average_rating, 1) }}/5 reviews</p>
+                                </td>
+                                <td class="px-4 py-3">
+                                    @if($product->track_stock)
+                                        <x-ui.badge :variant="(int) $product->stock <= 5 ? 'danger' : 'success'">
+                                            {{ (int) $product->stock }} in stock
+                                        </x-ui.badge>
+                                    @else
+                                        <x-ui.badge>Not tracked</x-ui.badge>
+                                    @endif
+                                </td>
+                                @if(Auth::guard('admin')->user()->canPerform('product.update') || Auth::guard('admin')->user()->canPerform('product.delete'))
+                                    <td class="px-4 py-3 text-right">
+                                        <div class="flex justify-end gap-2 opacity-100 transition md:opacity-0 md:group-hover:opacity-100">
+                                            @adminCan('product.update')
+                                                <x-ui.button :href="route('admin.products.edit', $product->id)" variant="secondary" size="sm">
+                                                    Edit
+                                                </x-ui.button>
+                                            @endadminCan
+                                            @adminCan('product.delete')
+                                                <form action="{{ route('admin.products.destroy', $product->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this product?');">
+                                                    @csrf @method('DELETE')
+                                                    <x-ui.button type="submit" variant="danger" size="sm">
+                                                        Delete
+                                                    </x-ui.button>
+                                                </form>
+                                            @endadminCan
+                                        </div>
+                                    </td>
+                                @endif
+                            </tr>
                         @endforeach
                     </tbody>
                 </table>
-            </div>
+            </x-ui.table-shell>
         </div>
     </div>
 </x-admin-layout>

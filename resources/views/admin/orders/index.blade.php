@@ -1,131 +1,112 @@
 <x-admin-layout>
-    <div class="py-8 md:py-12 bg-gray-50/50 min-h-screen">
-        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="px-4 py-6 sm:px-6 lg:px-8">
+        <div class="mx-auto max-w-[1400px] space-y-6">
+            <x-layout.page-header title="Order Management" description="Desktop logistics control for active orders, pickup codes, and refunds.">
+                <x-slot:actions>
+                    @adminCan('report.export')
+                        <x-ui.button :href="route('admin.orders.export.page')" variant="secondary">
+                            Export Center
+                        </x-ui.button>
+                    @endadminCan
+                    <x-ui.button :href="route('admin.orders.refunds')" variant="secondary">
+                        Refunds
+                    </x-ui.button>
+                </x-slot:actions>
+            </x-layout.page-header>
 
-            <div class="flex items-center gap-4 mb-8">
-                <div class="w-12 h-12 flex items-center justify-center bg-gray-900 rounded-2xl shadow-lg text-white">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" stroke-width="2" stroke-linecap="round"
-                            stroke-linejoin="round" />
-                    </svg>
-                </div>
-                <div class="flex-1">
-                    <h2 class="text-2xl font-black text-gray-800 tracking-tight italic uppercase">Order Management</h2>
-                    <p class="text-gray-400 text-[10px] font-bold uppercase tracking-[0.3em] italic">Internal Logistics
-                        Control</p>
-                </div>
-                @adminCan('report.export')
-                    <a href="{{ route('admin.orders.export.page') }}"
-                        class="px-5 py-2.5 bg-white border border-gray-200 text-gray-800 text-[10px] font-black uppercase tracking-widest rounded-2xl hover:bg-gray-900 hover:text-white hover:border-gray-900 transition-all shadow-sm active:scale-95 flex items-center gap-2">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path
-                                d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                                stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
-                        </svg>
-                        Export Center
-                    </a>
+            <div class="grid gap-4 xl:grid-cols-[1fr_360px]">
+                <x-ui.card padding="compact">
+                    <div class="flex items-center justify-between gap-4">
+                        <div>
+                            <p class="text-sm font-semibold text-slate-950">All Active Orders</p>
+                            <p class="text-xs text-slate-500">Total: {{ $orders->total() }}</p>
+                        </div>
+                        <x-ui.badge variant="info">{{ $orders->count() }} visible</x-ui.badge>
+                    </div>
+                </x-ui.card>
+
+                @adminCan('order.status.update')
+                    <form action="{{ route('admin.orders.complete-by-code') }}" method="POST"
+                        class="flex gap-2 rounded-xl border border-slate-200 bg-white p-2 shadow-sm">
+                        @csrf
+                        <label class="sr-only" for="pickup_code">Pickup code</label>
+                        <input id="pickup_code" name="pickup_code" type="text" maxlength="12" placeholder="Pickup code"
+                            class="min-w-0 flex-1 rounded-lg border-slate-200 bg-slate-50 text-sm font-semibold uppercase tracking-wide text-slate-800 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        <x-ui.button type="submit" size="sm">
+                            Verify
+                        </x-ui.button>
+                    </form>
                 @endadminCan
-                <a href="{{ route('admin.orders.refunds') }}"
-                    class="px-5 py-2.5 bg-white border border-red-100 text-red-600 text-[10px] font-black uppercase tracking-widest rounded-2xl hover:bg-red-600 hover:text-white hover:border-red-600 transition-all shadow-sm active:scale-95">
-                    Refunds
-                </a>
             </div>
 
-            <div class="flex p-1 bg-gray-200/50 rounded-2xl mb-6">
-                <div
-                    class="flex-1 py-3 text-center text-xs font-black uppercase tracking-widest rounded-xl bg-white text-blue-600 shadow-sm">
-                    All Active Orders ({{ $orders->total() }})
-                </div>
-            </div>
-
-            @adminCan('order.status.update')
-                <form action="{{ route('admin.orders.complete-by-code') }}" method="POST"
-                    class="mb-6 flex gap-2 bg-white border border-gray-100 rounded-2xl p-2 shadow-sm">
-                    @csrf
-                    <input name="pickup_code" type="text" maxlength="12" placeholder="Pickup code"
-                        class="flex-1 border-0 bg-gray-50 rounded-xl text-xs font-black uppercase tracking-widest focus:ring-blue-500">
-                    <button type="submit"
-                        class="px-5 bg-gray-900 text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-blue-600 transition">
-                        Verify
-                    </button>
-                </form>
-            @endadminCan
-
-            <div class="space-y-4">
+            <div class="grid gap-3">
                 @forelse($orders as $order)
-                    <div
-                        class="group bg-white rounded-[2rem] p-6 border border-gray-100 shadow-sm hover:shadow-md transition-all">
-                        <div class="flex justify-between items-start">
-                            <div class="flex-1">
-                                <div class="flex items-center gap-2 mb-2">
-                                    <span
-                                        class="px-3 py-1 {{ $order->status === 'completed' ? 'bg-emerald-50 text-emerald-600' : 'bg-blue-50 text-blue-600' }} rounded-full text-[10px] font-black uppercase italic border border-current opacity-80">
-                                        {{ $order->status }}
-                                    </span>
-                                    <span
-                                        class="text-[10px] font-bold text-gray-400">{{ $order->created_at->format('M d, H:i A') }}</span>
+                    @php
+                        $statusVariant = match($order->status) {
+                            'completed' => 'success',
+                            'cancelled', 'refunded' => 'danger',
+                            'ready', 'preparing' => 'warning',
+                            default => 'info',
+                        };
+                    @endphp
+
+                    <x-ui.card padding="compact" class="group">
+                        <div class="grid gap-4 xl:grid-cols-[1.1fr_1fr_180px_260px] xl:items-center">
+                            <div>
+                                <div class="flex flex-wrap items-center gap-2">
+                                    <x-ui.badge :variant="$statusVariant">{{ str_replace('_', ' ', $order->status) }}</x-ui.badge>
+                                    <span class="text-xs text-slate-500">{{ $order->created_at->format('M d, H:i A') }}</span>
                                 </div>
-
-                                <h3 class="font-black text-gray-900 leading-tight text-lg italic uppercase">
-                                    #{{ $order->bill_id }}</h3>
+                                <h3 class="mt-2 text-base font-semibold text-slate-950">#{{ $order->bill_id }}</h3>
+                                <p class="mt-1 text-xs text-slate-500">Customer: {{ $order->user->name }}</p>
                                 @if($order->pickup_code)
-                                    <p class="text-[10px] text-gray-500 font-black mt-1 uppercase tracking-widest">
-                                        Pickup: {{ $order->pickup_code }}
-                                    </p>
+                                    <p class="mt-1 text-xs font-semibold uppercase tracking-wide text-indigo-700">Pickup: {{ $order->pickup_code }}</p>
                                 @endif
-                                <p class="text-[10px] text-gray-400 font-bold mt-1 uppercase tracking-widest">Customer:
-                                    {{ $order->user->name }}</p>
+                            </div>
 
-                                <div class="mt-4 space-y-1 border-l-2 border-gray-50 pl-4">
+                            <div class="min-w-0">
+                                <p class="text-xs font-semibold uppercase tracking-wide text-slate-400">Items</p>
+                                <div class="mt-2 space-y-1">
                                     @foreach($order->items->take(2) as $item)
-                                        <p class="text-[11px] text-gray-500 font-bold uppercase italic">
-                                            {{ $item->quantity }}x {{ $item->product->name }} ({{ $item->size }})
-                                        </p>
+                                        <p class="truncate text-sm text-slate-700">{{ $item->quantity }}x {{ $item->product->name }} ({{ $item->size }})</p>
                                     @endforeach
                                     @if($order->items->count() > 2)
-                                        <p class="text-[9px] text-gray-300 italic">+ {{ $order->items->count() - 2 }} more items
-                                        </p>
+                                        <p class="text-xs text-slate-500">+ {{ $order->items->count() - 2 }} more items</p>
                                     @endif
                                 </div>
                             </div>
 
-                            <div class="text-right ml-4 flex flex-col items-end justify-between min-h-[120px]">
-                                <div>
-                                    <span class="text-xl font-black text-gray-900 italic">
-                                        <span
-                                            class="text-xs not-italic mr-0.5">RM</span>{{ number_format($order->final_amount, 2) }}
-                                    </span>
-                                    <p class="text-[9px] text-gray-400 font-black uppercase tracking-tighter mt-1">Final
-                                        Amount</p>
-                                </div>
+                            <div>
+                                <p class="text-xs font-semibold uppercase tracking-wide text-slate-400">Final Amount</p>
+                                <p class="mt-2 text-xl font-semibold text-slate-950">
+                                    <span class="text-xs text-slate-500">RM</span>{{ number_format($order->final_amount, 2) }}
+                                </p>
+                            </div>
 
-                                <div class="flex gap-2">
-                                    <a href="{{ route('admin.orders.show', $order) }}"
-                                        class="px-4 py-2 bg-gray-50 text-gray-600 text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-blue-600 hover:text-white transition-all shadow-sm">
-                                        View Detail
-                                    </a>
+                            <div class="flex flex-wrap justify-start gap-2 xl:justify-end">
+                                <x-ui.button :href="route('admin.orders.show', $order)" variant="secondary" size="sm">
+                                    View Detail
+                                </x-ui.button>
 
-                                    @if($order->canAdvanceStatus() && Auth::guard('admin')->user()->canPerform('order.status.update'))
-                                        <form action="{{ route('admin.orders.advance-status', $order) }}" method="POST">
-                                            @csrf @method('PATCH')
-                                            <button type="submit" onclick="return confirm('Move order to {{ str_replace('_', ' ', $order->nextStatus()) }}?')"
-                                                class="px-4 py-2 bg-gray-900 text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-blue-600 transition-all active:scale-95 shadow-md">
-                                                {{ str_replace('_', ' ', $order->nextStatus()) }}
-                                            </button>
-                                        </form>
-                                    @endif
-                                </div>
+                                @if($order->canAdvanceStatus() && Auth::guard('admin')->user()->canPerform('order.status.update'))
+                                    <form action="{{ route('admin.orders.advance-status', $order) }}" method="POST">
+                                        @csrf @method('PATCH')
+                                        <x-ui.button type="submit" size="sm" onclick="return confirm('Move order to {{ str_replace('_', ' ', $order->nextStatus()) }}?')">
+                                            {{ str_replace('_', ' ', $order->nextStatus()) }}
+                                        </x-ui.button>
+                                    </form>
+                                @endif
                             </div>
                         </div>
-                    </div>
+                    </x-ui.card>
                 @empty
-                    <div class="text-center py-12 bg-white rounded-[2.5rem] border border-dashed border-gray-200">
-                        <p class="text-gray-400 font-bold italic uppercase tracking-widest">No orders found.</p>
+                    <div class="rounded-xl border border-dashed border-slate-300 bg-white p-12 text-center">
+                        <p class="text-sm font-semibold text-slate-500">No orders found.</p>
                     </div>
                 @endforelse
             </div>
 
-            <div class="mt-8 px-2">
+            <div>
                 {{ $orders->links() }}
             </div>
         </div>

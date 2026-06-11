@@ -1,112 +1,109 @@
-<nav class="bg-white border-b border-gray-100">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex justify-between h-16">
-            <div class="flex">
-                <div class="shrink-0 flex items-center">
-                    <a href="{{ route('admin.dashboard') }}">
-                        <x-application-logo class="block h-9 w-auto" />
-                    </a>
-                    <span
-                        class="ml-3 text-xs font-black text-gray-400 uppercase tracking-widest border-l pl-3 border-gray-200">Admin</span>
+@php
+    $admin = Auth::guard('admin')->user();
+@endphp
+
+<div x-data="{ open: false }">
+    <header class="sticky top-0 z-40 border-b border-slate-200 bg-white/95 backdrop-blur lg:hidden">
+        <div class="flex h-16 items-center justify-between px-4">
+            <a href="{{ route('admin.dashboard') }}" class="flex items-center gap-3">
+                <x-application-logo class="block h-9 w-auto" />
+                <span class="text-sm font-semibold text-slate-950">Coffee-Plus Admin</span>
+            </a>
+
+            <button type="button" x-on:click="open = ! open"
+                class="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-100"
+                aria-label="Toggle admin navigation" x-bind:aria-expanded="open.toString()">
+                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7h16M4 12h16M4 17h16" />
+                </svg>
+            </button>
+        </div>
+    </header>
+
+    <div x-cloak x-show="open" x-transition.opacity class="fixed inset-0 z-40 bg-slate-950/40 lg:hidden"
+        x-on:click="open = false"></div>
+
+    <aside
+        class="fixed inset-y-0 left-0 z-50 flex w-72 -translate-x-full flex-col border-r border-slate-200 bg-white shadow-xl transition-transform duration-200 lg:translate-x-0 lg:shadow-none"
+        x-bind:class="open ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'">
+        <div class="flex h-20 items-center gap-3 border-b border-slate-200 px-6">
+            <a href="{{ route('admin.dashboard') }}" class="flex items-center gap-3">
+                <x-application-logo class="block h-10 w-auto" />
+                <div>
+                    <p class="text-sm font-semibold text-slate-950">Coffee-Plus</p>
+                    <p class="text-xs text-slate-500">Admin console</p>
                 </div>
+            </a>
+        </div>
 
-                <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
+        <nav class="flex-1 space-y-6 overflow-y-auto px-4 py-6">
+            <div>
+                <p class="px-3 text-xs font-semibold uppercase tracking-wide text-slate-400">Operations</p>
+                <div class="mt-2 space-y-1">
                     @adminCan('order.view')
-                        <x-nav-link :href="route('admin.dashboard')" :active="request()->routeIs('admin.dashboard')">
+                        <a href="{{ route('admin.dashboard') }}"
+                            class="group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-semibold transition {{ request()->routeIs('admin.dashboard') ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-950' }}">
+                            <span class="h-2 w-2 rounded-full {{ request()->routeIs('admin.dashboard') ? 'bg-emerald-400' : 'bg-slate-300 group-hover:bg-indigo-500' }}"></span>
                             Dashboard
-                        </x-nav-link>
-                    @endadminCan
-
-                    @adminCan('report.export')
-                        <x-nav-link :href="route('admin.owner.dashboard')"
-                            :active="request()->routeIs('admin.owner.dashboard')">
-                            Analytics
-                        </x-nav-link>
-                    @endadminCan
-
-                    @adminCan('product.update')
-                        <x-nav-link :href="route('admin.products.index')" :active="request()->routeIs('admin.products.*')">
-                            Products
-                        </x-nav-link>
-                    @endadminCan
-
-                    @adminCan('coupon.view')
-                        <x-nav-link :href="route('admin.coupons.index')" :active="request()->routeIs('admin.coupons.*')">
-                            Coupons
-                        </x-nav-link>
-                    @endadminCan
-
-                    @adminCan('order.view')
-                        <x-nav-link :href="route('admin.orders.index')" :active="request()->routeIs('admin.orders.*')">
+                        </a>
+                        <a href="{{ route('admin.orders.index') }}"
+                            class="group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-semibold transition {{ request()->routeIs('admin.orders.*') ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-950' }}">
+                            <span class="h-2 w-2 rounded-full {{ request()->routeIs('admin.orders.*') ? 'bg-emerald-400' : 'bg-slate-300 group-hover:bg-indigo-500' }}"></span>
                             Orders
-                        </x-nav-link>
+                        </a>
                     @endadminCan
                 </div>
             </div>
 
-            <div class="hidden sm:flex sm:items-center sm:ms-6">
-                <div class="relative">
-                    <button onclick="toggleAdminDropdown(event)"
-                        class="inline-flex items-center px-4 py-2 border border-blue-50 text-xs font-black rounded-xl text-gray-900 bg-white hover:bg-gray-50 focus:outline-none transition-all uppercase tracking-tighter">
-                        <div>{{ Auth::guard('admin')->user()->name }}</div>
-                        <div
-                            class="ml-2 px-2 py-0.5 bg-blue-100 text-blue-600 rounded text-[8px] uppercase tracking-widest">
-                            {{ Auth::guard('admin')->user()->role }}
-                        </div>
-                        <div class="ms-1">
-                            <svg class="fill-current h-4 w-4" viewBox="0 0 20 20">
-                                <path
-                                    d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
-                            </svg>
-                        </div>
-                    </button>
+            @if($admin->canPerform('product.update') || $admin->canPerform('coupon.view') || $admin->canPerform('report.export'))
+                <div>
+                    <p class="px-3 text-xs font-semibold uppercase tracking-wide text-slate-400">Management</p>
+                    <div class="mt-2 space-y-1">
+                        @adminCan('report.export')
+                            <a href="{{ route('admin.owner.dashboard') }}"
+                                class="group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-semibold transition {{ request()->routeIs('admin.owner.dashboard') ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-950' }}">
+                                <span class="h-2 w-2 rounded-full {{ request()->routeIs('admin.owner.dashboard') ? 'bg-emerald-400' : 'bg-slate-300 group-hover:bg-indigo-500' }}"></span>
+                                Analytics
+                            </a>
+                        @endadminCan
 
-                    <div id="adminDropdownMenu"
-                        class="hidden absolute right-0 z-50 mt-2 w-48 rounded-2xl shadow-xl bg-white ring-1 ring-black ring-opacity-5 py-2 transition-all duration-200 opacity-0 scale-95 origin-top-right border border-gray-50">
+                        @adminCan('product.update')
+                            <a href="{{ route('admin.products.index') }}"
+                                class="group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-semibold transition {{ request()->routeIs('admin.products.*') ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-950' }}">
+                                <span class="h-2 w-2 rounded-full {{ request()->routeIs('admin.products.*') ? 'bg-emerald-400' : 'bg-slate-300 group-hover:bg-indigo-500' }}"></span>
+                                Products
+                            </a>
+                        @endadminCan
 
-                        <div
-                            class="block px-4 py-2 text-[10px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-50 mb-1">
-                            Control Panel
-                        </div>
-
-                        <form method="POST" action="{{ route('admin.logout') }}">
-                            @csrf
-                            <button type="submit"
-                                class="block w-full text-left px-4 py-3 text-sm text-red-600 font-black italic hover:bg-red-50 transition-colors uppercase tracking-widest">
-                                Log Out
-                            </button>
-                        </form>
+                        @adminCan('coupon.view')
+                            <a href="{{ route('admin.coupons.index') }}"
+                                class="group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-semibold transition {{ request()->routeIs('admin.coupons.*') ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-950' }}">
+                                <span class="h-2 w-2 rounded-full {{ request()->routeIs('admin.coupons.*') ? 'bg-emerald-400' : 'bg-slate-300 group-hover:bg-indigo-500' }}"></span>
+                                Coupons
+                            </a>
+                        @endadminCan
                     </div>
                 </div>
+            @endif
+        </nav>
+
+        <div class="border-t border-slate-200 p-4">
+            <div class="rounded-xl bg-slate-50 p-4">
+                <div class="flex items-center justify-between gap-3">
+                    <div>
+                        <p class="text-sm font-semibold text-slate-950">{{ $admin->name }}</p>
+                        <p class="mt-0.5 text-xs capitalize text-slate-500">{{ str_replace('_', ' ', $admin->role) }}</p>
+                    </div>
+                    <x-ui.badge variant="info">Role</x-ui.badge>
+                </div>
+
+                <form method="POST" action="{{ route('admin.logout') }}" class="mt-4">
+                    @csrf
+                    <x-ui.button type="submit" variant="secondary" size="sm" class="w-full">
+                        Log Out
+                    </x-ui.button>
+                </form>
             </div>
         </div>
-    </div>
-</nav>
-
-<script>
-    function toggleAdminDropdown(event) {
-        if (event) event.stopPropagation();
-        const menu = document.getElementById('adminDropdownMenu');
-        if (!menu) return;
-
-        if (menu.classList.contains('hidden')) {
-            menu.classList.remove('hidden');
-            setTimeout(() => {
-                menu.classList.remove('opacity-0', 'scale-95');
-                menu.classList.add('opacity-100', 'scale-100');
-            }, 10);
-        } else {
-            closeAdminDropdown();
-        }
-    }
-
-    function closeAdminDropdown() {
-        const menu = document.getElementById('adminDropdownMenu');
-        if (!menu) return;
-        menu.classList.remove('opacity-100', 'scale-100');
-        menu.classList.add('opacity-0', 'scale-95');
-        setTimeout(() => menu.classList.add('hidden'), 200);
-    }
-
-    window.addEventListener('click', closeAdminDropdown);
-</script>
+    </aside>
+</div>

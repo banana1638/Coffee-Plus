@@ -1,134 +1,142 @@
 <x-admin-layout>
-    <div class="py-12 bg-gray-50/50 min-h-screen">
-        <div class="max-w-3xl mx-auto px-4">
-            
-            <a href="{{ route('admin.products.index') }}" class="inline-flex items-center gap-2 text-gray-400 hover:text-gray-900 font-bold text-xs uppercase tracking-widest mb-8 transition-all">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
-                Back to Inventory
-            </a>
+    <div class="px-4 py-6 sm:px-6 lg:px-8">
+        <div class="mx-auto max-w-5xl space-y-6">
+            <x-layout.page-header title="Add New Coffee" description="Create a menu item with pricing, stock tracking, and optional add-ons.">
+                <x-slot:actions>
+                    <x-ui.button :href="route('admin.products.index')" variant="secondary">
+                        Back to Inventory
+                    </x-ui.button>
+                </x-slot:actions>
+            </x-layout.page-header>
 
-            <div class="bg-white rounded-[3rem] p-8 md:p-12 shadow-sm border border-gray-100">
-                <div class="mb-10">
-                    <h2 class="text-3xl font-black text-gray-900 tracking-tight">Add New Coffee</h2>
-                    <p class="text-gray-400 text-xs font-bold uppercase tracking-[0.2em] mt-1">Create a new menu item</p>
-                </div>
-
+            <x-ui.card>
                 <form action="{{ route('admin.products.store') }}" method="POST" enctype="multipart/form-data" class="space-y-8">
                     @csrf
-                    
-                    <div class="space-y-3">
-                        <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-4">Product Photography</label>
-                        <div class="relative group">
+
+                    <div class="grid gap-8 xl:grid-cols-[320px_1fr]">
+                        <div class="space-y-2">
+                            <label for="image-upload" class="text-sm font-medium text-slate-700">Product Photography</label>
                             <input type="file" name="image" id="image-upload" class="hidden" accept="image/*" onchange="previewImage(event)">
-                            <label for="image-upload" class="flex flex-col items-center justify-center w-full h-48 bg-gray-50 rounded-[2rem] border-2 border-dashed border-gray-200 cursor-pointer hover:bg-gray-100 hover:border-blue-300 transition-all overflow-hidden">
+                            <label for="image-upload" class="group flex h-64 cursor-pointer flex-col items-center justify-center overflow-hidden rounded-xl border-2 border-dashed border-slate-300 bg-slate-50 transition hover:border-indigo-300 hover:bg-indigo-50/40">
                                 <div id="preview-placeholder" class="text-center">
-                                    <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-sm mx-auto mb-3">
-                                        <svg class="w-6 h-6 text-gray-400 group-hover:text-blue-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                                    <div class="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-lg bg-white text-slate-400 shadow-sm transition group-hover:text-indigo-600">
+                                        <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
                                     </div>
-                                    <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Tap to select image</p>
+                                    <p class="text-sm font-semibold text-slate-500">Select image</p>
                                 </div>
-                                <img id="image-preview" class="hidden w-full h-full object-cover">
+                                <img id="image-preview" class="hidden h-full w-full object-cover" alt="Product preview">
                             </label>
                         </div>
+
+                        <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+                            <div class="space-y-2 md:col-span-2">
+                                <label for="name" class="text-sm font-medium text-slate-700">Coffee Name</label>
+                                <input id="name" type="text" name="name" value="{{ old('name') }}" required
+                                    class="w-full rounded-lg border-slate-300 text-sm font-semibold text-slate-800 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" placeholder="e.g. Caramel Macchiato">
+                            </div>
+
+                            <div class="space-y-2">
+                                <label for="price" class="text-sm font-medium text-slate-700">Price (RM)</label>
+                                <input id="price" type="number" step="0.01" name="price" value="{{ old('price') }}" required
+                                    class="w-full rounded-lg border-slate-300 text-sm font-semibold text-slate-800 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" placeholder="12.00">
+                            </div>
+
+                            <div class="space-y-2">
+                                <label for="oz_redeem_value" class="text-sm font-medium text-slate-700">Redeem Value (OZ)</label>
+                                <input id="oz_redeem_value" type="number" name="oz_redeem_value" value="{{ old('oz_redeem_value') }}" required
+                                    class="w-full rounded-lg border-slate-300 text-sm font-semibold text-slate-800 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" placeholder="150">
+                            </div>
+
+                            <div class="space-y-2 md:col-span-2">
+                                <label for="menu_id" class="text-sm font-medium text-slate-700">Menu Category</label>
+                                <select id="menu_id" name="menu_id" required
+                                    class="w-full rounded-lg border-slate-300 text-sm font-semibold text-slate-800 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                    <option value="" disabled selected>Select a category</option>
+                                    @foreach($menus as $menu)
+                                        <option value="{{ $menu->id }}" @selected(old('menu_id') == $menu->id)>{{ $menu->name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div class="md:col-span-2">
-                            <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-4 mb-2 block">Coffee Name</label>
-                            <input type="text" name="name" required class="w-full px-8 py-5 bg-gray-50 border-none rounded-[1.5rem] focus:ring-4 focus:ring-blue-500/5 transition-all font-bold text-gray-800 placeholder:text-gray-300" placeholder="e.g. Caramel Macchiato">
-                        </div>
-
-                        <div>
-                            <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-4 mb-2 block">Price (RM)</label>
-                            <input type="number" step="0.01" name="price" required class="w-full px-8 py-5 bg-gray-50 border-none rounded-[1.5rem] focus:ring-4 focus:ring-blue-500/5 transition-all font-bold text-gray-800 placeholder:text-gray-300" placeholder="12.00">
-                        </div>
-
-                        <div>
-                            <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-4 mb-2 block">Redeem Value (OZ)</label>
-                            <input type="number" name="oz_redeem_value" required class="w-full px-8 py-5 bg-gray-50 border-none rounded-[1.5rem] focus:ring-4 focus:ring-blue-500/5 transition-all font-bold text-gray-800 placeholder:text-gray-300" placeholder="150">
-                        </div>
-
-                        <div class="md:col-span-2">
-                            <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-4 mb-2 block">Menu Category</label>
-                            <select name="menu_id" required class="w-full px-8 py-5 bg-gray-50 border-none rounded-[1.5rem] focus:ring-4 focus:ring-blue-500/5 transition-all font-bold text-gray-800 appearance-none">
-                                <option value="" disabled selected>Select a category</option>
-                                @foreach($menus as $menu)
-                                    <option value="{{ $menu->id }}">{{ $menu->name }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-
-                        <div class="md:col-span-2 bg-gray-50 rounded-[2rem] p-6 border border-gray-100">
-                            <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-                                <div>
-                                    <label for="track-stock" class="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-1">Stock Tracking</label>
-                                    <p class="text-xs font-bold text-gray-500">Enable this when the product has limited inventory.</p>
-                                </div>
-                                <label class="inline-flex items-center gap-3 cursor-pointer">
-                                    <input id="track-stock" type="checkbox" name="track_stock" value="1" class="w-5 h-5 rounded-lg border-gray-300 text-blue-600 focus:ring-blue-500">
-                                    <span class="text-xs font-black text-gray-700 uppercase tracking-widest">Track Stock</span>
-                                </label>
+                    <div class="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                        <div class="flex items-center justify-between gap-4">
+                            <div>
+                                <label for="track-stock" class="text-sm font-semibold text-slate-950">Stock Tracking</label>
+                                <p class="mt-1 text-xs text-slate-500">Enable this when the product has limited inventory.</p>
                             </div>
-
-                            <div class="mt-5">
-                                <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-4 mb-2 block">Current Stock</label>
-                                <input type="number" min="0" name="stock" value="{{ old('stock') }}" class="w-full px-8 py-5 bg-white border-none rounded-[1.5rem] focus:ring-4 focus:ring-blue-500/5 transition-all font-bold text-gray-800 placeholder:text-gray-300" placeholder="e.g. 25">
-                            </div>
+                            <label class="inline-flex items-center gap-3">
+                                <input id="track-stock" type="checkbox" name="track_stock" value="1" @checked(old('track_stock'))
+                                    class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500">
+                                <span class="text-sm font-semibold text-slate-700">Track Stock</span>
+                            </label>
                         </div>
 
-                        <div class="md:col-span-2 space-y-4">
-                            <div class="flex items-center justify-between ml-4">
-                                <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest block">Add-ons (Optional)</label>
-                                <button type="button" onclick="addAddonRow()" class="text-xs font-bold text-blue-600 hover:text-blue-800 transition-colors uppercase tracking-wider flex items-center gap-1">
-                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-                                    Add Option
+                        <div class="mt-4 space-y-2">
+                            <label for="stock" class="text-sm font-medium text-slate-700">Current Stock</label>
+                            <input id="stock" type="number" min="0" name="stock" value="{{ old('stock') }}"
+                                class="w-full rounded-lg border-slate-300 bg-white text-sm font-semibold text-slate-800 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" placeholder="e.g. 25">
+                        </div>
+                    </div>
+
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between gap-4">
+                            <div>
+                                <h2 class="text-base font-semibold text-slate-950">Add-ons</h2>
+                                <p class="text-sm text-slate-600">Optional paid additions such as extra shot or syrup.</p>
+                            </div>
+                            <x-ui.button type="button" variant="secondary" size="sm" onclick="addAddonRow()">
+                                Add Option
+                            </x-ui.button>
+                        </div>
+
+                        <div id="addons-container" class="space-y-3">
+                            <div class="grid gap-3 addon-row md:grid-cols-[1fr_160px_44px]">
+                                <input type="text" name="addons[0][name]" placeholder="Name (e.g. Extra Shot)"
+                                    class="rounded-lg border-slate-300 text-sm font-semibold text-slate-800 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                <input type="number" step="0.01" name="addons[0][price]" placeholder="Price (RM)"
+                                    class="rounded-lg border-slate-300 text-sm font-semibold text-slate-800 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                <button type="button" onclick="removeAddonRow(this)" class="inline-flex h-10 w-10 items-center justify-center rounded-lg text-rose-600 hover:bg-rose-50" aria-label="Remove add-on">
+                                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                                 </button>
                             </div>
-                            
-                            <div id="addons-container" class="space-y-3">
-                                <!-- First Addon Row (Empty by default) -->
-                                <div class="flex items-center gap-3 addon-row">
-                                    <input type="text" name="addons[0][name]" placeholder="Name (e.g. Extra Shot)" class="flex-1 px-5 py-4 bg-gray-50 border-none rounded-2xl focus:ring-4 focus:ring-blue-500/5 transition-all font-bold text-gray-800 placeholder:text-gray-300">
-                                    <input type="number" step="0.01" name="addons[0][price]" placeholder="Price (RM)" class="w-32 px-5 py-4 bg-gray-50 border-none rounded-2xl focus:ring-4 focus:ring-blue-500/5 transition-all font-bold text-gray-800 placeholder:text-gray-300">
-                                    <button type="button" onclick="removeAddonRow(this)" class="p-4 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-2xl transition-all">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                                    </button>
-                                </div>
-                            </div>
                         </div>
                     </div>
 
-                    <button type="submit" class="w-full py-6 bg-gray-900 text-white rounded-[2rem] font-black text-lg shadow-2xl shadow-gray-200 hover:bg-blue-600 transition-all hover:-translate-y-1 active:scale-[0.98]">
-                        CREATE PRODUCT
-                    </button>
+                    <div class="flex justify-end">
+                        <x-ui.button type="submit" size="lg">
+                            Create Product
+                        </x-ui.button>
+                    </div>
                 </form>
-            </div>
+            </x-ui.card>
         </div>
     </div>
 
     <script>
         function previewImage(event) {
+            const file = event.target.files[0];
+            if (!file) return;
             const reader = new FileReader();
-            reader.onload = function(){
-                const output = document.getElementById('image-preview');
-                const placeholder = document.getElementById('preview-placeholder');
-                output.src = reader.result;
-                output.classList.remove('hidden');
-                placeholder.classList.add('hidden');
+            reader.onload = function() {
+                document.getElementById('image-preview').src = reader.result;
+                document.getElementById('image-preview').classList.remove('hidden');
+                document.getElementById('preview-placeholder').classList.add('hidden');
             };
-            reader.readAsDataURL(event.target.files[0]);
+            reader.readAsDataURL(file);
         }
 
         let addonCount = 1;
         function addAddonRow() {
             const container = document.getElementById('addons-container');
             const newRow = document.createElement('div');
-            newRow.className = 'flex items-center gap-3 addon-row';
+            newRow.className = 'grid gap-3 addon-row md:grid-cols-[1fr_160px_44px]';
             newRow.innerHTML = `
-                <input type="text" name="addons[${addonCount}][name]" placeholder="Name (e.g. Extra Shot)" class="flex-1 px-5 py-4 bg-gray-50 border-none rounded-2xl focus:ring-4 focus:ring-blue-500/5 transition-all font-bold text-gray-800 placeholder:text-gray-300">
-                <input type="number" step="0.01" name="addons[${addonCount}][price]" placeholder="Price (RM)" class="w-32 px-5 py-4 bg-gray-50 border-none rounded-2xl focus:ring-4 focus:ring-blue-500/5 transition-all font-bold text-gray-800 placeholder:text-gray-300">
-                <button type="button" onclick="removeAddonRow(this)" class="p-4 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-2xl transition-all">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                <input type="text" name="addons[${addonCount}][name]" placeholder="Name (e.g. Extra Shot)" class="rounded-lg border-slate-300 text-sm font-semibold text-slate-800 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                <input type="number" step="0.01" name="addons[${addonCount}][price]" placeholder="Price (RM)" class="rounded-lg border-slate-300 text-sm font-semibold text-slate-800 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                <button type="button" onclick="removeAddonRow(this)" class="inline-flex h-10 w-10 items-center justify-center rounded-lg text-rose-600 hover:bg-rose-50" aria-label="Remove add-on">
+                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                 </button>
             `;
             container.appendChild(newRow);

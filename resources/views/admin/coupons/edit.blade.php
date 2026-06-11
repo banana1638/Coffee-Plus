@@ -1,26 +1,26 @@
 <x-admin-layout>
-    <div class="py-12 bg-gray-50/50 min-h-screen">
-        <div class="max-w-3xl mx-auto px-4">
-            <a href="{{ route('admin.coupons.index') }}"
-                class="inline-flex items-center gap-2 text-gray-400 hover:text-gray-900 font-bold text-xs uppercase tracking-widest mb-8">
-                Back to coupons
-            </a>
+    <div class="px-4 py-6 sm:px-6 lg:px-8">
+        <div class="mx-auto max-w-3xl space-y-6">
+            <x-layout.page-header title="Edit Coupon" description="{{ $coupon->code }}">
+                <x-slot:actions>
+                    <x-ui.button :href="route('admin.coupons.index')" variant="secondary">
+                        Back to Coupons
+                    </x-ui.button>
+                </x-slot:actions>
+            </x-layout.page-header>
 
-            <div class="bg-white rounded-[3rem] p-8 md:p-12 shadow-sm border border-gray-100">
-                <div class="mb-10">
-                    <h2 class="text-3xl font-black text-gray-900 tracking-tight">Edit Coupon</h2>
-                    <p class="text-gray-400 text-xs font-bold uppercase tracking-[0.2em] mt-1">{{ $coupon->code }}</p>
-                </div>
-
+            <x-ui.card>
                 <form action="{{ route('admin.coupons.update', $coupon) }}" method="POST" class="space-y-6">
                     @csrf
                     @method('PUT')
                     @include('admin.coupons.partials.form', ['coupon' => $coupon])
-                    <button type="submit" class="w-full py-6 bg-blue-600 text-white rounded-[2rem] font-black text-lg hover:bg-gray-900 transition-all">
-                        UPDATE COUPON
-                    </button>
+                    <div class="flex justify-end">
+                        <x-ui.button type="submit" size="lg">
+                            Update Coupon
+                        </x-ui.button>
+                    </div>
                 </form>
-            </div>
+            </x-ui.card>
         </div>
     </div>
 </x-admin-layout>
