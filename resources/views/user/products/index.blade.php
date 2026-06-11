@@ -11,7 +11,7 @@
 
             <div class="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-4">
                 @foreach($menu->products as $product)
-                    <a href="{{ route('product.detail', $product->id) }}" @guest @click.prevent="$store.authModal.show('login')" @endguest
+                    <a href="{{ route('product.detail', $product->id) }}" @guest @click.prevent="authModal = 'login'" @endguest
                         class="group overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition duration-200 hover:-translate-y-0.5 hover:shadow-md">
                         <div class="relative aspect-square bg-slate-100">
                             @if($product->image)

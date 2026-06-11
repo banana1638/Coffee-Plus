@@ -18,7 +18,11 @@
     </style>
 </head>
 
-<body class="bg-slate-50 font-sans text-slate-950 antialiased" x-data>
+@php
+    $initialAuthTab = in_array(request('auth'), ['login', 'register'], true) ? request('auth') : null;
+@endphp
+
+<body class="bg-slate-50 font-sans text-slate-950 antialiased" x-data="{ authModal: @js($initialAuthTab) }">
     <div class="min-h-screen">
         @include('layouts.navigation')
 
