@@ -18,7 +18,7 @@
     </style>
 </head>
 
-<body class="bg-slate-50 font-sans text-slate-950 antialiased" x-data="{ authModal: null }">
+<body class="bg-slate-50 font-sans text-slate-950 antialiased" x-data>
     <div class="min-h-screen">
         @include('layouts.navigation')
 

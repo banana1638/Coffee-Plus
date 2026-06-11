@@ -117,10 +117,10 @@
                         </div>
                     </div>
                 @else
-                    <button type="button" @click="authModal = 'login'" class="rounded-lg px-3 py-2 text-sm font-semibold text-slate-600 transition hover:bg-slate-100 hover:text-slate-950">
+                    <button type="button" @click="$dispatch('open-auth-modal', { tab: 'login' })" class="rounded-lg px-3 py-2 text-sm font-semibold text-slate-600 transition hover:bg-slate-100 hover:text-slate-950">
                         Login
                     </button>
-                    <x-ui.button type="button" @click="authModal = 'register'" size="sm">
+                    <x-ui.button type="button" @click="$dispatch('open-auth-modal', { tab: 'register' })" size="sm">
                         Register
                     </x-ui.button>
                 @endauth
@@ -144,8 +144,8 @@
                 <a href="{{ route('cart.index') }}" class="block rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100">Cart ({{ $cartCount }})</a>
                 <a href="{{ route('profile.edit') }}" class="block rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100">Profile</a>
             @else
-                <button type="button" @click="authModal = 'login'; mobileOpen = false" class="block w-full rounded-lg px-3 py-2 text-left text-sm font-semibold text-slate-700 hover:bg-slate-100">Login</button>
-                <button type="button" @click="authModal = 'register'; mobileOpen = false" class="block w-full rounded-lg px-3 py-2 text-left text-sm font-semibold text-indigo-700 hover:bg-indigo-50">Register</button>
+                <button type="button" @click="$dispatch('open-auth-modal', { tab: 'login' }); mobileOpen = false" class="block w-full rounded-lg px-3 py-2 text-left text-sm font-semibold text-slate-700 hover:bg-slate-100">Login</button>
+                <button type="button" @click="$dispatch('open-auth-modal', { tab: 'register' }); mobileOpen = false" class="block w-full rounded-lg px-3 py-2 text-left text-sm font-semibold text-indigo-700 hover:bg-indigo-50">Register</button>
             @endauth
         </div>
     </div>

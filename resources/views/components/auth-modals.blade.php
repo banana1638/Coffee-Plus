@@ -1,4 +1,5 @@
 <div x-data="{
+    open: false,
     tab: 'login',
     email: '',
     password: '',
@@ -67,16 +68,16 @@
             this.loading = false;
         }
     }
-}" x-init="$watch('authModal', value => { if (value) tab = value })" x-show="authModal" x-cloak
+}" x-show="open" x-cloak
     class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-sm"
-    x-transition.opacity @click.self="authModal = null" @keydown.escape.window="authModal = null"
-    @open-auth-modal.window="authModal = $event.detail.tab; tab = $event.detail.tab">
+    x-transition.opacity @click.self="open = false" @keydown.escape.window="open = false"
+    @open-auth-modal.window="open = true; tab = $event.detail.tab">
 
     <div class="relative w-full max-w-[480px] overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg"
         x-transition:enter="transition ease-out duration-200 transform"
         x-transition:enter-start="opacity-0 scale-95"
         x-transition:enter-end="opacity-100 scale-100">
-        <button type="button" @click="authModal = null"
+        <button type="button" @click="open = false"
             class="absolute right-4 top-4 rounded-lg p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-950"
             aria-label="Close authentication modal">
             <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
