@@ -102,7 +102,7 @@
                 </button>
             </div>
 
-            <div x-show="tab === 'login'" x-transition>
+            <div x-show="tab === 'login'" x-transition @if($initialAuthTab === 'register') x-cloak @endif>
                 <div class="mb-6">
                     <h2 class="text-2xl font-semibold tracking-tight text-slate-950">Welcome Back</h2>
                     <p class="mt-1 text-sm text-slate-600">Login to your Coffee-Plus account.</p>
@@ -127,12 +127,12 @@
                     </div>
                     <x-ui.button type="submit" x-bind:disabled="loading" class="w-full">
                         <span x-show="!loading">Log In</span>
-                        <span x-show="loading">Logging in...</span>
+                        <span x-show="loading" x-cloak>Logging in...</span>
                     </x-ui.button>
                 </form>
             </div>
 
-            <div x-show="tab === 'register'" x-transition>
+            <div x-show="tab === 'register'" x-transition @if($initialAuthTab !== 'register') x-cloak @endif>
                 <div class="mb-6">
                     <h2 class="text-2xl font-semibold tracking-tight text-slate-950">Create Account</h2>
                     <p class="mt-1 text-sm text-slate-600">Join Coffee-Plus and start collecting rewards.</p>
@@ -184,7 +184,7 @@
                     </div>
                     <x-ui.button type="submit" x-bind:disabled="loading" class="w-full">
                         <span x-show="!loading">Register Now</span>
-                        <span x-show="loading">Creating...</span>
+                        <span x-show="loading" x-cloak>Creating...</span>
                     </x-ui.button>
                 </form>
             </div>
