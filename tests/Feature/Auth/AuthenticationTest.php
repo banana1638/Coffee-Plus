@@ -12,10 +12,17 @@ class AuthenticationTest extends TestCase
 
     public function test_login_screen_can_be_rendered(): void
     {
-        // The app redirects /login to / (SPA mode - login is embedded in dashboard)
+        // The app redirects /login to the embedded dashboard modal.
         $response = $this->get('/login');
 
-        $response->assertRedirect('/');
+        $response->assertRedirect(route('dashboard', ['auth' => 'login'], false));
+    }
+
+    public function test_register_screen_redirects_to_dashboard_modal(): void
+    {
+        $response = $this->get('/register');
+
+        $response->assertRedirect(route('dashboard', ['auth' => 'register'], false));
     }
 
     public function test_users_can_authenticate_using_the_login_screen(): void

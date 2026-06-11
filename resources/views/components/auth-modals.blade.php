@@ -1,6 +1,10 @@
+@php
+    $initialAuthTab = in_array(request('auth'), ['login', 'register'], true) ? request('auth') : null;
+@endphp
+
 <div x-data="{
-    open: false,
-    tab: 'login',
+    open: @js((bool) $initialAuthTab),
+    tab: @js($initialAuthTab ?? 'login'),
     email: '',
     password: '',
     name: '',
