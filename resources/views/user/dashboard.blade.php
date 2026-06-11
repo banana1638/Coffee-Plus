@@ -40,8 +40,8 @@
                             <p class="mt-1 text-sm text-slate-600">Log in to manage your Tangki, rewards, and saved combinations.</p>
                         </div>
                         <div class="flex gap-2">
-                            <x-ui.button type="button" variant="secondary" @click="$dispatch('open-auth-modal', { tab: 'login' })">Login</x-ui.button>
-                            <x-ui.button type="button" @click="$dispatch('open-auth-modal', { tab: 'register' })">Register</x-ui.button>
+                            <x-ui.button type="button" variant="secondary" @click="$store.authModal.show('login')">Login</x-ui.button>
+                            <x-ui.button type="button" @click="$store.authModal.show('register')">Register</x-ui.button>
                         </div>
                     </div>
                 </x-ui.card>

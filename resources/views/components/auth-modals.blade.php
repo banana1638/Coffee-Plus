@@ -3,8 +3,6 @@
 @endphp
 
 <div x-data="{
-    open: @js((bool) $initialAuthTab),
-    tab: @js($initialAuthTab ?? 'login'),
     email: '',
     password: '',
     name: '',
@@ -72,16 +70,16 @@
             this.loading = false;
         }
     }
-}" x-show="open" x-cloak
+}" x-init="$store.authModal.init(@js($initialAuthTab))" x-show="$store.authModal.open" x-cloak
     class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-sm"
-    x-transition.opacity @click.self="open = false" @keydown.escape.window="open = false"
-    @open-auth-modal.window="open = true; tab = $event.detail.tab">
+    x-transition.opacity @click.self="$store.authModal.close()" @keydown.escape.window="$store.authModal.close()"
+    @open-auth-modal.window="$store.authModal.show($event.detail.tab)">
 
     <div class="relative w-full max-w-[480px] overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg"
         x-transition:enter="transition ease-out duration-200 transform"
         x-transition:enter-start="opacity-0 scale-95"
         x-transition:enter-end="opacity-100 scale-100">
-        <button type="button" @click="open = false"
+        <button type="button" @click="$store.authModal.close()"
             class="absolute right-4 top-4 rounded-lg p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-950"
             aria-label="Close authentication modal">
             <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -91,19 +89,19 @@
 
         <div class="p-6 sm:p-8">
             <div class="mb-8 inline-flex rounded-xl border border-slate-200 bg-slate-50 p-1">
-                <button type="button" @click="tab = 'login'"
-                    :class="tab === 'login' ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-600 hover:text-slate-950'"
+                <button type="button" @click="$store.authModal.show('login')"
+                    :class="$store.authModal.tab === 'login' ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-600 hover:text-slate-950'"
                     class="rounded-lg px-4 py-2 text-sm font-semibold transition">
                     Login
                 </button>
-                <button type="button" @click="tab = 'register'"
-                    :class="tab === 'register' ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-600 hover:text-slate-950'"
+                <button type="button" @click="$store.authModal.show('register')"
+                    :class="$store.authModal.tab === 'register' ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-600 hover:text-slate-950'"
                     class="rounded-lg px-4 py-2 text-sm font-semibold transition">
                     Register
                 </button>
             </div>
 
-            <div x-show="tab === 'login'" x-transition>
+            <div x-show="$store.authModal.tab === 'login'" x-transition>
                 <div class="mb-6">
                     <h2 class="text-2xl font-semibold tracking-tight text-slate-950">Welcome Back</h2>
                     <p class="mt-1 text-sm text-slate-600">Login to your Coffee-Plus account.</p>
@@ -133,7 +131,7 @@
                 </form>
             </div>
 
-            <div x-show="tab === 'register'" x-transition>
+            <div x-show="$store.authModal.tab === 'register'" x-transition>
                 <div class="mb-6">
                     <h2 class="text-2xl font-semibold tracking-tight text-slate-950">Create Account</h2>
                     <p class="mt-1 text-sm text-slate-600">Join Coffee-Plus and start collecting rewards.</p>
