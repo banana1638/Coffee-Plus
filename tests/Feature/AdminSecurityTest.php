@@ -29,6 +29,59 @@ class AdminSecurityTest extends TestCase
         ]);
     }
 
+    public function test_staff_navigation_hides_unpermitted_admin_sections(): void
+    {
+        $staff = $this->createAdmin('staff');
+
+        $this->actingAs($staff, 'admin')
+            ->get(route('admin.dashboard'))
+            ->assertStatus(200)
+            ->assertSee('Dashboard')
+            ->assertSee('Live Orders')
+            ->assertDontSee('Products')
+            ->assertDontSee('Coupons')
+            ->assertDontSee('Analytics')
+            ->assertDontSee('Manage Products');
+    }
+
+    public function test_manager_navigation_shows_permitted_admin_sections(): void
+    {
+        $manager = $this->createAdmin('manager', 'manager@example.test');
+
+        $this->actingAs($manager, 'admin')
+            ->get(route('admin.dashboard'))
+            ->assertRedirect(route('admin.owner.dashboard'));
+
+        $this->actingAs($manager, 'admin')
+            ->get(route('admin.owner.dashboard'))
+            ->assertStatus(200)
+            ->assertSee('Analytics')
+            ->assertSee('Products')
+            ->assertSee('Coupons')
+            ->assertSee('Orders');
+    }
+
+    public function test_staff_cannot_see_coupon_management_actions(): void
+    {
+        $staff = $this->createAdmin('staff');
+
+        $this->actingAs($staff, 'admin')
+            ->get(route('admin.coupons.index'))
+            ->assertForbidden();
+    }
+
+    public function test_staff_orders_page_hides_report_export_action(): void
+    {
+        $staff = $this->createAdmin('staff');
+        $this->createOrder(Order::STATUS_PENDING);
+
+        $this->actingAs($staff, 'admin')
+            ->get(route('admin.orders.index'))
+            ->assertStatus(200)
+            ->assertSee('Verify')
+            ->assertDontSee('Export Center');
+    }
+
     public function test_order_status_update_creates_audit_log(): void
     {
         $staff = $this->createAdmin('staff');

@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 
@@ -57,6 +58,12 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        Blade::if('adminCan', function (string $permission): bool {
+            $admin = Auth::guard('admin')->user();
+
+            return $admin && $admin->canPerform($permission);
+        });
+
         View::composer('layouts.navigation', function ($view) {
             if (!Auth::check()) {
                 return;

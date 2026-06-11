@@ -92,7 +92,7 @@
                         </div>
                     </div>
 
-                    @if($order->canAdvanceStatus())
+                    @if($order->canAdvanceStatus() && Auth::guard('admin')->user()->canPerform('order.status.update'))
                         <div class="mt-10">
                             <form action="{{ route('admin.orders.advance-status', $order) }}" method="POST">
                                 @csrf @method('PATCH')

@@ -7,9 +7,11 @@
                     <h2 class="text-3xl font-black text-gray-900 tracking-tight">Product Manager</h2>
                     <p class="text-gray-400 text-xs font-bold uppercase tracking-[0.2em] mt-1">Inventory Control</p>
                 </div>
-                <a href="{{ route('admin.products.create') }}" class="px-8 py-4 bg-gray-900 text-white rounded-[1.5rem] font-black text-sm shadow-xl shadow-gray-200 hover:bg-blue-600 transition-all hover:-translate-y-1">
-                    + ADD NEW COFFEE
-                </a>
+                @adminCan('product.create')
+                    <a href="{{ route('admin.products.create') }}" class="px-8 py-4 bg-gray-900 text-white rounded-[1.5rem] font-black text-sm shadow-xl shadow-gray-200 hover:bg-blue-600 transition-all hover:-translate-y-1">
+                        + ADD NEW COFFEE
+                    </a>
+                @endadminCan
             </div>
 
             @if(session('success'))
@@ -27,7 +29,9 @@
                             <th class="px-8 py-5 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Category</th>
                             <th class="px-8 py-5 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Pricing</th>
                             <th class="px-8 py-5 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Stock</th>
-                            <th class="px-8 py-5 text-[10px] font-bold text-gray-400 uppercase tracking-widest text-right">Management</th>
+                            @if(Auth::guard('admin')->user()->canPerform('product.update') || Auth::guard('admin')->user()->canPerform('product.delete'))
+                                <th class="px-8 py-5 text-[10px] font-bold text-gray-400 uppercase tracking-widest text-right">Management</th>
+                            @endif
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-50">
@@ -71,19 +75,25 @@
                                     </span>
                                 @endif
                             </td>
-                            <td class="px-8 py-5 text-right">
-                                <div class="flex justify-end gap-3 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-all">
-                                    <a href="{{ route('admin.products.edit', $product->id) }}" class="px-5 py-2.5 bg-gray-900 text-white rounded-xl text-xs font-black hover:bg-blue-600 transition-all shadow-lg shadow-gray-200">
-                                        EDIT
-                                    </a>
-                                    <form action="{{ route('admin.products.destroy', $product->id) }}" method="POST" onsubmit="return confirm('⚠️ Are you sure you want to delete this product?');">
-                                        @csrf @method('DELETE')
-                                        <button type="submit" class="px-5 py-2.5 bg-red-50 text-red-600 rounded-xl text-xs font-black hover:bg-red-600 hover:text-white transition-all">
-                                            DELETE
-                                        </button>
-                                    </form>
-                                </div>
-                            </td>
+                            @if(Auth::guard('admin')->user()->canPerform('product.update') || Auth::guard('admin')->user()->canPerform('product.delete'))
+                                <td class="px-8 py-5 text-right">
+                                    <div class="flex justify-end gap-3 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-all">
+                                        @adminCan('product.update')
+                                            <a href="{{ route('admin.products.edit', $product->id) }}" class="px-5 py-2.5 bg-gray-900 text-white rounded-xl text-xs font-black hover:bg-blue-600 transition-all shadow-lg shadow-gray-200">
+                                                EDIT
+                                            </a>
+                                        @endadminCan
+                                        @adminCan('product.delete')
+                                            <form action="{{ route('admin.products.destroy', $product->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this product?');">
+                                                @csrf @method('DELETE')
+                                                <button type="submit" class="px-5 py-2.5 bg-red-50 text-red-600 rounded-xl text-xs font-black hover:bg-red-600 hover:text-white transition-all">
+                                                    DELETE
+                                                </button>
+                                            </form>
+                                        @endadminCan
+                                    </div>
+                                </td>
+                            @endif
                         </tr>
                         @endforeach
                     </tbody>

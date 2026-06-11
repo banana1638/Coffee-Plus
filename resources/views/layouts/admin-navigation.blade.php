@@ -11,28 +11,36 @@
                 </div>
 
                 <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
-                    @if(Auth::guard('admin')->user()->isStaff())
+                    @adminCan('order.view')
                         <x-nav-link :href="route('admin.dashboard')" :active="request()->routeIs('admin.dashboard')">
                             Dashboard
                         </x-nav-link>
-                    @endif
+                    @endadminCan
 
-                    @if(Auth::guard('admin')->user()->isOwner())
+                    @adminCan('report.export')
                         <x-nav-link :href="route('admin.owner.dashboard')"
                             :active="request()->routeIs('admin.owner.dashboard')">
                             Analytics
                         </x-nav-link>
-                    @endif
+                    @endadminCan
 
-                    <x-nav-link :href="route('admin.products.index')" :active="request()->routeIs('admin.products.*')">
-                        Products
-                    </x-nav-link>
-                    <x-nav-link :href="route('admin.coupons.index')" :active="request()->routeIs('admin.coupons.*')">
-                        Coupons
-                    </x-nav-link>
-                    <x-nav-link :href="route('admin.orders.index')" :active="request()->routeIs('admin.orders.*')">
-                        Orders
-                    </x-nav-link>
+                    @adminCan('product.update')
+                        <x-nav-link :href="route('admin.products.index')" :active="request()->routeIs('admin.products.*')">
+                            Products
+                        </x-nav-link>
+                    @endadminCan
+
+                    @adminCan('coupon.view')
+                        <x-nav-link :href="route('admin.coupons.index')" :active="request()->routeIs('admin.coupons.*')">
+                            Coupons
+                        </x-nav-link>
+                    @endadminCan
+
+                    @adminCan('order.view')
+                        <x-nav-link :href="route('admin.orders.index')" :active="request()->routeIs('admin.orders.*')">
+                            Orders
+                        </x-nav-link>
+                    @endadminCan
                 </div>
             </div>
 

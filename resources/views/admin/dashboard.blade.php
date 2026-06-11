@@ -15,6 +15,7 @@
                     </div>
                 </div>
 
+                @adminCan('report.export')
                 <div class="flex-[1.5] grid grid-cols-2 gap-4">
                     <div class="bg-white rounded-[2.5rem] p-6 border border-gray-100 shadow-sm flex items-center gap-4">
                         <div class="w-12 h-12 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-600 shadow-sm">
@@ -38,6 +39,7 @@
                         </div>
                     </div>
                 </div>
+                @endadminCan
             </div>
 
             <div class="flex flex-col lg:flex-row gap-8 items-start">
@@ -74,12 +76,14 @@
                                 </div>
 
                                 <div class="shrink-0 ml-4">
-                                    <form action="{{ route('admin.orders.complete', $order) }}" method="POST">
-                                        @csrf @method('PATCH')
-                                        <button type="submit" class="px-8 py-4 bg-gray-900 hover:bg-blue-600 text-white rounded-2xl font-black text-xs uppercase tracking-[0.3em] shadow-lg shadow-gray-100 transition-all hover:-translate-y-1 active:scale-95">
-                                            Done
-                                        </button>
-                                    </form>
+                                    @adminCan('order.status.update')
+                                        <form action="{{ route('admin.orders.complete', $order) }}" method="POST">
+                                            @csrf @method('PATCH')
+                                            <button type="submit" class="px-8 py-4 bg-gray-900 hover:bg-blue-600 text-white rounded-2xl font-black text-xs uppercase tracking-[0.3em] shadow-lg shadow-gray-100 transition-all hover:-translate-y-1 active:scale-95">
+                                                Done
+                                            </button>
+                                        </form>
+                                    @endadminCan
                                 </div>
                             </div>
                         @empty
@@ -94,18 +98,22 @@
                     <h2 class="text-xl font-black text-gray-900 tracking-tight italic uppercase px-2">System Control</h2>
                     
                     <div class="grid grid-cols-1 gap-4">
-                        <a href="{{ route('admin.products.index') }}" class="group bg-white rounded-[2.5rem] p-8 shadow-sm border border-gray-100 transition-all hover:shadow-2xl hover:shadow-blue-500/10">
-                            <div class="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center mb-6 shadow-lg shadow-blue-200 group-hover:rotate-6 transition-transform text-white">
-                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 10-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
-                            </div>
-                            <h3 class="text-xl font-black text-gray-900 mb-1 italic uppercase leading-none">Manage Products</h3>
-                            <p class="text-blue-600 text-[10px] font-black uppercase tracking-[0.3em] mt-2 italic">Open Inventory ➜</p>
-                        </a>
+                        @adminCan('product.update')
+                            <a href="{{ route('admin.products.index') }}" class="group bg-white rounded-[2.5rem] p-8 shadow-sm border border-gray-100 transition-all hover:shadow-2xl hover:shadow-blue-500/10">
+                                <div class="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center mb-6 shadow-lg shadow-blue-200 group-hover:rotate-6 transition-transform text-white">
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 10-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+                                </div>
+                                <h3 class="text-xl font-black text-gray-900 mb-1 italic uppercase leading-none">Manage Products</h3>
+                                <p class="text-blue-600 text-[10px] font-black uppercase tracking-[0.3em] mt-2 italic">Open Inventory</p>
+                            </a>
+                        @endadminCan
 
-                        <div class="bg-white/60 rounded-[2.5rem] p-6 border border-gray-100 flex items-center justify-between opacity-60">
-                            <span class="text-sm font-black text-gray-900 uppercase italic tracking-tight">Analytics</span>
-                            <span class="text-[8px] font-black bg-gray-200 px-2 py-0.5 rounded text-gray-500 uppercase">Coming Soon</span>
-                        </div>
+                        @adminCan('report.export')
+                            <a href="{{ route('admin.owner.dashboard') }}" class="bg-white/60 rounded-[2.5rem] p-6 border border-gray-100 flex items-center justify-between hover:bg-white transition">
+                                <span class="text-sm font-black text-gray-900 uppercase italic tracking-tight">Analytics</span>
+                                <span class="text-[8px] font-black bg-blue-100 px-2 py-0.5 rounded text-blue-600 uppercase">Open</span>
+                            </a>
+                        @endadminCan
                     </div>
 
                     <div class="p-6 bg-emerald-50 rounded-[2rem] border border-emerald-100/50 flex items-center gap-3">

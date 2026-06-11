@@ -14,15 +14,17 @@
                     <p class="text-gray-400 text-[10px] font-bold uppercase tracking-[0.3em] italic">Internal Logistics
                         Control</p>
                 </div>
-                <a href="{{ route('admin.orders.export.page') }}"
-                    class="px-5 py-2.5 bg-white border border-gray-200 text-gray-800 text-[10px] font-black uppercase tracking-widest rounded-2xl hover:bg-gray-900 hover:text-white hover:border-gray-900 transition-all shadow-sm active:scale-95 flex items-center gap-2">
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path
-                            d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                            stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
-                    </svg>
-                    Export Center
-                </a>
+                @adminCan('report.export')
+                    <a href="{{ route('admin.orders.export.page') }}"
+                        class="px-5 py-2.5 bg-white border border-gray-200 text-gray-800 text-[10px] font-black uppercase tracking-widest rounded-2xl hover:bg-gray-900 hover:text-white hover:border-gray-900 transition-all shadow-sm active:scale-95 flex items-center gap-2">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path
+                                d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                                stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
+                        Export Center
+                    </a>
+                @endadminCan
                 <a href="{{ route('admin.orders.refunds') }}"
                     class="px-5 py-2.5 bg-white border border-red-100 text-red-600 text-[10px] font-black uppercase tracking-widest rounded-2xl hover:bg-red-600 hover:text-white hover:border-red-600 transition-all shadow-sm active:scale-95">
                     Refunds
@@ -36,16 +38,18 @@
                 </div>
             </div>
 
-            <form action="{{ route('admin.orders.complete-by-code') }}" method="POST"
-                class="mb-6 flex gap-2 bg-white border border-gray-100 rounded-2xl p-2 shadow-sm">
-                @csrf
-                <input name="pickup_code" type="text" maxlength="12" placeholder="Pickup code"
-                    class="flex-1 border-0 bg-gray-50 rounded-xl text-xs font-black uppercase tracking-widest focus:ring-blue-500">
-                <button type="submit"
-                    class="px-5 bg-gray-900 text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-blue-600 transition">
-                    Verify
-                </button>
-            </form>
+            @adminCan('order.status.update')
+                <form action="{{ route('admin.orders.complete-by-code') }}" method="POST"
+                    class="mb-6 flex gap-2 bg-white border border-gray-100 rounded-2xl p-2 shadow-sm">
+                    @csrf
+                    <input name="pickup_code" type="text" maxlength="12" placeholder="Pickup code"
+                        class="flex-1 border-0 bg-gray-50 rounded-xl text-xs font-black uppercase tracking-widest focus:ring-blue-500">
+                    <button type="submit"
+                        class="px-5 bg-gray-900 text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-blue-600 transition">
+                        Verify
+                    </button>
+                </form>
+            @endadminCan
 
             <div class="space-y-4">
                 @forelse($orders as $order)
@@ -101,7 +105,7 @@
                                         View Detail
                                     </a>
 
-                                    @if($order->canAdvanceStatus())
+                                    @if($order->canAdvanceStatus() && Auth::guard('admin')->user()->canPerform('order.status.update'))
                                         <form action="{{ route('admin.orders.advance-status', $order) }}" method="POST">
                                             @csrf @method('PATCH')
                                             <button type="submit" onclick="return confirm('Move order to {{ str_replace('_', ' ', $order->nextStatus()) }}?')"
