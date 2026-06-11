@@ -89,104 +89,112 @@
         </button>
 
         <div class="p-6 sm:p-8">
-            <div class="mb-8 inline-flex rounded-xl border border-slate-200 bg-slate-50 p-1">
+            <div class="relative mb-8 grid grid-cols-2 rounded-xl border border-slate-200 bg-slate-50 p-1">
+                <div class="absolute inset-y-1 left-1 w-[calc(50%-0.25rem)] rounded-lg bg-slate-900 shadow-sm transition-transform duration-300 ease-out"
+                    :class="tab === 'register' ? 'translate-x-full' : 'translate-x-0'"></div>
                 <button type="button" @click="tab = 'login'"
-                    :class="tab === 'login' ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-600 hover:text-slate-950'"
-                    class="rounded-lg px-4 py-2 text-sm font-semibold transition">
+                    :class="tab === 'login' ? 'text-white' : 'text-slate-600 hover:text-slate-950'"
+                    class="relative z-10 rounded-lg px-4 py-2 text-sm font-semibold transition-colors duration-200">
                     Login
                 </button>
                 <button type="button" @click="tab = 'register'"
-                    :class="tab === 'register' ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-600 hover:text-slate-950'"
-                    class="rounded-lg px-4 py-2 text-sm font-semibold transition">
+                    :class="tab === 'register' ? 'text-white' : 'text-slate-600 hover:text-slate-950'"
+                    class="relative z-10 rounded-lg px-4 py-2 text-sm font-semibold transition-colors duration-200">
                     Register
                 </button>
             </div>
 
-            <div x-show="tab === 'login'" x-transition @if($initialAuthTab === 'register') x-cloak @endif>
-                <div class="mb-6">
-                    <h2 class="text-2xl font-semibold tracking-tight text-slate-950">Welcome Back</h2>
-                    <p class="mt-1 text-sm text-slate-600">Login to your Coffee-Plus account.</p>
+            <div class="overflow-x-hidden">
+                <div class="flex transition-transform duration-300 ease-out"
+                    style="{{ $initialAuthTab === 'register' ? 'transform: translateX(-100%);' : 'transform: translateX(0%);' }}"
+                    :style="tab === 'register' ? 'transform: translateX(-100%)' : 'transform: translateX(0%)'">
+                    <div class="w-full shrink-0">
+                        <div class="mb-6">
+                            <h2 class="text-2xl font-semibold tracking-tight text-slate-950">Welcome Back</h2>
+                            <p class="mt-1 text-sm text-slate-600">Login to your Coffee-Plus account.</p>
+                        </div>
+
+                        <form @submit.prevent="submitLogin" class="space-y-4">
+                            <div class="space-y-2">
+                                <label class="text-sm font-medium text-slate-700">Email Address</label>
+                                <input type="email" x-model="email" required
+                                    class="w-full rounded-lg border-slate-300 text-sm font-semibold text-slate-800 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                <template x-if="errors.email">
+                                    <p class="text-sm font-medium text-rose-600" x-text="errors.email[0]"></p>
+                                </template>
+                            </div>
+                            <div class="space-y-2">
+                                <label class="text-sm font-medium text-slate-700">Password</label>
+                                <input type="password" x-model="password" required
+                                    class="w-full rounded-lg border-slate-300 text-sm font-semibold text-slate-800 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                <template x-if="errors.password">
+                                    <p class="text-sm font-medium text-rose-600" x-text="errors.password[0]"></p>
+                                </template>
+                            </div>
+                            <x-ui.button type="submit" x-bind:disabled="loading" class="w-full">
+                                <span x-show="!loading">Log In</span>
+                                <span x-show="loading" x-cloak>Logging in...</span>
+                            </x-ui.button>
+                        </form>
+                    </div>
+
+                    <div class="w-full shrink-0 pl-1">
+                        <div class="mb-6">
+                            <h2 class="text-2xl font-semibold tracking-tight text-slate-950">Create Account</h2>
+                            <p class="mt-1 text-sm text-slate-600">Join Coffee-Plus and start collecting rewards.</p>
+                        </div>
+
+                        <form @submit.prevent="submitRegister" class="space-y-4">
+                            <div class="space-y-2">
+                                <label class="text-sm font-medium text-slate-700">Full Name</label>
+                                <input type="text" x-model="name" required
+                                    class="w-full rounded-lg border-slate-300 text-sm font-semibold text-slate-800 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                <template x-if="errors.name">
+                                    <p class="text-sm font-medium text-rose-600" x-text="errors.name[0]"></p>
+                                </template>
+                            </div>
+                            <div class="space-y-2">
+                                <label class="text-sm font-medium text-slate-700">Email Address</label>
+                                <input type="email" x-model="email" required
+                                    class="w-full rounded-lg border-slate-300 text-sm font-semibold text-slate-800 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                <template x-if="errors.email">
+                                    <p class="text-sm font-medium text-rose-600" x-text="errors.email[0]"></p>
+                                </template>
+                            </div>
+                            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                                <div class="space-y-2">
+                                    <label class="text-sm font-medium text-slate-700">Password</label>
+                                    <input type="password" x-model="password" required
+                                        class="w-full rounded-lg border-slate-300 text-sm font-semibold text-slate-800 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                </div>
+                                <div class="space-y-2">
+                                    <label class="text-sm font-medium text-slate-700">Confirm</label>
+                                    <input type="password" x-model="password_confirmation" required
+                                        class="w-full rounded-lg border-slate-300 text-sm font-semibold text-slate-800 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                </div>
+                            </div>
+                            <template x-if="errors.password">
+                                <p class="text-sm font-medium text-rose-600" x-text="errors.password[0]"></p>
+                            </template>
+                            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                                <div class="space-y-2">
+                                    <label class="text-sm font-medium text-slate-700">Phone</label>
+                                    <input type="tel" x-model="phone"
+                                        class="w-full rounded-lg border-slate-300 text-sm font-semibold text-slate-800 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                </div>
+                                <div class="space-y-2">
+                                    <label class="text-sm font-medium text-slate-700">Address</label>
+                                    <input type="text" x-model="address"
+                                        class="w-full rounded-lg border-slate-300 text-sm font-semibold text-slate-800 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                </div>
+                            </div>
+                            <x-ui.button type="submit" x-bind:disabled="loading" class="w-full">
+                                <span x-show="!loading">Register Now</span>
+                                <span x-show="loading" x-cloak>Creating...</span>
+                            </x-ui.button>
+                        </form>
+                    </div>
                 </div>
-
-                <form @submit.prevent="submitLogin" class="space-y-4">
-                    <div class="space-y-2">
-                        <label class="text-sm font-medium text-slate-700">Email Address</label>
-                        <input type="email" x-model="email" required
-                            class="w-full rounded-lg border-slate-300 text-sm font-semibold text-slate-800 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                        <template x-if="errors.email">
-                            <p class="text-sm font-medium text-rose-600" x-text="errors.email[0]"></p>
-                        </template>
-                    </div>
-                    <div class="space-y-2">
-                        <label class="text-sm font-medium text-slate-700">Password</label>
-                        <input type="password" x-model="password" required
-                            class="w-full rounded-lg border-slate-300 text-sm font-semibold text-slate-800 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                        <template x-if="errors.password">
-                            <p class="text-sm font-medium text-rose-600" x-text="errors.password[0]"></p>
-                        </template>
-                    </div>
-                    <x-ui.button type="submit" x-bind:disabled="loading" class="w-full">
-                        <span x-show="!loading">Log In</span>
-                        <span x-show="loading" x-cloak>Logging in...</span>
-                    </x-ui.button>
-                </form>
-            </div>
-
-            <div x-show="tab === 'register'" x-transition @if($initialAuthTab !== 'register') x-cloak @endif>
-                <div class="mb-6">
-                    <h2 class="text-2xl font-semibold tracking-tight text-slate-950">Create Account</h2>
-                    <p class="mt-1 text-sm text-slate-600">Join Coffee-Plus and start collecting rewards.</p>
-                </div>
-
-                <form @submit.prevent="submitRegister" class="space-y-4">
-                    <div class="space-y-2">
-                        <label class="text-sm font-medium text-slate-700">Full Name</label>
-                        <input type="text" x-model="name" required
-                            class="w-full rounded-lg border-slate-300 text-sm font-semibold text-slate-800 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                        <template x-if="errors.name">
-                            <p class="text-sm font-medium text-rose-600" x-text="errors.name[0]"></p>
-                        </template>
-                    </div>
-                    <div class="space-y-2">
-                        <label class="text-sm font-medium text-slate-700">Email Address</label>
-                        <input type="email" x-model="email" required
-                            class="w-full rounded-lg border-slate-300 text-sm font-semibold text-slate-800 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                        <template x-if="errors.email">
-                            <p class="text-sm font-medium text-rose-600" x-text="errors.email[0]"></p>
-                        </template>
-                    </div>
-                    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                        <div class="space-y-2">
-                            <label class="text-sm font-medium text-slate-700">Password</label>
-                            <input type="password" x-model="password" required
-                                class="w-full rounded-lg border-slate-300 text-sm font-semibold text-slate-800 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                        </div>
-                        <div class="space-y-2">
-                            <label class="text-sm font-medium text-slate-700">Confirm</label>
-                            <input type="password" x-model="password_confirmation" required
-                                class="w-full rounded-lg border-slate-300 text-sm font-semibold text-slate-800 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                        </div>
-                    </div>
-                    <template x-if="errors.password">
-                        <p class="text-sm font-medium text-rose-600" x-text="errors.password[0]"></p>
-                    </template>
-                    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                        <div class="space-y-2">
-                            <label class="text-sm font-medium text-slate-700">Phone</label>
-                            <input type="tel" x-model="phone"
-                                class="w-full rounded-lg border-slate-300 text-sm font-semibold text-slate-800 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                        </div>
-                        <div class="space-y-2">
-                            <label class="text-sm font-medium text-slate-700">Address</label>
-                            <input type="text" x-model="address"
-                                class="w-full rounded-lg border-slate-300 text-sm font-semibold text-slate-800 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                        </div>
-                    </div>
-                    <x-ui.button type="submit" x-bind:disabled="loading" class="w-full">
-                        <span x-show="!loading">Register Now</span>
-                        <span x-show="loading" x-cloak>Creating...</span>
-                    </x-ui.button>
-                </form>
             </div>
         </div>
     </div>
