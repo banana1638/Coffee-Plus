@@ -9,7 +9,7 @@
             </div>
 
             <div class="grid gap-8 lg:grid-cols-2 lg:items-start">
-                <div class="lg:sticky lg:top-24">
+                <div class="lg:sticky lg:top-24 lg:self-start">
                     <div class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
                         <img src="{{ $product->image_url }}" class="aspect-square w-full object-cover" alt="{{ $product->name }}">
                     </div>
@@ -92,26 +92,26 @@
                         </x-ui.card>
                     @endif
                 </form>
-
-                <x-ui.card class="lg:col-span-2">
-                    <h2 class="text-base font-semibold text-slate-950">Customer Reviews</h2>
-                    <div class="mt-4 grid gap-3 md:grid-cols-2">
-                        @forelse($product->reviews->sortByDesc('created_at')->take(10) as $review)
-                            <div class="rounded-xl border border-slate-200 bg-slate-50 p-4">
-                                <div class="flex justify-between gap-3">
-                                    <p class="font-semibold text-slate-950">{{ $review->user->name ?? 'Customer' }}</p>
-                                    <p class="text-sm font-semibold text-amber-700">{{ $review->rating }} / 5</p>
-                                </div>
-                                @if($review->comment)
-                                    <p class="mt-2 text-sm text-slate-600">{{ $review->comment }}</p>
-                                @endif
-                            </div>
-                        @empty
-                            <p class="text-sm font-semibold text-slate-500">No reviews yet.</p>
-                        @endforelse
-                    </div>
-                </x-ui.card>
             </div>
+
+            <x-ui.card>
+                <h2 class="text-base font-semibold text-slate-950">Customer Reviews</h2>
+                <div class="mt-4 grid gap-3 md:grid-cols-2">
+                    @forelse($product->reviews->sortByDesc('created_at')->take(10) as $review)
+                        <div class="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                            <div class="flex justify-between gap-3">
+                                <p class="font-semibold text-slate-950">{{ $review->user->name ?? 'Customer' }}</p>
+                                <p class="text-sm font-semibold text-amber-700">{{ $review->rating }} / 5</p>
+                            </div>
+                            @if($review->comment)
+                                <p class="mt-2 text-sm text-slate-600">{{ $review->comment }}</p>
+                            @endif
+                        </div>
+                    @empty
+                        <p class="text-sm font-semibold text-slate-500">No reviews yet.</p>
+                    @endforelse
+                </div>
+            </x-ui.card>
         </div>
     </div>
 
