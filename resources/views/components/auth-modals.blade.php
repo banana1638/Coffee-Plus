@@ -1,4 +1,4 @@
-<div x-data="{ 
+<div x-data="{
     tab: 'login',
     email: '',
     password: '',
@@ -46,10 +46,10 @@
                     'X-CSRF-TOKEN': '{{ csrf_token() }}',
                     'Accept': 'application/json'
                 },
-                body: JSON.stringify({ 
-                    name: this.name, 
-                    email: this.email, 
-                    password: this.password, 
+                body: JSON.stringify({
+                    name: this.name,
+                    email: this.email,
+                    password: this.password,
                     password_confirmation: this.password_confirmation,
                     phone: this.phone || null,
                     address: this.address || null
@@ -68,150 +68,121 @@
         }
     }
 }" x-init="$watch('authModal', value => { if (value) tab = value })" x-show="authModal" x-cloak
-    class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/60 backdrop-blur-sm"
-    x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0"
-    x-transition:enter-end="opacity-100" x-transition:leave="transition ease-in duration-200"
-    x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" @click.self="authModal = null"
-    @keydown.escape.window="authModal = null"
+    class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-sm"
+    x-transition.opacity @click.self="authModal = null" @keydown.escape.window="authModal = null"
     @open-auth-modal.window="authModal = $event.detail.tab; tab = $event.detail.tab">
 
-    <div class="bg-white w-full max-w-[480px] rounded-[2.5rem] shadow-2xl overflow-hidden relative"
-        x-transition:enter="transition ease-out duration-300 transform" x-transition:enter-start="opacity-0 scale-95"
+    <div class="relative w-full max-w-[480px] overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg"
+        x-transition:enter="transition ease-out duration-200 transform"
+        x-transition:enter-start="opacity-0 scale-95"
         x-transition:enter-end="opacity-100 scale-100">
-
-        <!-- Close Button -->
-        <button @click="authModal = null"
-            class="absolute top-6 right-6 text-gray-400 hover:text-gray-900 transition translate-x-2 -translate-y-2">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        <button type="button" @click="authModal = null"
+            class="absolute right-4 top-4 rounded-lg p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-950"
+            aria-label="Close authentication modal">
+            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
             </svg>
         </button>
 
-        <div class="p-8 sm:p-12">
-            <!-- Tabs with Sliding Indicator -->
-            <div class="relative flex gap-8 mb-12 bg-gray-50 p-2 rounded-2xl">
-                <div class="absolute inset-y-2 transition-all duration-300 ease-out bg-white shadow-sm rounded-xl"
-                    :style="tab === 'login' ? 'left: 8px; width: calc(50% - 12px)' : 'left: calc(50% + 4px); width: calc(50% - 12px)'">
-                </div>
-                <button @click="tab = 'login'" :class="tab === 'login' ? 'text-gray-900' : 'text-gray-400'"
-                    class="relative z-10 flex-1 py-3 text-xs font-black uppercase tracking-widest transition-colors">
+        <div class="p-6 sm:p-8">
+            <div class="mb-8 inline-flex rounded-xl border border-slate-200 bg-slate-50 p-1">
+                <button type="button" @click="tab = 'login'"
+                    :class="tab === 'login' ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-600 hover:text-slate-950'"
+                    class="rounded-lg px-4 py-2 text-sm font-semibold transition">
                     Login
                 </button>
-                <button @click="tab = 'register'" :class="tab === 'register' ? 'text-gray-900' : 'text-gray-400'"
-                    class="relative z-10 flex-1 py-3 text-xs font-black uppercase tracking-widest transition-colors">
+                <button type="button" @click="tab = 'register'"
+                    :class="tab === 'register' ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-600 hover:text-slate-950'"
+                    class="rounded-lg px-4 py-2 text-sm font-semibold transition">
                     Register
                 </button>
             </div>
 
-            <!-- Forms Container with Sliding Animation -->
-            <div class="relative overflow-hidden">
-                <div class="flex transition-transform duration-500 ease-out"
-                    :style="tab === 'login' ? 'transform: translateX(0%)' : 'transform: translateX(-100%)'">
-
-                    <!-- Login Form -->
-                    <div class="w-full shrink-0 pr-4">
-                        <div class="mb-8">
-                            <h2 class="text-3xl font-black text-gray-900 tracking-tight">Welcome Back</h2>
-                            <p class="text-sm text-gray-400 font-bold mt-1 uppercase tracking-widest">Login to your
-                                account</p>
-                        </div>
-
-                        <form @submit.prevent="submitLogin" class="space-y-5">
-                            <div>
-                                <input type="email" x-model="email" placeholder="Email Address" required
-                                    class="w-full px-6 py-4 bg-gray-50 border-2 border-transparent rounded-2xl focus:bg-white focus:border-blue-600 focus:ring-0 transition duration-200 text-gray-900 font-bold shadow-sm">
-                                <template x-if="errors.email">
-                                    <p class="text-red-500 text-[10px] font-black uppercase tracking-widest mt-2 ml-1"
-                                        x-text="errors.email[0]"></p>
-                                </template>
-                            </div>
-                            <div>
-                                <input type="password" x-model="password" placeholder="Password" required
-                                    class="w-full px-6 py-4 bg-gray-50 border-2 border-transparent rounded-2xl focus:bg-white focus:border-blue-600 focus:ring-0 transition duration-200 text-gray-900 font-bold shadow-sm">
-                                <template x-if="errors.password">
-                                    <p class="text-red-500 text-[10px] font-black uppercase tracking-widest mt-2 ml-1"
-                                        x-text="errors.password[0]"></p>
-                                </template>
-                            </div>
-                            <button type="submit" :disabled="loading"
-                                class="w-full py-4 bg-blue-600 text-white rounded-2xl text-sm font-black uppercase tracking-[0.2em] shadow-lg shadow-blue-100 hover:shadow-xl transition transform active:scale-[0.98] disabled:opacity-50 overflow-hidden relative group">
-                                <span class="relative z-10" x-show="!loading">Log In</span>
-                                <span class="relative z-10" x-show="loading">Logging in...</span>
-                                <div
-                                    class="absolute inset-0 bg-blue-700 translate-y-full group-hover:translate-y-0 transition-transform duration-300">
-                                </div>
-                            </button>
-                        </form>
-                    </div>
-
-                    <!-- Register Form -->
-                    <div class="w-full shrink-0 pl-4">
-                        <div class="mb-8">
-                            <h2 class="text-3xl font-black text-gray-900 tracking-tight">Create Account</h2>
-                            <p class="text-sm text-gray-400 font-bold mt-1 uppercase tracking-widest">Join the coffee
-                                club</p>
-                        </div>
-
-                        <form @submit.prevent="submitRegister" class="space-y-4">
-                            <div>
-                                <input type="text" x-model="name" placeholder="Full Name" required
-                                    class="w-full px-6 py-4 bg-gray-50 border-2 border-transparent rounded-2xl focus:bg-white focus:border-blue-600 focus:ring-0 transition duration-200 text-gray-900 font-bold shadow-sm">
-                                <template x-if="errors.name">
-                                    <p class="text-red-500 text-[10px] font-black uppercase tracking-widest mt-2 ml-1"
-                                        x-text="errors.name[0]"></p>
-                                </template>
-                            </div>
-                            <div>
-                                <input type="email" x-model="email" placeholder="Email Address" required
-                                    class="w-full px-6 py-4 bg-gray-50 border-2 border-transparent rounded-2xl focus:bg-white focus:border-blue-600 focus:ring-0 transition duration-200 text-gray-900 font-bold shadow-sm">
-                                <template x-if="errors.email">
-                                    <p class="text-red-500 text-[10px] font-black uppercase tracking-widest mt-2 ml-1"
-                                        x-text="errors.email[0]"></p>
-                                </template>
-                            </div>
-                            <div class="grid grid-cols-2 gap-4">
-                                <div>
-                                    <input type="password" x-model="password" placeholder="Password" required
-                                        class="w-full px-6 py-4 bg-gray-50 border-2 border-transparent rounded-2xl focus:bg-white focus:border-blue-600 focus:ring-0 transition duration-200 text-gray-900 font-bold shadow-sm">
-                                </div>
-                                <div>
-                                    <input type="password" x-model="password_confirmation" placeholder="Confirm"
-                                        required
-                                        class="w-full px-6 py-4 bg-gray-50 border-2 border-transparent rounded-2xl focus:bg-white focus:border-blue-600 focus:ring-0 transition duration-200 text-gray-900 font-bold shadow-sm">
-                                </div>
-                            </div>
-                            <template x-if="errors.password">
-                                <p class="text-red-500 text-[10px] font-black uppercase tracking-widest mt-2 ml-1"
-                                    x-text="errors.password[0]"></p>
-                            </template>
-                            <div>
-                                <input type="tel" x-model="phone" placeholder="Phone Number (optional)"
-                                    class="w-full px-6 py-4 bg-gray-50 border-2 border-transparent rounded-2xl focus:bg-white focus:border-blue-600 focus:ring-0 transition duration-200 text-gray-900 font-bold shadow-sm">
-                                <template x-if="errors.phone">
-                                    <p class="text-red-500 text-[10px] font-black uppercase tracking-widest mt-2 ml-1"
-                                        x-text="errors.phone[0]"></p>
-                                </template>
-                            </div>
-                            <div>
-                                <input type="text" x-model="address" placeholder="Address (optional)"
-                                    class="w-full px-6 py-4 bg-gray-50 border-2 border-transparent rounded-2xl focus:bg-white focus:border-blue-600 focus:ring-0 transition duration-200 text-gray-900 font-bold shadow-sm">
-                                <template x-if="errors.address">
-                                    <p class="text-red-500 text-[10px] font-black uppercase tracking-widest mt-2 ml-1"
-                                        x-text="errors.address[0]"></p>
-                                </template>
-                            </div>
-                            <button type="submit" :disabled="loading"
-                                class="w-full py-4 bg-gray-900 text-white rounded-2xl text-sm font-black uppercase tracking-[0.2em] shadow-lg shadow-gray-100 hover:bg-black transition transform active:scale-[0.98] disabled:opacity-50 overflow-hidden relative group">
-                                <span class="relative z-10" x-show="!loading">Register Now</span>
-                                <span class="relative z-10" x-show="loading">Creating...</span>
-                                <div
-                                    class="absolute inset-0 bg-black translate-y-full group-hover:translate-y-0 transition-transform duration-300">
-                                </div>
-                            </button>
-                        </form>
-                    </div>
-
+            <div x-show="tab === 'login'" x-transition>
+                <div class="mb-6">
+                    <h2 class="text-2xl font-semibold tracking-tight text-slate-950">Welcome Back</h2>
+                    <p class="mt-1 text-sm text-slate-600">Login to your Coffee-Plus account.</p>
                 </div>
+
+                <form @submit.prevent="submitLogin" class="space-y-4">
+                    <div class="space-y-2">
+                        <label class="text-sm font-medium text-slate-700">Email Address</label>
+                        <input type="email" x-model="email" required
+                            class="w-full rounded-lg border-slate-300 text-sm font-semibold text-slate-800 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        <template x-if="errors.email">
+                            <p class="text-sm font-medium text-rose-600" x-text="errors.email[0]"></p>
+                        </template>
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-sm font-medium text-slate-700">Password</label>
+                        <input type="password" x-model="password" required
+                            class="w-full rounded-lg border-slate-300 text-sm font-semibold text-slate-800 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        <template x-if="errors.password">
+                            <p class="text-sm font-medium text-rose-600" x-text="errors.password[0]"></p>
+                        </template>
+                    </div>
+                    <x-ui.button type="submit" x-bind:disabled="loading" class="w-full">
+                        <span x-show="!loading">Log In</span>
+                        <span x-show="loading">Logging in...</span>
+                    </x-ui.button>
+                </form>
+            </div>
+
+            <div x-show="tab === 'register'" x-transition>
+                <div class="mb-6">
+                    <h2 class="text-2xl font-semibold tracking-tight text-slate-950">Create Account</h2>
+                    <p class="mt-1 text-sm text-slate-600">Join Coffee-Plus and start collecting rewards.</p>
+                </div>
+
+                <form @submit.prevent="submitRegister" class="space-y-4">
+                    <div class="space-y-2">
+                        <label class="text-sm font-medium text-slate-700">Full Name</label>
+                        <input type="text" x-model="name" required
+                            class="w-full rounded-lg border-slate-300 text-sm font-semibold text-slate-800 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        <template x-if="errors.name">
+                            <p class="text-sm font-medium text-rose-600" x-text="errors.name[0]"></p>
+                        </template>
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-sm font-medium text-slate-700">Email Address</label>
+                        <input type="email" x-model="email" required
+                            class="w-full rounded-lg border-slate-300 text-sm font-semibold text-slate-800 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        <template x-if="errors.email">
+                            <p class="text-sm font-medium text-rose-600" x-text="errors.email[0]"></p>
+                        </template>
+                    </div>
+                    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                        <div class="space-y-2">
+                            <label class="text-sm font-medium text-slate-700">Password</label>
+                            <input type="password" x-model="password" required
+                                class="w-full rounded-lg border-slate-300 text-sm font-semibold text-slate-800 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        </div>
+                        <div class="space-y-2">
+                            <label class="text-sm font-medium text-slate-700">Confirm</label>
+                            <input type="password" x-model="password_confirmation" required
+                                class="w-full rounded-lg border-slate-300 text-sm font-semibold text-slate-800 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        </div>
+                    </div>
+                    <template x-if="errors.password">
+                        <p class="text-sm font-medium text-rose-600" x-text="errors.password[0]"></p>
+                    </template>
+                    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                        <div class="space-y-2">
+                            <label class="text-sm font-medium text-slate-700">Phone</label>
+                            <input type="tel" x-model="phone"
+                                class="w-full rounded-lg border-slate-300 text-sm font-semibold text-slate-800 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        </div>
+                        <div class="space-y-2">
+                            <label class="text-sm font-medium text-slate-700">Address</label>
+                            <input type="text" x-model="address"
+                                class="w-full rounded-lg border-slate-300 text-sm font-semibold text-slate-800 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        </div>
+                    </div>
+                    <x-ui.button type="submit" x-bind:disabled="loading" class="w-full">
+                        <span x-show="!loading">Register Now</span>
+                        <span x-show="loading">Creating...</span>
+                    </x-ui.button>
+                </form>
             </div>
         </div>
     </div>

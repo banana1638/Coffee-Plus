@@ -1,227 +1,200 @@
 <x-app-layout>
-    <div class="py-12 bg-gray-50/50 min-h-screen">
-        <div class="max-w-md mx-auto px-4">
-            <a href="{{ url()->previous() }}" class="inline-flex items-center text-sm text-gray-500 mb-6 hover:text-blue-600 transition">
-                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path d="M15 19l-7-7 7-7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
-                </svg>
-                Back
-            </a>
+    @php
+        $statusVariant = $order->status === 'cancelled' ? 'danger' : ($order->status === 'completed' ? 'success' : 'info');
+        $steps = [
+            'pending' => 'Pending',
+            'preparing' => 'Preparing',
+            'ready_for_pickup' => 'Ready',
+            'completed' => 'Completed',
+        ];
+        $activeStep = $order->statusStep();
+    @endphp
 
-            <div class="bg-white rounded-[2.5rem] shadow-2xl overflow-hidden border border-gray-100 receipt-paper">
-                <div class="bg-gray-900 p-8 text-center relative">
-                    <div class="absolute top-0 left-0 w-full h-2 bg-blue-500"></div>
-                    <div class="inline-flex items-center justify-center w-16 h-16 bg-white rounded-full mb-4 shadow-lg">
-                        <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                        </svg>
-                    </div>
-                    <h2 class="text-white text-xl font-black italic tracking-wider">COFFEE PLUS+</h2>
-                    <p class="text-blue-300 text-[10px] tracking-[0.3em] uppercase mt-1">Order Detail Verified</p>
-                </div>
+    <div class="px-4 py-6 sm:px-6 lg:px-8">
+        <div class="mx-auto max-w-6xl space-y-6">
+            <x-layout.page-header title="Order {{ $order->bill_id }}" description="Order status, pickup code, item manifest, and review options.">
+                <x-slot:actions>
+                    <x-ui.button :href="url()->previous()" variant="secondary">
+                        Back
+                    </x-ui.button>
+                    <x-ui.button type="button" variant="secondary" onclick="window.print()">
+                        Print
+                    </x-ui.button>
+                </x-slot:actions>
+            </x-layout.page-header>
 
-                <div class="p-8">
-                    <div class="flex justify-between text-[10px] text-gray-400 font-black uppercase mb-6 tracking-widest">
-                        <span>Bill ID</span>
-                        <span class="text-gray-800">{{ $order->bill_id }}</span>
-                    </div>
-
-                    @if($order->pickup_code)
-                        <div class="mb-8 p-5 bg-gray-50 rounded-3xl border border-gray-100 text-center">
-                            <p class="text-[10px] text-gray-400 font-black uppercase tracking-[0.25em] mb-3">Pickup QR</p>
-                            <img class="w-40 h-40 mx-auto rounded-xl bg-white p-2 border border-gray-100"
-                                src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data={{ urlencode($order->pickup_qr_payload) }}"
-                                alt="Pickup QR code">
-                            <p class="mt-4 text-2xl font-black tracking-[0.25em] text-gray-900">{{ $order->pickup_code }}</p>
+            <div class="grid gap-6 xl:grid-cols-[1fr_360px]">
+                <div class="space-y-6">
+                    <x-ui.card>
+                        <div class="grid gap-4 md:grid-cols-3">
+                            <div>
+                                <p class="text-xs font-semibold uppercase tracking-wide text-slate-400">Date</p>
+                                <p class="mt-2 font-semibold text-slate-950">{{ $order->created_at->format('M d, Y H:i') }}</p>
+                            </div>
+                            <div>
+                                <p class="text-xs font-semibold uppercase tracking-wide text-slate-400">Status</p>
+                                <div class="mt-2">
+                                    <x-ui.badge :variant="$statusVariant">{{ str_replace('_', ' ', $order->status) }}</x-ui.badge>
+                                </div>
+                            </div>
+                            <div>
+                                <p class="text-xs font-semibold uppercase tracking-wide text-slate-400">Bill ID</p>
+                                <p class="mt-2 font-semibold text-slate-950">{{ $order->bill_id }}</p>
+                            </div>
                         </div>
-                    @endif
 
-                    <div class="space-y-3 mb-8">
-                        <div class="flex justify-between items-center text-sm">
-                            <span class="text-gray-500 font-medium">Date</span>
-                            <span class="font-bold text-gray-800">{{ $order->created_at->format('M d, Y H:i') }}</span>
-                        </div>
-                        <div class="flex justify-between items-center text-sm">
-                            <span class="text-gray-500 font-medium">Status</span>
-                            <span class="{{ $order->status === 'cancelled' ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600' }} text-[10px] font-black px-2 py-1 rounded-md uppercase">{{ $order->status }}</span>
-                        </div>
-                    </div>
-
-                    @php
-                        $steps = [
-                            'pending' => 'Pending',
-                            'preparing' => 'Preparing',
-                            'ready_for_pickup' => 'Ready',
-                            'completed' => 'Completed',
-                        ];
-                        $activeStep = $order->statusStep();
-                    @endphp
-
-                    @if($order->status !== 'cancelled')
-                        <div class="mb-8">
-                            <div class="grid grid-cols-4 gap-2">
+                        @if($order->status !== 'cancelled')
+                            <div class="mt-8 grid grid-cols-4 gap-2">
                                 @foreach($steps as $key => $label)
                                     @php $stepIndex = $loop->iteration; @endphp
-                                    <div class="text-center">
-                                        <div class="h-2 rounded-full {{ $stepIndex <= $activeStep ? 'bg-blue-600' : 'bg-gray-200' }}"></div>
-                                        <p class="mt-2 text-[9px] font-black uppercase tracking-tight {{ $stepIndex <= $activeStep ? 'text-blue-600' : 'text-gray-400' }}">
+                                    <div>
+                                        <div class="h-2 rounded-full {{ $stepIndex <= $activeStep ? 'bg-indigo-600' : 'bg-slate-200' }}"></div>
+                                        <p class="mt-2 text-xs font-semibold {{ $stepIndex <= $activeStep ? 'text-indigo-700' : 'text-slate-400' }}">
                                             {{ $label }}
                                         </p>
                                     </div>
                                 @endforeach
                             </div>
-                        </div>
-                    @endif
-
-                    <div class="space-y-4">
-                        <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-50 pb-2">Items Purchased</p>
-                        
-                        @foreach($order->items as $item)
-                            @php
-                                $existingReview = $order->reviews
-                                    ->where('product_id', $item->product_id)
-                                    ->first();
-                            @endphp
-                            <div class="flex justify-between items-start">
-                                <div class="flex flex-col flex-1 pr-4">
-                                    <span class="text-sm font-black text-gray-800 leading-tight">
-                                        {{ $item->product->name ?? 'Product' }}
-                                    </span>
-                                    
-                                    @if($item->options)
-                                        <div class="flex flex-wrap gap-1 mt-1">
-                                            @foreach($item->options as $key => $val)
-                                                @if($key === 'addons' && is_array($val))
-                                                    @foreach($val as $addonName)
-                                                        <span class="text-[9px] bg-blue-50 px-1.5 py-0.5 rounded text-blue-600 uppercase font-bold">
-                                                            + {{ $addonName }}
-                                                        </span>
-                                                    @endforeach
-                                                @else
-                                                    <span class="text-[9px] bg-gray-100 px-1.5 py-0.5 rounded text-gray-500 uppercase font-bold">
-                                                        {{ $key }}: {{ $val }}
-                                                    </span>
-                                                @endif
-                                            @endforeach
-                                        </div>
-                                    @endif
-
-                                    @if($item->oz_at_time > 0)
-                                        <div class="mt-1 flex items-center">
-                                            <span class="text-[9px] text-blue-600 font-black uppercase tracking-tighter">
-                                                Paid with Tank Balance
-                                            </span>
-                                        </div>
-                                    @endif
-
-                                    <span class="text-[10px] text-gray-400 font-bold mt-1">Quantity: {{ $item->quantity }}</span>
-
-                                    @if($order->status === 'completed')
-                                        @if($existingReview)
-                                            <div class="mt-3 p-3 bg-yellow-50 rounded-2xl border border-yellow-100">
-                                                <p class="text-[10px] font-black text-yellow-700 uppercase tracking-widest">
-                                                    Your rating: {{ $existingReview->rating }} / 5
-                                                </p>
-                                                @if($existingReview->comment)
-                                                    <p class="mt-1 text-xs text-yellow-800 font-bold">{{ $existingReview->comment }}</p>
-                                                @endif
-                                            </div>
-                                        @else
-                                            <form action="{{ route('orders.reviews.store', $order) }}" method="POST"
-                                                class="mt-3 p-3 bg-gray-50 rounded-2xl border border-gray-100 space-y-3">
-                                                @csrf
-                                                <input type="hidden" name="product_id" value="{{ $item->product_id }}">
-                                                <div class="flex gap-2">
-                                                    <select name="rating" required
-                                                        class="border-0 bg-white rounded-xl text-xs font-black focus:ring-blue-500">
-                                                        <option value="">Rating</option>
-                                                        @for($rating = 5; $rating >= 1; $rating--)
-                                                            <option value="{{ $rating }}">{{ $rating }} / 5</option>
-                                                        @endfor
-                                                    </select>
-                                                    <button type="submit"
-                                                        class="px-4 bg-gray-900 text-white rounded-xl text-[10px] font-black uppercase tracking-widest">
-                                                        Review
-                                                    </button>
-                                                </div>
-                                                <textarea name="comment" rows="2" maxlength="1000" placeholder="Comment"
-                                                    class="w-full border-0 bg-white rounded-xl text-xs font-bold focus:ring-blue-500"></textarea>
-                                            </form>
-                                        @endif
-                                    @endif
-                                </div>
-
-                                <div class="flex flex-col items-end">
-                                    <span class="text-sm font-black text-gray-800">
-                                        @if($item->oz_at_time > 0)
-                                            {{ number_format($item->oz_at_time * $item->quantity, 1) }} OZ
-                                        @else
-                                            RM {{ number_format($item->price_at_time * $item->quantity, 2) }}
-                                        @endif
-                                    </span>
-                                    
-                                    @if($item->oz_at_time > 0)
-                                        <span class="text-[9px] text-gray-400 font-bold uppercase italic">
-                                            {{ $item->oz_at_time }} OZ / unit
-                                        </span>
-                                    @endif
-                                </div>
-                            </div>
-                        @endforeach
-                    </div>
-
-                    <div class="border-t border-dashed border-gray-200 my-8"></div>
-
-                    <div class="space-y-4">
-                        <div class="flex justify-between text-sm">
-                            <span class="text-gray-500 font-medium">Subtotal</span>
-                            <span class="font-bold text-gray-800">RM {{ number_format($order->subtotal, 2) }}</span>
-                        </div>
-                        
-                        @if($order->oz_used > 0)
-                            <div class="flex justify-between items-center p-3 bg-blue-50 rounded-2xl border border-blue-100">
-                                <div class="flex flex-col">
-                                    <span class="text-blue-600 font-black text-[10px] uppercase">Tank Deduction</span>
-                                    <span class="text-[9px] text-blue-400 leading-none">Balance Payment Applied</span>
-                                </div>
-                                <span class="font-black text-blue-600 text-lg">-{{ number_format($order->oz_used, 1) }} OZ</span>
-                            </div>
                         @endif
+                    </x-ui.card>
 
-                        <div class="flex justify-between pt-4 border-t border-gray-100 items-baseline">
-                            <span class="text-lg font-black text-gray-900">Total Cash</span>
-                            <span class="text-3xl font-black text-gray-900 tracking-tighter">
-                                <span class="text-sm font-bold mr-1">RM</span>{{ number_format($order->final_amount, 2) }}
-                            </span>
+                    <x-ui.card>
+                        <h2 class="text-base font-semibold text-slate-950">Items Purchased</h2>
+                        <div class="mt-4 divide-y divide-slate-200">
+                            @foreach($order->items as $item)
+                                @php
+                                    $existingReview = $order->reviews
+                                        ->where('product_id', $item->product_id)
+                                        ->first();
+                                @endphp
+                                <div class="grid gap-4 py-5 md:grid-cols-[1fr_150px]">
+                                    <div>
+                                        <p class="font-semibold text-slate-950">{{ $item->product->name ?? 'Product' }}</p>
+
+                                        @if($item->options)
+                                            <div class="mt-2 flex flex-wrap gap-2">
+                                                @foreach($item->options as $key => $val)
+                                                    @if($key === 'addons' && is_array($val))
+                                                        @foreach($val as $addonName)
+                                                            <x-ui.badge variant="info">+ {{ $addonName }}</x-ui.badge>
+                                                        @endforeach
+                                                    @else
+                                                        <x-ui.badge>{{ $key }}: {{ $val }}</x-ui.badge>
+                                                    @endif
+                                                @endforeach
+                                            </div>
+                                        @endif
+
+                                        @if($item->oz_at_time > 0)
+                                            <p class="mt-2 text-xs font-semibold uppercase tracking-wide text-indigo-700">Paid with Tangki balance</p>
+                                        @endif
+
+                                        <p class="mt-2 text-sm text-slate-500">Quantity: {{ $item->quantity }}</p>
+
+                                        @if($order->status === 'completed')
+                                            @if($existingReview)
+                                                <div class="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-3">
+                                                    <p class="text-xs font-semibold uppercase tracking-wide text-amber-700">
+                                                        Your rating: {{ $existingReview->rating }} / 5
+                                                    </p>
+                                                    @if($existingReview->comment)
+                                                        <p class="mt-1 text-sm text-amber-800">{{ $existingReview->comment }}</p>
+                                                    @endif
+                                                </div>
+                                            @else
+                                                <form action="{{ route('orders.reviews.store', $order) }}" method="POST"
+                                                    class="mt-4 space-y-3 rounded-xl border border-slate-200 bg-slate-50 p-3">
+                                                    @csrf
+                                                    <input type="hidden" name="product_id" value="{{ $item->product_id }}">
+                                                    <div class="flex gap-2">
+                                                        <select name="rating" required
+                                                            class="rounded-lg border-slate-300 bg-white text-sm font-semibold text-slate-800 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                                            <option value="">Rating</option>
+                                                            @for($rating = 5; $rating >= 1; $rating--)
+                                                                <option value="{{ $rating }}">{{ $rating }} / 5</option>
+                                                            @endfor
+                                                        </select>
+                                                        <x-ui.button type="submit" size="sm">Review</x-ui.button>
+                                                    </div>
+                                                    <textarea name="comment" rows="2" maxlength="1000" placeholder="Comment"
+                                                        class="w-full rounded-lg border-slate-300 bg-white text-sm font-medium text-slate-800 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"></textarea>
+                                                </form>
+                                            @endif
+                                        @endif
+                                    </div>
+
+                                    <div class="text-left md:text-right">
+                                        <p class="font-semibold text-slate-950">
+                                            @if($item->oz_at_time > 0)
+                                                {{ number_format($item->oz_at_time * $item->quantity, 1) }} OZ
+                                            @else
+                                                RM {{ number_format($item->price_at_time * $item->quantity, 2) }}
+                                            @endif
+                                        </p>
+                                        @if($item->oz_at_time > 0)
+                                            <p class="mt-1 text-xs text-slate-500">{{ $item->oz_at_time }} OZ / unit</p>
+                                        @endif
+                                    </div>
+                                </div>
+                            @endforeach
                         </div>
-                    </div>
+                    </x-ui.card>
+                </div>
 
-                    @if($order->canBeCancelled())
-                        <form action="{{ route('order.cancel', $order) }}" method="POST" class="mt-8">
-                            @csrf
-                            <button type="submit" onclick="return confirm('Cancel this order and refund to Tangki?')"
-                                class="w-full py-4 bg-red-600 hover:bg-red-500 text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em] transition-all shadow-lg active:scale-95">
-                                Cancel Order
-                            </button>
-                        </form>
+                <aside class="space-y-6">
+                    @if($order->pickup_code)
+                        <x-ui.card>
+                            <h2 class="text-base font-semibold text-slate-950">Pickup QR</h2>
+                            <div class="mt-5 rounded-xl border border-slate-200 bg-slate-50 p-4 text-center">
+                                <img class="mx-auto h-40 w-40 rounded-lg border border-slate-200 bg-white p-2"
+                                    src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data={{ urlencode($order->pickup_qr_payload) }}"
+                                    alt="Pickup QR code">
+                                <p class="mt-4 text-2xl font-semibold tracking-[0.2em] text-slate-950">{{ $order->pickup_code }}</p>
+                            </div>
+                        </x-ui.card>
                     @endif
-                </div>
 
-                <div class="p-8 bg-gray-50/50 border-t border-gray-100 flex flex-col items-center">
-                    <p class="text-[10px] text-gray-400 font-black italic uppercase tracking-[0.2em]">Thank you for your order.</p>
-                </div>
-            </div>
-            
-            <div class="mt-8 text-center no-print">
-                <button onclick="window.print()" class="text-xs font-black text-gray-400 hover:text-blue-600 uppercase tracking-widest transition">
-                    Print Order Detail
-                </button>
+                    <x-ui.card>
+                        <div class="space-y-4">
+                            <div class="flex justify-between text-sm">
+                                <span class="text-slate-500">Subtotal</span>
+                                <span class="font-semibold text-slate-950">RM {{ number_format($order->subtotal, 2) }}</span>
+                            </div>
+
+                            @if($order->oz_used > 0)
+                                <div class="rounded-xl border border-indigo-200 bg-indigo-50 p-3">
+                                    <div class="flex justify-between gap-3">
+                                        <span class="text-sm font-semibold text-indigo-700">Tangki Deduction</span>
+                                        <span class="font-semibold text-indigo-700">-{{ number_format($order->oz_used, 1) }} OZ</span>
+                                    </div>
+                                </div>
+                            @endif
+
+                            <div class="border-t border-slate-200 pt-4">
+                                <p class="text-sm font-medium text-slate-500">Total Cash</p>
+                                <p class="mt-2 text-3xl font-semibold text-slate-950">
+                                    <span class="text-sm text-slate-500">RM</span>{{ number_format($order->final_amount, 2) }}
+                                </p>
+                            </div>
+
+                            @if($order->canBeCancelled())
+                                <form action="{{ route('order.cancel', $order) }}" method="POST">
+                                    @csrf
+                                    <x-ui.button type="submit" variant="danger" class="w-full" onclick="return confirm('Cancel this order and refund to Tangki?')">
+                                        Cancel Order
+                                    </x-ui.button>
+                                </form>
+                            @endif
+                        </div>
+                    </x-ui.card>
+                </aside>
             </div>
         </div>
     </div>
 
     <style>
-        @media print { .no-print { display: none; } nav { display: none; } }
-        .receipt-paper { background-image: radial-gradient(#fafafa 1px, transparent 0); background-size: 20px 20px; }
+        @media print {
+            nav, aside { display: none !important; }
+        }
     </style>
 </x-app-layout>

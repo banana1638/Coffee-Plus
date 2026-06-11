@@ -1,60 +1,46 @@
 <x-guest-layout>
-    <div class="min-h-screen flex flex-col justify-center items-center bg-gray-50/50 py-12 px-6">
-        
-        <div class="w-full sm:max-w-[480px] bg-white rounded-[2.5rem] shadow-sm border border-gray-100 p-10 sm:p-12 transition-all">
-            
-            <div class="text-center mb-10">
-                <div class="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-[1.5rem] mb-6 shadow-xl shadow-blue-100">
-                    <span class="text-4xl text-white">🔄</span>
+    <div class="flex min-h-screen items-center justify-center bg-slate-50 px-4 py-10">
+        <div class="w-full max-w-md rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+            <div class="mb-6 text-center">
+                <div class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-xl bg-indigo-50 text-indigo-700">
+                    <svg class="h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 11c0-1.105.895-2 2-2h1V7a3 3 0 10-6 0v2h1c1.105 0 2 .895 2 2zm-7 0h14v10H5V11z" />
+                    </svg>
                 </div>
-                <h2 class="text-3xl font-black text-gray-900 tracking-tight">New Password</h2>
-                <p class="text-gray-500 mt-2 font-medium">Create a strong password for your account</p>
+                <h1 class="text-2xl font-semibold tracking-tight text-slate-950">New Password</h1>
+                <p class="mt-2 text-sm text-slate-600">Create a strong password for your account.</p>
             </div>
 
-            <form method="POST" action="{{ route('password.store') }}" class="space-y-6">
+            <form method="POST" action="{{ route('password.store') }}" class="space-y-5">
                 @csrf
-
                 <input type="hidden" name="token" value="{{ $request->route('token') }}">
 
-                <div>
-                    <label for="email" class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2 ml-1">Email Address</label>
+                <div class="space-y-2">
+                    <label for="email" class="text-sm font-medium text-slate-700">Email Address</label>
                     <input id="email" type="email" name="email" value="{{ old('email', $request->email) }}" required autofocus readonly
-                        class="w-full px-6 py-4 bg-gray-100 border-2 border-transparent rounded-2xl text-gray-500 font-bold shadow-sm cursor-not-allowed">
+                        class="w-full rounded-lg border-slate-300 bg-slate-100 text-sm font-semibold text-slate-500 shadow-sm">
                     <x-input-error :messages="$errors->get('email')" class="mt-2" />
                 </div>
 
-                <div>
-                    <label for="password" class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2 ml-1">New Password</label>
+                <div class="space-y-2">
+                    <label for="password" class="text-sm font-medium text-slate-700">New Password</label>
                     <input id="password" type="password" name="password" required autocomplete="new-password"
-                        class="w-full px-6 py-4 bg-gray-50 border-2 border-transparent rounded-2xl focus:bg-white focus:border-blue-600 focus:ring-0 transition duration-200 text-gray-900 font-bold shadow-sm"
-                        placeholder="••••••••">
+                        class="w-full rounded-lg border-slate-300 text-sm font-semibold text-slate-800 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                     <x-input-error :messages="$errors->get('password')" class="mt-2" />
                 </div>
 
-                <div>
-                    <label for="password_confirmation" class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2 ml-1">Confirm New Password</label>
+                <div class="space-y-2">
+                    <label for="password_confirmation" class="text-sm font-medium text-slate-700">Confirm New Password</label>
                     <input id="password_confirmation" type="password" name="password_confirmation" required autocomplete="new-password"
-                        class="w-full px-6 py-4 bg-gray-50 border-2 border-transparent rounded-2xl focus:bg-white focus:border-blue-600 focus:ring-0 transition duration-200 text-gray-900 font-bold shadow-sm"
-                        placeholder="••••••••">
+                        class="w-full rounded-lg border-slate-300 text-sm font-semibold text-slate-800 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                     <x-input-error :messages="$errors->get('password_confirmation')" class="mt-2" />
                 </div>
 
-                <div class="pt-4">
-                    <button type="submit" class="w-full py-4 bg-gradient-to-br from-blue-600 to-indigo-700 text-white rounded-2xl text-lg font-black shadow-lg shadow-blue-100 hover:shadow-xl transition transform active:scale-[0.98]">
-                        {{ __('Reset Password') }}
-                    </button>
-                    
-                    <div class="mt-6 text-center">
-                        <a href="{{ route('login') }}" class="text-xs font-black text-gray-400 uppercase hover:text-blue-600 transition tracking-widest">
-                            Return to login
-                        </a>
-                    </div>
+                <x-ui.button type="submit" class="w-full">{{ __('Reset Password') }}</x-ui.button>
+                <div class="text-center">
+                    <a href="{{ route('login') }}" class="text-sm font-semibold text-slate-600 hover:text-slate-950">Return to login</a>
                 </div>
             </form>
         </div>
-
-        <p class="mt-10 text-gray-400 text-[10px] font-bold uppercase tracking-[0.3em]">
-            © {{ date('Y') }} Coffee Plus+ System
-        </p>
     </div>
 </x-guest-layout>

@@ -1,53 +1,50 @@
-<div class="mt-8 space-y-12">
+<div class="space-y-10">
     @forelse($menus as $menu)
-        <section>
-            <div class="flex items-center gap-4 mb-6">
-                <h3 class="text-lg font-black text-gray-800 uppercase tracking-wider">{{ $menu->name }}</h3>
-                <div class="h-px flex-1 bg-gray-200"></div>
+        <section class="space-y-4">
+            <div class="flex items-center justify-between gap-4">
+                <div>
+                    <h3 class="text-base font-semibold text-slate-950">{{ $menu->name }}</h3>
+                    <p class="text-sm text-slate-500">{{ $menu->products->count() }} available items</p>
+                </div>
+                <div class="h-px flex-1 bg-slate-200"></div>
             </div>
 
-            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            <div class="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-4">
                 @foreach($menu->products as $product)
                     <a href="{{ route('product.detail', $product->id) }}" @guest @click.prevent="authModal = 'login'" @endguest
-                        class="group bg-white rounded-[2rem] border border-gray-100 overflow-hidden hover:shadow-xl transition-all">
-
-                        <div class="aspect-square bg-gray-100 relative">
+                        class="group overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition duration-200 hover:-translate-y-0.5 hover:shadow-md">
+                        <div class="relative aspect-square bg-slate-100">
                             @if($product->image)
                                 <img src="{{ asset('images/products/' . $product->image) }}"
-                                    class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                    class="h-full w-full object-cover transition duration-500 group-hover:scale-105"
                                     alt="{{ $product->name }}" onerror="this.src='https://placehold.co/400x400?text=Image+Missing'">
                             @else
                                 <img src="https://placehold.co/400x400?text={{ urlencode($product->name) }}"
-                                    class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                                    class="h-full w-full object-cover transition duration-500 group-hover:scale-105" alt="{{ $product->name }}">
                             @endif
 
-                            <div
-                                class="absolute top-4 right-4 bg-white/90 backdrop-blur px-3 py-1 rounded-lg text-xs font-bold shadow-sm">
+                            <div class="absolute right-3 top-3 rounded-lg border border-white/70 bg-white/95 px-2.5 py-1 text-xs font-semibold text-slate-950 shadow-sm">
                                 RM {{ number_format($product->price, 2) }}
                             </div>
                         </div>
 
-                        <div class="p-4">
-                            <h4 class="font-bold text-gray-900 truncate">{{ $product->name }}</h4>
-                            <p class="text-[10px] text-blue-500 font-bold mt-1 uppercase tracking-tighter">
-                                {{ $product->oz_redeem_value ?? 0 }} oz required
-                            </p>
+                        <div class="space-y-2 p-4">
+                            <h4 class="truncate font-semibold text-slate-950">{{ $product->name }}</h4>
+                            <div class="flex items-center justify-between gap-2">
+                                <x-ui.badge variant="info">{{ $product->oz_redeem_value ?? 0 }} oz</x-ui.badge>
+                                <span class="text-xs font-medium text-slate-500">{{ number_format($product->average_rating, 1) }}/5</span>
+                            </div>
                         </div>
                     </a>
                 @endforeach
             </div>
         </section>
     @empty
-        <div class="py-20 text-center">
-            <div class="inline-block p-6 bg-gray-100 rounded-full mb-4">
-                <svg class="w-12 h-12 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                </svg>
-            </div>
-            <p class="text-gray-400 font-medium text-lg">No coffees found.</p>
-            <a href="{{ route('dashboard') }}" class="text-blue-600 font-bold mt-2 inline-block hover:underline">Clear
-                search and filters</a>
+        <div class="rounded-xl border border-dashed border-slate-300 bg-white p-12 text-center">
+            <p class="text-sm font-semibold text-slate-500">No coffees found.</p>
+            <a href="{{ route('dashboard') }}" class="mt-2 inline-flex text-sm font-semibold text-indigo-700 hover:text-indigo-900">
+                Clear search and filters
+            </a>
         </div>
     @endforelse
 </div>

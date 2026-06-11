@@ -1,85 +1,66 @@
 <x-app-layout>
-    <div class="py-8 md:py-12 bg-gray-50/50 min-h-screen">
-        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="px-4 py-6 sm:px-6 lg:px-8">
+        <div class="mx-auto max-w-5xl space-y-6">
+            <x-layout.page-header title="Transaction History" description="Review refills, redemptions, and order-linked Tangki activity.">
+                <x-slot:actions>
+                    <x-ui.button :href="url()->previous()" variant="secondary">
+                        Back
+                    </x-ui.button>
+                </x-slot:actions>
+            </x-layout.page-header>
 
-            <div class="flex items-center gap-4 mb-8">
-                <a href="{{ url()->previous() }}"
-                    class="w-10 h-10 flex items-center justify-center bg-white rounded-xl shadow-sm border border-gray-100 text-gray-400 hover:text-blue-600 transition">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path d="M15 19l-7-7 7-7" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
-                    </svg>
-                </a>
-                <h2 class="text-2xl font-black text-gray-800 tracking-tight">Transaction History</h2>
-            </div>
-
-            <div class="flex p-1 bg-gray-200/50 rounded-2xl mb-6">
-                @php $type = request('type', 'all'); @endphp
+            @php $type = request('type', 'all'); @endphp
+            <div class="inline-flex rounded-xl border border-slate-200 bg-white p-1 shadow-sm">
                 @foreach(['all' => 'All', 'in' => 'Refills', 'out' => 'Usage'] as $key => $label)
                     <a href="{{ route('tangki.transactions', ['type' => $key]) }}"
-                        class="flex-1 py-3 text-center text-xs font-black uppercase tracking-widest rounded-xl transition {{ $type == $key ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-400 hover:text-gray-600' }}">
+                        class="rounded-lg px-4 py-2 text-sm font-semibold transition {{ $type == $key ? 'bg-slate-900 text-white' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-950' }}">
                         {{ $label }}
                     </a>
                 @endforeach
             </div>
 
-            <div class="space-y-4">
+            <div class="grid gap-3">
                 @forelse($transactions as $trx)
-                    <div
-                        class="group bg-white rounded-[2rem] p-6 border border-gray-100 shadow-sm hover:shadow-md transition-all">
-                        <div class="flex justify-between items-start">
-                            <div class="flex-1">
-                                <div class="flex items-center gap-2 mb-2">
-                                    <span
-                                        class="px-3 py-1 bg-gray-100 rounded-full text-[10px] font-black text-gray-500 uppercase">
-                                        {{ $trx->type }}
-                                    </span>
-                                    <span
-                                        class="text-[10px] font-bold text-gray-400">{{ $trx->created_at->format('M d, H:i') }}</span>
+                    <x-ui.card padding="compact">
+                        <div class="grid gap-4 md:grid-cols-[1fr_150px_110px] md:items-center">
+                            <div>
+                                <div class="mb-2 flex items-center gap-2">
+                                    <x-ui.badge>{{ $trx->type }}</x-ui.badge>
+                                    <span class="text-xs text-slate-500">{{ $trx->created_at->format('M d, H:i') }}</span>
                                 </div>
-
-                                <h3 class="font-black text-gray-900 leading-tight">{{ $trx->description }}</h3>
+                                <h3 class="font-semibold text-slate-950">{{ $trx->description }}</h3>
 
                                 @if($trx->bill && $trx->bill->items)
-                                    <div class="mt-4 space-y-2 border-l-2 border-gray-50 pl-4">
+                                    <div class="mt-3 border-l border-slate-200 pl-4">
                                         @foreach($trx->bill->items->take(2) as $item)
-                                            <div class="flex justify-between text-xs">
-                                                <span class="text-gray-500 font-bold">{{ $item->quantity }}x
-                                                    {{ $item->product->name }}</span>
-                                            </div>
+                                            <p class="text-sm text-slate-600">{{ $item->quantity }}x {{ $item->product->name }}</p>
                                         @endforeach
                                         @if($trx->bill->items->count() > 2)
-                                            <p class="text-[9px] text-gray-400">...and {{ $trx->bill->items->count() - 2 }} more
-                                                items</p>
+                                            <p class="text-xs text-slate-500">+ {{ $trx->bill->items->count() - 2 }} more items</p>
                                         @endif
                                     </div>
                                 @endif
                             </div>
 
-                            <div class="text-right ml-4 flex flex-col items-end">
-                                <span
-                                    class="text-lg font-black {{ $trx->oz_delta > 0 ? 'text-green-500' : 'text-blue-600' }}">
-                                    {{ $trx->oz_delta > 0 ? '+' : '' }}{{ $trx->oz_delta }}
-                                    <span class="text-[10px] uppercase">oz</span>
-                                </span>
-                                <p class="text-[10px] text-gray-400 font-bold mt-1">#{{ $trx->bill_id }}</p>
+                            <p class="text-lg font-semibold {{ $trx->oz_delta > 0 ? 'text-emerald-700' : 'text-indigo-700' }}">
+                                {{ $trx->oz_delta > 0 ? '+' : '' }}{{ $trx->oz_delta }} <span class="text-xs">oz</span>
+                            </p>
 
-                                @if($trx->bill_id)
-                                    <a href="{{ route('tangki.order-detail', $trx->bill_id) }}"
-                                        class="mt-4 px-4 py-2 bg-blue-50 text-blue-600 text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-blue-600 hover:text-white transition-all shadow-sm">
-                                        View Detail
-                                    </a>
-                                @endif
-                            </div>
+                            @if($trx->bill_id)
+                                <x-ui.button :href="route('tangki.order-detail', $trx->bill_id)" variant="secondary" size="sm">
+                                    View Detail
+                                </x-ui.button>
+                            @endif
                         </div>
-                    </div>
+                    </x-ui.card>
                 @empty
-                    <div class="text-center py-12 bg-white rounded-[2.5rem] border border-dashed border-gray-200">
-                        <p class="text-gray-400 font-bold">No transactions found.</p>
+                    <div class="rounded-xl border border-dashed border-slate-300 bg-white p-12 text-center">
+                        <p class="text-sm font-semibold text-slate-500">No transactions found.</p>
                     </div>
                 @endforelse
             </div>
 
-            <div class="mt-8 px-2">
+            <div>
                 {{ $transactions->links() }}
             </div>
         </div>

@@ -1,141 +1,141 @@
 <x-app-layout>
-    <div class="py-8 bg-gray-50 min-h-screen pb-32">
-        <div class="max-w-6xl mx-auto px-4 sm:px-6">
-            <div class="flex items-center justify-between mb-8">
-                <a href="{{ route('dashboard') }}" class="inline-flex items-center text-sm font-bold text-gray-500 hover:text-black transition group">
-                    <div class="p-2 bg-white rounded-xl shadow-sm mr-3 group-hover:bg-gray-100 transition">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                    </div>
+    <div class="px-4 py-6 pb-36 sm:px-6 lg:px-8">
+        <div class="mx-auto max-w-6xl space-y-6">
+            <div class="flex items-center justify-between">
+                <x-ui.button :href="route('dashboard')" variant="secondary">
                     Back to Menu
-                </a>
-                <h2 class="hidden md:block font-black text-xl text-gray-900">Customize Order</h2>
-                <div class="w-24"></div> 
+                </x-ui.button>
+                <x-ui.badge variant="info">Customize Order</x-ui.badge>
             </div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
-                <div class="lg:sticky lg:top-8">
-                    <div class="rounded-[3rem] overflow-hidden aspect-square bg-white shadow-xl shadow-gray-200/50 border border-white">
-                        <img src="{{ $product->image_url }}" class="w-full h-full object-cover" alt="{{ $product->name }}">
+            <div class="grid gap-8 lg:grid-cols-2 lg:items-start">
+                <div class="lg:sticky lg:top-24">
+                    <div class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+                        <img src="{{ $product->image_url }}" class="aspect-square w-full object-cover" alt="{{ $product->name }}">
                     </div>
                 </div>
 
-                <form action="{{ route('cart.add') }}" method="POST" id="orderForm">
+                <form action="{{ route('cart.add') }}" method="POST" id="orderForm" class="space-y-8">
                     @csrf
                     <input type="hidden" name="product_id" value="{{ $product->id }}">
 
-                    <div class="mb-10 flex items-start justify-between">
+                    <div class="flex items-start justify-between gap-4">
                         <div>
-                            <span class="text-blue-600 font-bold text-sm uppercase tracking-widest">Premium Selection</span>
-                            <h1 class="text-4xl font-black text-gray-900 mt-1">{{ $product->name }}</h1>
-                            <p class="mt-3 text-sm font-bold text-gray-500">
+                            <p class="text-sm font-semibold text-indigo-700">Premium Selection</p>
+                            <h1 class="mt-1 text-3xl font-semibold tracking-tight text-slate-950">{{ $product->name }}</h1>
+                            <p class="mt-2 text-sm text-slate-600">
                                 {{ number_format($product->average_rating, 1) }} / 5 from {{ $product->reviews_count }} reviews
                             </p>
                         </div>
-                        <button type="button" onclick="toggleFavorite()" id="favoriteBtn" class="p-4 bg-white rounded-3xl shadow-xl shadow-gray-200/50 border border-gray-100 text-gray-300 hover:text-red-500 transition-all active:scale-95 group">
-                            <svg id="favoriteIcon" class="w-8 h-8 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                        <button type="button" onclick="toggleFavorite()" id="favoriteBtn"
+                            class="inline-flex h-12 w-12 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-300 shadow-sm transition hover:bg-rose-50 hover:text-rose-500 active:scale-95"
+                            aria-label="Toggle favorite">
+                            <svg id="favoriteIcon" class="h-6 w-6 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                             </svg>
                         </button>
                     </div>
 
-                    <div id="favoriteRemarkContainer" class="mb-8 hidden">
-                        <h3 class="text-xs font-black uppercase tracking-[0.2em] text-gray-400 mb-3">Add a Personal Note</h3>
-                        <textarea id="favoriteRemark" placeholder="e.g. My Monday Morning Coffee" class="w-full bg-white border-2 border-gray-100 rounded-2xl p-4 text-sm font-bold focus:border-blue-600 focus:ring-0 transition-all placeholder:text-gray-300 h-20 resize-none"></textarea>
+                    <div id="favoriteRemarkContainer" class="hidden space-y-2">
+                        <label for="favoriteRemark" class="text-sm font-medium text-slate-700">Personal Note</label>
+                        <textarea id="favoriteRemark" placeholder="e.g. My Monday Morning Coffee"
+                            class="h-24 w-full resize-none rounded-lg border-slate-300 text-sm font-medium text-slate-800 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"></textarea>
                     </div>
 
-                    <div class="mb-10">
-                        <h3 class="text-xs font-black uppercase tracking-[0.2em] text-gray-400 mb-5">Select Temperature</h3>
-                        <div class="grid grid-cols-2 gap-4">
+                    <x-ui.card>
+                        <h2 class="text-base font-semibold text-slate-950">Select Temperature</h2>
+                        <div class="mt-4 grid grid-cols-2 gap-3">
                             @foreach($options['temps'] as $temp)
                                 <label class="cursor-pointer">
-                                    <input type="radio" name="temp" value="{{ $temp }}" class="hidden peer" {{ $loop->first ? 'checked' : '' }}>
-                                    <div class="py-5 text-center rounded-2xl border-2 border-transparent bg-white shadow-sm font-bold text-gray-500 peer-checked:border-blue-600 peer-checked:text-blue-600 peer-checked:shadow-md transition-all">
+                                    <input type="radio" name="temp" value="{{ $temp }}" class="peer sr-only" {{ $loop->first ? 'checked' : '' }}>
+                                    <span class="block rounded-lg border border-slate-200 bg-white px-4 py-3 text-center text-sm font-semibold text-slate-600 transition peer-checked:border-indigo-600 peer-checked:bg-indigo-50 peer-checked:text-indigo-700 hover:bg-slate-50">
                                         {{ $temp }}
-                                    </div>
+                                    </span>
                                 </label>
                             @endforeach
                         </div>
-                    </div>
+                    </x-ui.card>
 
-                    <div class="mb-10">
-                        <h3 class="text-xs font-black uppercase tracking-[0.2em] text-gray-400 mb-5">Cup Size</h3>
-                        <div class="space-y-3">
+                    <x-ui.card>
+                        <h2 class="text-base font-semibold text-slate-950">Cup Size</h2>
+                        <div class="mt-4 space-y-3">
                             @foreach($options['sizes'] as $size)
-                                <label class="flex items-center p-5 rounded-2xl border-2 border-transparent bg-white shadow-sm cursor-pointer has-[:checked]:border-blue-600 transition-all hover:bg-gray-50">
-                                    <input type="radio" name="size" value="{{ $size['name'] }}" data-extra="{{ $size['extra'] }}" class="w-5 h-5 text-blue-600 border-gray-300" {{ $loop->first ? 'checked' : '' }}>
-                                    <div class="ml-4 flex justify-between w-full items-center">
-                                        <span class="font-bold text-gray-700">{{ $size['name'] }}</span>
+                                <label class="flex cursor-pointer items-center rounded-lg border border-slate-200 bg-white p-4 transition has-[:checked]:border-indigo-600 has-[:checked]:bg-indigo-50 hover:bg-slate-50">
+                                    <input type="radio" name="size" value="{{ $size['name'] }}" data-extra="{{ $size['extra'] }}"
+                                        class="h-4 w-4 border-slate-300 text-indigo-600 focus:ring-indigo-500" {{ $loop->first ? 'checked' : '' }}>
+                                    <span class="ml-3 flex w-full items-center justify-between gap-3">
+                                        <span class="font-semibold text-slate-700">{{ $size['name'] }}</span>
                                         @if($size['extra'] > 0)
-                                            <span class="text-xs font-bold text-gray-400">+ RM {{ number_format($size['extra'], 2) }}</span>
+                                            <span class="text-sm font-medium text-slate-500">+ RM {{ number_format($size['extra'], 2) }}</span>
                                         @endif
-                                    </div>
+                                    </span>
                                 </label>
                             @endforeach
                         </div>
-                    </div>
+                    </x-ui.card>
 
                     @if($product->addons->isNotEmpty())
-                    <div class="mb-10">
-                        <h3 class="text-xs font-black uppercase tracking-[0.2em] text-gray-400 mb-5">Extra Add-ons</h3>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            @foreach($product->addons as $addon)
-                                <label class="flex items-center justify-between p-5 rounded-2xl border-2 border-transparent bg-white shadow-sm cursor-pointer has-[:checked]:border-blue-600 transition-all">
-                                    <div class="flex items-center">
-                                        <input type="checkbox" name="addons[]" value="{{ $addon->name }}" data-price="{{ $addon->price }}" class="w-5 h-5 rounded text-blue-600 border-gray-300">
-                                        <span class="ml-4 font-bold text-gray-700">{{ $addon->name }}</span>
-                                    </div>
-                                    <span class="text-xs font-bold text-blue-500">+ RM {{ number_format($addon->price, 2) }}</span>
-                                </label>
-                            @endforeach
-                        </div>
-                    </div>
-                    @endif
-
-                    <div class="fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-xl border-t border-gray-100 px-6 py-6 z-50">
-                        <div class="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
-                            <div class="flex items-center bg-gray-100 p-1.5 rounded-2xl shadow-inner">
-                                <button type="button" onclick="changeQty(-1)" class="w-12 h-12 flex items-center justify-center font-black text-xl hover:text-blue-600 transition">－</button>
-                                <input type="number" name="quantity" id="qtyInput" value="1" readonly class="w-14 bg-transparent border-none text-center font-black text-xl focus:ring-0">
-                                <button type="button" onclick="changeQty(1)" class="w-12 h-12 flex items-center justify-center font-black text-xl hover:text-blue-600 transition">＋</button>
+                        <x-ui.card>
+                            <h2 class="text-base font-semibold text-slate-950">Extra Add-ons</h2>
+                            <div class="mt-4 grid gap-3 md:grid-cols-2">
+                                @foreach($product->addons as $addon)
+                                    <label class="flex cursor-pointer items-center justify-between rounded-lg border border-slate-200 bg-white p-4 transition has-[:checked]:border-indigo-600 has-[:checked]:bg-indigo-50 hover:bg-slate-50">
+                                        <span class="flex items-center">
+                                            <input type="checkbox" name="addons[]" value="{{ $addon->name }}" data-price="{{ $addon->price }}"
+                                                class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500">
+                                            <span class="ml-3 font-semibold text-slate-700">{{ $addon->name }}</span>
+                                        </span>
+                                        <span class="text-sm font-medium text-indigo-700">+ RM {{ number_format($addon->price, 2) }}</span>
+                                    </label>
+                                @endforeach
                             </div>
-                            
-                            <button type="submit" class="w-full md:w-auto md:min-w-[400px] bg-gray-900 text-white py-5 rounded-3xl font-black text-xl shadow-2xl hover:bg-blue-600 transition-all flex items-center justify-between px-10 group">
-                                <div class="flex items-center gap-3">
-                                    <svg class="w-6 h-6 group-hover:scale-110 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                                    <span>Add to Cart</span>
-                                </div>
-                                <div class="flex flex-col items-end border-l border-white/20 pl-6">
-                                    <span class="text-[10px] uppercase tracking-widest text-white/50 leading-none mb-1">Estimated Total</span>
-                                    <span id="realTimePrice" class="leading-none text-2xl">RM {{ number_format($product->price, 2) }}</span>
-                                </div>
-                            </button>
-                        </div>
-                    </div>
+                        </x-ui.card>
+                    @endif
                 </form>
 
-                <div class="lg:col-span-2 bg-white rounded-[2rem] p-8 border border-gray-100 shadow-sm">
-                    <h3 class="text-xs font-black uppercase tracking-[0.2em] text-gray-400 mb-5">Customer Reviews</h3>
-                    <div class="space-y-4">
+                <x-ui.card class="lg:col-span-2">
+                    <h2 class="text-base font-semibold text-slate-950">Customer Reviews</h2>
+                    <div class="mt-4 grid gap-3 md:grid-cols-2">
                         @forelse($product->reviews->sortByDesc('created_at')->take(10) as $review)
-                            <div class="p-4 bg-gray-50 rounded-2xl">
-                                <div class="flex justify-between">
-                                    <p class="font-black text-gray-800">{{ $review->user->name ?? 'Customer' }}</p>
-                                    <p class="text-xs font-black text-yellow-600">{{ $review->rating }} / 5</p>
+                            <div class="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                                <div class="flex justify-between gap-3">
+                                    <p class="font-semibold text-slate-950">{{ $review->user->name ?? 'Customer' }}</p>
+                                    <p class="text-sm font-semibold text-amber-700">{{ $review->rating }} / 5</p>
                                 </div>
                                 @if($review->comment)
-                                    <p class="mt-2 text-sm font-bold text-gray-500">{{ $review->comment }}</p>
+                                    <p class="mt-2 text-sm text-slate-600">{{ $review->comment }}</p>
                                 @endif
                             </div>
                         @empty
-                            <p class="text-sm font-bold text-gray-400">No reviews yet.</p>
+                            <p class="text-sm font-semibold text-slate-500">No reviews yet.</p>
                         @endforelse
                     </div>
-                </div>
+                </x-ui.card>
             </div>
         </div>
     </div>
 
-    @include('components.order-modals') 
+    <div class="fixed bottom-0 left-0 right-0 z-50 border-t border-slate-200 bg-white/95 px-4 py-4 shadow-lg backdrop-blur">
+        <div class="mx-auto flex max-w-6xl flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div class="flex items-center rounded-xl border border-slate-200 bg-slate-50 p-1">
+                <button type="button" onclick="changeQty(-1)" class="flex h-10 w-10 items-center justify-center rounded-lg text-lg font-semibold text-slate-700 hover:bg-white">-</button>
+                <input type="number" name="quantity" id="qtyInput" value="1" readonly form="orderForm"
+                    class="w-14 border-0 bg-transparent text-center text-lg font-semibold text-slate-950 focus:ring-0">
+                <button type="button" onclick="changeQty(1)" class="flex h-10 w-10 items-center justify-center rounded-lg text-lg font-semibold text-slate-700 hover:bg-white">+</button>
+            </div>
+
+            <button type="submit" form="orderForm"
+                class="inline-flex w-full items-center justify-between gap-6 rounded-xl bg-slate-900 px-6 py-4 text-white shadow-sm transition hover:bg-indigo-700 active:scale-[0.99] md:w-auto md:min-w-[360px]">
+                <span class="font-semibold">Add to Cart</span>
+                <span class="border-l border-white/20 pl-6 text-right">
+                    <span class="block text-xs text-white/60">Estimated Total</span>
+                    <span id="realTimePrice" class="text-lg font-semibold">RM {{ number_format($product->price, 2) }}</span>
+                </span>
+            </button>
+        </div>
+    </div>
+
+    @include('components.order-modals')
 
     <script>
         const BASE_PRICE = {{ $product->price }};
@@ -146,14 +146,11 @@
         const updatePreviewPrice = () => {
             let extra = 0;
             const qty = parseInt(qtyInput.value) || 1;
-            
             const size = document.querySelector('input[name="size"]:checked');
             if (size) extra += parseFloat(size.dataset.extra || 0);
-            
             document.querySelectorAll('input[name="addons[]"]:checked').forEach(el => {
                 extra += parseFloat(el.dataset.price || 0);
             });
-
             const total = (BASE_PRICE + extra) * qty;
             priceDisplay.innerText = `RM ${total.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
         };
@@ -164,7 +161,6 @@
         };
 
         orderForm.addEventListener('change', updatePreviewPrice);
-
         orderForm.onsubmit = (e) => {
             e.preventDefault();
             toggleModal('confirmModal', true);
@@ -175,7 +171,7 @@
             if (btn.disabled) return;
 
             btn.disabled = true;
-            btn.innerHTML = `<span class="flex items-center"><svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" ...>...</svg> Processing...</span>`;
+            btn.innerHTML = 'Processing...';
 
             try {
                 const response = await fetch("{{ route('cart.add') }}", {
@@ -205,6 +201,7 @@
             } catch (e) {
                 console.error(e);
                 btn.disabled = false;
+                btn.innerText = 'Confirm Order';
             }
         }
 
@@ -214,7 +211,6 @@
             modal.classList.toggle('flex', show);
         };
 
-        // Favorite Functionality
         async function checkFavoriteStatus() {
             const size = document.querySelector('input[name="size"]:checked').value;
             const temp = document.querySelector('input[name="temp"]:checked').value;
@@ -229,20 +225,19 @@
 
             const response = await fetch("{{ route('favorites.check') }}?" + params.toString());
             const data = await response.json();
-            
             const icon = document.getElementById('favoriteIcon');
             const btn = document.getElementById('favoriteBtn');
             const remarkContainer = document.getElementById('favoriteRemarkContainer');
 
             if (data.is_favorite) {
                 icon.setAttribute('fill', 'currentColor');
-                btn.classList.add('text-red-500');
-                btn.classList.remove('text-gray-300');
+                btn.classList.add('text-rose-500');
+                btn.classList.remove('text-slate-300');
                 remarkContainer.classList.remove('hidden');
             } else {
                 icon.setAttribute('fill', 'none');
-                btn.classList.add('text-gray-300');
-                btn.classList.remove('text-red-500');
+                btn.classList.add('text-slate-300');
+                btn.classList.remove('text-rose-500');
                 remarkContainer.classList.add('hidden');
             }
         }
@@ -257,9 +252,8 @@
             const temp = document.querySelector('input[name="temp"]:checked').value;
             const addons = Array.from(document.querySelectorAll('input[name="addons[]"]:checked')).map(el => el.value);
             const remark = document.getElementById('favoriteRemark').value;
-
             const icon = document.getElementById('favoriteIcon');
-            icon.classList.add('scale-150', 'animate-pulse');
+            icon.classList.add('scale-125');
 
             try {
                 const response = await fetch("{{ route('favorites.toggle') }}", {
@@ -281,11 +275,10 @@
                     await checkFavoriteStatus();
                 }
             } finally {
-                icon.classList.remove('scale-150', 'animate-pulse');
+                icon.classList.remove('scale-125');
             }
         }
 
-        // Initial check and listen for changes
         checkFavoriteStatus();
         orderForm.addEventListener('change', checkFavoriteStatus);
     </script>

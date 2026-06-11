@@ -1,71 +1,69 @@
-<div class="mt-8">
-    <div class="flex items-center gap-4 mb-6">
-        <h3 class="text-lg font-black text-gray-800 uppercase tracking-wider">My Collections</h3>
-        <div class="h-px flex-1 bg-gray-200"></div>
+<div class="space-y-4">
+    <div class="flex items-center justify-between gap-4">
+        <div>
+            <h3 class="text-base font-semibold text-slate-950">My Collections</h3>
+            <p class="text-sm text-slate-500">Saved combinations for quick reorder.</p>
+        </div>
+        <div class="h-px flex-1 bg-slate-200"></div>
     </div>
 
     @if($favorites->isEmpty())
-        <div class="py-20 text-center bg-white rounded-[3rem] border border-dashed border-gray-200">
-            <div class="inline-block p-6 bg-gray-50 rounded-full mb-4">
-                <svg class="w-12 h-12 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
-                </svg>
-            </div>
-            <p class="text-gray-400 font-medium text-lg">Your collection is empty.</p>
-            <p class="text-gray-400 text-sm mt-1">Save your favorite coffee combinations here!</p>
-            <a href="{{ route('dashboard') }}" class="text-blue-600 font-bold mt-4 inline-block hover:underline">Browse Menu</a>
+        <div class="rounded-xl border border-dashed border-slate-300 bg-white p-12 text-center">
+            <p class="text-sm font-semibold text-slate-500">Your collection is empty.</p>
+            <p class="mt-1 text-sm text-slate-500">Save your favorite coffee combinations here.</p>
+            <x-ui.button :href="route('dashboard')" class="mt-4">
+                Browse Menu
+            </x-ui.button>
         </div>
     @else
-        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        <div class="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-4">
             @foreach($favorites as $favorite)
                 @php
                     $product = $favorite->product;
                 @endphp
-                <div class="group bg-white rounded-[2.5rem] border border-gray-100 overflow-hidden hover:shadow-2xl transition-all duration-500 flex flex-col">
-                    <a href="{{ route('product.detail', $product->id) }}?favorite_id={{ $favorite->id }}" class="block relative aspect-square bg-gray-50 overflow-hidden">
+                <div class="group flex flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition duration-200 hover:-translate-y-0.5 hover:shadow-md">
+                    <a href="{{ route('product.detail', $product->id) }}?favorite_id={{ $favorite->id }}" class="relative block aspect-square overflow-hidden bg-slate-100">
                         @if($product->image)
                             <img src="{{ asset('images/products/' . $product->image) }}"
-                                class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                                class="h-full w-full object-cover transition duration-500 group-hover:scale-105"
                                 alt="{{ $product->name }}" onerror="this.src='https://placehold.co/400x400?text=Image+Missing'">
                         @else
                             <img src="https://placehold.co/400x400?text={{ urlencode($product->name) }}"
-                                class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
+                                class="h-full w-full object-cover transition duration-500 group-hover:scale-105" alt="{{ $product->name }}">
                         @endif
 
-                        <div class="absolute top-4 right-4 bg-white/95 backdrop-blur-md px-3 py-1.5 rounded-2xl text-[10px] font-black shadow-xl border border-white/50">
+                        <div class="absolute right-3 top-3 rounded-lg border border-white/70 bg-white/95 px-2.5 py-1 text-xs font-semibold text-slate-950 shadow-sm">
                             {{ $favorite->temp }}
                         </div>
 
-                        <div class="absolute bottom-4 left-4 right-4 translate-y-2 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300">
-                            <button onclick="removeFromFavorites(event, {{ $favorite->id }})" class="w-full bg-red-500 text-white py-2 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg hover:bg-red-600 transition-colors">
+                        <div class="absolute bottom-3 left-3 right-3 translate-y-2 opacity-0 transition duration-200 group-hover:translate-y-0 group-hover:opacity-100">
+                            <button onclick="removeFromFavorites(event, {{ $favorite->id }})" class="w-full rounded-lg bg-rose-600 px-3 py-2 text-xs font-semibold text-white shadow-sm hover:bg-rose-700">
                                 Remove
                             </button>
                         </div>
                     </a>
 
-                    <div class="p-5 flex-1 flex flex-col">
-                        <div class="flex justify-between items-start mb-2">
-                            <h4 class="font-extrabold text-gray-900 truncate flex-1 pr-2">{{ $product->name }}</h4>
-                            <span class="text-xs font-black text-blue-600 bg-blue-50 px-2 py-0.5 rounded-lg">
-                                {{ $favorite->size }}
-                            </span>
+                    <div class="flex flex-1 flex-col p-4">
+                        <div class="mb-2 flex items-start justify-between gap-2">
+                            <h4 class="min-w-0 flex-1 truncate font-semibold text-slate-950">{{ $product->name }}</h4>
+                            <x-ui.badge variant="info">{{ $favorite->size }}</x-ui.badge>
                         </div>
-                        
+
                         @if(!empty($favorite->addons))
-                            <div class="flex flex-wrap gap-1 mb-3">
+                            <div class="mb-3 flex flex-wrap gap-1">
                                 @foreach($favorite->addons as $addon)
-                                    <span class="text-[9px] font-bold text-gray-400 bg-gray-50 px-1.5 py-0.5 rounded border border-gray-100">{{ $addon }}</span>
+                                    <x-ui.badge>{{ $addon }}</x-ui.badge>
                                 @endforeach
                             </div>
                         @endif
 
                         @if($favorite->remark)
-                            <p class="text-[10px] italic text-gray-400 line-clamp-2 mb-3">"{{ $favorite->remark }}"</p>
+                            <p class="mb-3 line-clamp-2 text-xs text-slate-500">"{{ $favorite->remark }}"</p>
                         @endif
 
-                        <div class="mt-auto pt-4 border-t border-gray-50 flex items-center justify-between">
-                             <p class="text-xs font-black text-gray-800">RM {{ number_format($product->price, 2) }}</p>
-                             <form action="{{ route('cart.add') }}" method="POST">
+                        <div class="mt-auto flex items-center justify-between border-t border-slate-200 pt-4">
+                            <p class="text-sm font-semibold text-slate-950">RM {{ number_format($product->price, 2) }}</p>
+                            <form action="{{ route('cart.add') }}" method="POST">
                                 @csrf
                                 <input type="hidden" name="product_id" value="{{ $product->id }}">
                                 <input type="hidden" name="size" value="{{ $favorite->size }}">
@@ -74,10 +72,12 @@
                                     <input type="hidden" name="addons[]" value="{{ $addon }}">
                                 @endforeach
                                 <input type="hidden" name="quantity" value="1">
-                                <button type="submit" class="p-2 bg-gray-900 text-white rounded-xl hover:bg-blue-600 transition-all shadow-md group/btn">
-                                    <svg class="w-4 h-4 group-hover/btn:scale-110 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                <button type="submit" class="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-slate-900 text-white transition hover:bg-indigo-700" aria-label="Add favorite to cart">
+                                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                                    </svg>
                                 </button>
-                             </form>
+                            </form>
                         </div>
                     </div>
                 </div>
@@ -90,10 +90,9 @@
     function removeFromFavorites(event, id) {
         event.preventDefault();
         event.stopPropagation();
-        
+
         if (!confirm('Remove from collections?')) return;
 
-        // Note: Using the web endpoint
         fetch(`/favorites/${id}`, {
             method: 'DELETE',
             headers: {

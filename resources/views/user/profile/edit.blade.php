@@ -1,159 +1,75 @@
-<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 <x-app-layout>
     @if (session('status'))
-    <div x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 3000)"
-        x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 -translate-y-4"
-        x-transition:enter-end="opacity-100 translate-y-0" x-transition:leave="transition ease-in duration-300"
-        x-transition:leave-start="opacity-100 translate-y-0" x-transition:leave-end="opacity-0 -translate-y-4"
-        class="fixed top-10 left-1/2 transform -translate-x-1/2 z-[100] w-full max-w-sm px-4">
-        <div
-            class="bg-gray-900/90 backdrop-blur-xl text-white px-6 py-4 rounded-[2rem] shadow-2xl flex items-center justify-between border border-white/10">
-            <div class="flex items-center gap-3">
-                <div class="bg-green-500 rounded-full p-1">
-                    <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
-                    </svg>
-                </div>
-                <p class="font-bold text-sm">
-                    {{ session('status') === 'profile-updated' ? 'Profile updated!' : 'Action successful!' }}
-                </p>
+        <div x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 3000)" x-transition
+            class="fixed left-1/2 top-6 z-[100] w-full max-w-sm -translate-x-1/2 px-4">
+            <div class="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-700 shadow-sm">
+                {{ session('status') === 'profile-updated' ? 'Profile updated.' : 'Action successful.' }}
             </div>
-            <button @click="show = false" class="text-white/30 hover:text-white transition-colors">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path d="M6 18L18 6M6 6l12 12" stroke-width="2"></path>
-                </svg>
-            </button>
         </div>
-    </div>
     @endif
 
-    <div class="py-12 bg-gray-50/50 min-h-screen scroll-smooth">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="px-4 py-6 sm:px-6 lg:px-8">
+        <div class="mx-auto max-w-7xl space-y-6">
+            <x-layout.page-header title="Profile" description="Manage your account, Tangki balance, and security settings." />
 
-            <div class="mb-10 flex items-center justify-between">
-                <div>
-                    <h2 class="text-3xl font-black text-gray-900 tracking-tight">Profile</h2>
-                    <p class="text-gray-500 mt-1">Manage your coffee tank and security settings.</p>
-                </div>
-            </div>
-
-            <div class="flex flex-col lg:flex-row gap-8 items-start">
-
-                <div class="w-full lg:w-1/3 lg:sticky lg:top-8 space-y-6">
-
-                    <div
-                        class="bg-white rounded-[2.5rem] p-8 shadow-sm border border-gray-100 overflow-hidden relative">
-                        <div class="absolute -top-10 -right-10 w-32 h-32 bg-blue-50 rounded-full opacity-50"></div>
-
-                        <div class="relative">
-                            <div
-                                class="w-24 h-24 bg-gradient-to-tr from-blue-600 to-blue-400 rounded-[2rem] flex items-center justify-center mx-auto mb-4 shadow-xl shadow-blue-100 text-white text-3xl font-black">
+            <div class="grid gap-6 lg:grid-cols-[360px_1fr]">
+                <aside class="space-y-6 lg:sticky lg:top-24 lg:self-start">
+                    <x-ui.card>
+                        <div class="text-center">
+                            <div class="mx-auto flex h-20 w-20 items-center justify-center rounded-xl bg-slate-900 text-3xl font-semibold text-white">
                                 {{ substr(Auth::user()->name, 0, 1) }}
                             </div>
-                            <h3 class="text-xl font-black text-gray-900 text-center">{{ Auth::user()->name }}</h3>
-                            <p class="text-sm text-gray-400 mb-6 text-center">{{ Auth::user()->email }}</p>
+                            <h2 class="mt-4 text-xl font-semibold text-slate-950">{{ Auth::user()->name }}</h2>
+                            <p class="mt-1 text-sm text-slate-500">{{ Auth::user()->email }}</p>
+                        </div>
 
-                            <div class="grid grid-cols-2 gap-4 border-t border-gray-50 pt-6">
-                                <div class="text-center">
-                                    <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Balance</p>
-                                    <p class="text-lg font-black text-gray-800">RM {{
-                                        number_format(Auth::user()->tangki_balance, 2) }}</p>
-                                </div>
-                                <div class="text-center border-l border-gray-100">
-                                    <p class="text-[10px] text-blue-400 font-bold uppercase tracking-widest">Storage</p>
-                                    <p class="text-lg font-black text-blue-600">{{ Auth::user()->tangki_oz }} <span
-                                            class="text-xs">oz</span></p>
-                                </div>
+                        <div class="mt-6 grid grid-cols-2 gap-4 border-t border-slate-200 pt-6">
+                            <div>
+                                <p class="text-xs font-semibold uppercase tracking-wide text-slate-400">Balance</p>
+                                <p class="mt-1 text-lg font-semibold text-slate-950">RM {{ number_format(Auth::user()->tangki_balance, 2) }}</p>
+                            </div>
+                            <div>
+                                <p class="text-xs font-semibold uppercase tracking-wide text-slate-400">Storage</p>
+                                <p class="mt-1 text-lg font-semibold text-indigo-700">{{ Auth::user()->tangki_oz }} oz</p>
                             </div>
                         </div>
-                    </div>
+                    </x-ui.card>
 
-                    <div class="bg-white rounded-[2.5rem] p-3 shadow-sm border border-gray-100">
+                    <x-ui.card padding="compact">
                         <nav class="space-y-1">
-                            <a href="#profile-info"
-                                class="group flex items-center gap-3 px-6 py-4 hover:bg-gray-50 text-gray-600 hover:text-blue-600 rounded-2xl font-bold transition-all">
-                                <span class="text-xl group-hover:scale-110 transition">👤</span>
-                                <span>Profile Information</span>
-                            </a>
-                            <a href="#password-info"
-                                class="group flex items-center gap-3 px-6 py-4 hover:bg-gray-50 text-gray-600 hover:text-blue-600 rounded-2xl font-bold transition-all">
-                                <span class="text-xl group-hover:scale-110 transition">🔒</span>
-                                <span>Update Password</span>
-                            </a>
-                            <a href="#delete-account"
-                                class="group flex items-center gap-3 px-6 py-4 hover:bg-red-50 text-gray-600 hover:text-red-500 rounded-2xl font-bold transition-all">
-                                <span class="text-xl group-hover:scale-110 transition">⚠️</span>
-                                <span>Delete Account</span>
-                            </a>
+                            <a href="#profile-info" class="block rounded-lg px-3 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-100 hover:text-slate-950">Profile Information</a>
+                            <a href="#password-info" class="block rounded-lg px-3 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-100 hover:text-slate-950">Update Password</a>
+                            <a href="#delete-account" class="block rounded-lg px-3 py-2 text-sm font-semibold text-rose-600 hover:bg-rose-50">Delete Account</a>
                         </nav>
-                    </div>
-                </div>
+                    </x-ui.card>
+                </aside>
 
-                <div class="w-full lg:w-2/3 space-y-10">
-
-                    <section id="profile-info" class="scroll-mt-8">
-                        <div class="bg-white rounded-[2.5rem] p-8 md:p-12 shadow-sm border border-gray-100">
+                <div class="space-y-6">
+                    <section id="profile-info" class="scroll-mt-24">
+                        <x-ui.card>
                             <div class="max-w-xl">
                                 @include('user.profile.partials.update-profile-information-form')
                             </div>
-                        </div>
+                        </x-ui.card>
                     </section>
 
-                    <section id="password-info" class="scroll-mt-8">
-                        <div class="bg-white rounded-[2.5rem] p-8 md:p-12 shadow-sm border border-gray-100">
+                    <section id="password-info" class="scroll-mt-24">
+                        <x-ui.card>
                             <div class="max-w-xl">
                                 @include('user.profile.partials.update-password-form')
                             </div>
-                        </div>
+                        </x-ui.card>
                     </section>
 
-                    <section id="delete-account" class="scroll-mt-8">
-                        <div
-                            class="bg-white rounded-[2.5rem] p-8 md:p-12 shadow-sm border border-gray-100 border-b-8 border-b-red-500">
+                    <section id="delete-account" class="scroll-mt-24">
+                        <x-ui.card class="border-rose-200">
                             <div class="max-w-xl">
                                 @include('user.profile.partials.delete-user-form')
                             </div>
-                        </div>
+                        </x-ui.card>
                     </section>
                 </div>
-
             </div>
         </div>
     </div>
-
-    <script>
-        document.querySelectorAll('nav a').forEach(anchor => {
-            anchor.addEventListener('click', function(e) {
-                setActive(this);
-            });
-        });
-
-        function setActive(link) {
-            document.querySelectorAll('nav a').forEach(a => {
-                a.classList.remove('bg-blue-50', 'text-blue-600');
-                a.classList.add('text-gray-600');
-            });
-            link.classList.add('bg-blue-50', 'text-blue-600');
-            link.classList.remove('text-gray-600');
-        }
-
-        window.addEventListener('scroll', () => {
-            let current = "";
-            const sections = document.querySelectorAll('section');
-            const navLinks = document.querySelectorAll('nav a');
-
-            sections.forEach(section => {
-                const sectionTop = section.offsetTop;
-                if (pageYOffset >= sectionTop - 150) {
-                    current = section.getAttribute('id');
-                }
-            });
-
-            navLinks.forEach(link => {
-                if (link.getAttribute('href').includes(current)) {
-                    setActive(link);
-                }
-            });
-        });
-    </script>
 </x-app-layout>
