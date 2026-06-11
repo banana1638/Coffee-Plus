@@ -4,7 +4,6 @@ namespace App\Http\Resources\Api;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
-use Illuminate\Support\Facades\Storage;
 
 class ProductResource extends JsonResource
 {
@@ -19,7 +18,7 @@ class ProductResource extends JsonResource
             'id' => $this->id,
             'name' => $this->name,
             'description' => $this->description,
-            'image_url' => $this->image ? asset('storage/' . $this->image) : null,
+            'image_url' => $this->image_url,
             'base_price' => (float) $this->price,
             'base_price_cents' => (int) ($this->price_cents ?? round(((float) $this->price) * 100)),
             'category_id' => $this->menu_id,
@@ -37,3 +36,4 @@ class ProductResource extends JsonResource
         ];
     }
 }
+

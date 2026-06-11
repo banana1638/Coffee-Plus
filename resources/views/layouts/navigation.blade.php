@@ -56,22 +56,28 @@
                             <div class="flex items-center justify-between border-b border-slate-200 bg-slate-50 px-4 py-3">
                                 <span class="text-xs font-semibold uppercase tracking-wide text-slate-500">Notifications</span>
                                 @if($navbarUnreadCount > 0)
-                                    <a href="{{ route('notifications.markAllAsRead') }}" class="text-xs font-semibold text-indigo-700 hover:text-indigo-900">
-                                        Mark all as read
-                                    </a>
+                                    <form action="{{ route('notifications.markAllAsRead') }}" method="POST">
+                                        @csrf
+                                        <button type="submit" class="text-xs font-semibold text-indigo-700 hover:text-indigo-900">
+                                            Mark all as read
+                                        </button>
+                                    </form>
                                 @endif
                             </div>
                             <div class="max-h-96 divide-y divide-slate-200 overflow-y-auto">
                                 @forelse($navbarNotifications as $notification)
                                     <div class="{{ $notification->read_at ? '' : 'bg-indigo-50/50' }} group relative px-4 py-3 transition hover:bg-slate-50">
-                                        <a href="{{ route('notifications.markAsRead', $notification->id) }}" class="block pr-8">
-                                            <p class="text-sm {{ $notification->read_at ? 'text-slate-600' : 'font-semibold text-slate-950' }}">
-                                                {{ $notification->data['message'] ?? 'New notification' }}
-                                            </p>
-                                            <p class="mt-1 text-xs text-slate-500">
-                                                #{{ $notification->data['bill_id'] ?? 'N/A' }} · {{ $notification->created_at->diffForHumans() }}
-                                            </p>
-                                        </a>
+                                        <form action="{{ route('notifications.markAsRead', $notification->id) }}" method="POST" class="pr-8">
+                                            @csrf
+                                            <button type="submit" class="block w-full text-left">
+                                                <p class="text-sm {{ $notification->read_at ? 'text-slate-600' : 'font-semibold text-slate-950' }}">
+                                                    {{ $notification->data['message'] ?? 'New notification' }}
+                                                </p>
+                                                <p class="mt-1 text-xs text-slate-500">
+                                                    #{{ $notification->data['bill_id'] ?? 'N/A' }} · {{ $notification->created_at->diffForHumans() }}
+                                                </p>
+                                            </button>
+                                        </form>
                                         <form action="{{ route('notifications.destroy', $notification->id) }}" method="POST"
                                             onsubmit="return confirm('Delete this notification?')"
                                             class="absolute right-3 top-3 opacity-0 transition group-hover:opacity-100">

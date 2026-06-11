@@ -58,10 +58,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/favorites/check', [\App\Http\Controllers\FavoriteController::class, 'check'])->name('favorites.check');
     Route::delete('/favorites/{id}', [\App\Http\Controllers\FavoriteController::class, 'destroy'])->name('favorites.destroy');
 
-    Route::get('/notifications/mark-all-as-read', [NotificationController::class, 'markAllAsRead'])
+    Route::post('/notifications/mark-all-as-read', [NotificationController::class, 'markAllAsRead'])
         ->name('notifications.markAllAsRead');
 
-    Route::get('/notifications/{id}/mark-as-read', [NotificationController::class, 'markAsRead'])
+    Route::post('/notifications/{id}/mark-as-read', [NotificationController::class, 'markAsRead'])
         ->name('notifications.markAsRead');
 
     Route::delete('/notifications/{id}', [NotificationController::class, 'destroy'])

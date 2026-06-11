@@ -7,9 +7,14 @@ use Illuminate\Database\Eloquent\Model;
 class PaymentEvent extends Model
 {
     protected $fillable = [
+        'provider',
+        'event_id',
         'session_id',
-        'event_type',
         'user_id',
+        'type',
+        'amount_cents',
+        'currency',
+        'status',
         'payload_json',
         'processed_at',
     ];
