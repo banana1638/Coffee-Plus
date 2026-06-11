@@ -6,6 +6,8 @@ use App\Models\Admin;
 use App\Models\Menu;
 use App\Models\Product;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\File;
 use Tests\TestCase;
 
 class ProductAdminTest extends TestCase
@@ -59,6 +61,31 @@ class ProductAdminTest extends TestCase
             'track_stock' => false,
             'stock' => null,
         ]);
+    }
+
+    public function test_admin_can_update_product_image(): void
+    {
+        $admin = $this->createAdmin();
+        $menu = $this->createMenu();
+        $product = $this->createProduct($menu);
+        $image = UploadedFile::fake()->image('updated-latte.jpg', 600, 600);
+
+        $this->actingAs($admin, 'admin')
+            ->put(route('admin.products.update', $product), [
+                'name' => 'Latte With Photo',
+                'price' => 13.00,
+                'menu_id' => $menu->id,
+                'oz_redeem_value' => 130,
+                'image' => $image,
+            ])
+            ->assertRedirect(route('admin.products.index'));
+
+        $product->refresh();
+
+        $this->assertNotNull($product->image);
+        $this->assertFileExists(public_path('images/products/' . $product->image));
+
+        File::delete(public_path('images/products/' . $product->image));
     }
 
     public function test_product_index_shows_stock_status(): void

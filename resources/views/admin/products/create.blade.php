@@ -26,6 +26,9 @@
                                 </div>
                                 <img id="image-preview" class="hidden h-full w-full object-cover" alt="Product preview">
                             </label>
+                            @error('image')
+                                <p class="text-sm font-medium text-rose-600">{{ $message }}</p>
+                            @enderror
                         </div>
 
                         <div class="grid grid-cols-1 gap-6 md:grid-cols-2">

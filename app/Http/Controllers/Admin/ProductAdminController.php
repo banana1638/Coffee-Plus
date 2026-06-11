@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Product;
 use App\Models\Menu;
 use App\Services\AuditLogService;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
@@ -34,7 +35,7 @@ class ProductAdminController extends Controller
             'oz_redeem_value' => 'nullable|numeric',
             'track_stock' => 'nullable|boolean',
             'stock' => 'nullable|integer|min:0|required_if:track_stock,1',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
         ]);
 
         $product = new Product();
@@ -46,7 +47,7 @@ class ProductAdminController extends Controller
         $product->stock = $product->track_stock ? (int) $request->input('stock', 0) : null;
 
         if ($request->hasFile('image')) {
-            $product->image = $this->storeProductImage($request);
+            $product->image = $this->storeProductImage($request->file('image'));
         }
 
         $product->save();
@@ -92,7 +93,7 @@ class ProductAdminController extends Controller
             'oz_redeem_value' => 'nullable|numeric',
             'track_stock' => 'nullable|boolean',
             'stock' => 'nullable|integer|min:0|required_if:track_stock,1',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
         ]);
 
         $product->name = $request->name;
@@ -103,11 +104,12 @@ class ProductAdminController extends Controller
         $product->stock = $product->track_stock ? (int) $request->input('stock', 0) : null;
 
         if ($request->hasFile('image')) {
-            if ($product->image && File::exists(public_path('images/products/'.$product->image))) {
-                File::delete(public_path('images/products/'.$product->image));
+            $oldImage = $product->image;
+            $product->image = $this->storeProductImage($request->file('image'));
+
+            if ($oldImage && File::exists(public_path('images/products/'.$oldImage))) {
+                File::delete(public_path('images/products/'.$oldImage));
             }
-            
-            $product->image = $this->storeProductImage($request);
         }
 
         $product->save();
@@ -152,9 +154,10 @@ class ProductAdminController extends Controller
         return back()->with('success', 'Product deleted!');
     }
 
-    private function storeProductImage(Request $request): string
+    private function storeProductImage(UploadedFile $image): string
     {
-        $image = $request->file('image');
+        File::ensureDirectoryExists(public_path('images/products'));
+
         $filename = (string) Str::uuid() . '.' . $image->extension();
         $image->move(public_path('images/products'), $filename);
 

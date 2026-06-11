@@ -29,6 +29,9 @@
                                     <span class="rounded-lg bg-white px-3 py-2 text-xs font-semibold text-slate-950">Change Photo</span>
                                 </div>
                             </label>
+                            @error('image')
+                                <p class="text-sm font-medium text-rose-600">{{ $message }}</p>
+                            @enderror
                         </div>
 
                         <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
