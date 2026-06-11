@@ -90,7 +90,7 @@ class TangkiService implements TangkiServiceInterface
         return DB::transaction(function () use ($user, $amount, $rewardOz, $billId, $description) {
             $userObj = User::where('id', $user->id)->lockForUpdate()->first();
             $amountCents = Money::toCents($amount);
-            $balanceCents = (int) ($userObj?->tangki_balance_cents ?? Money::toCents($userObj?->tangki_balance));
+            $balanceCents = $userObj ? $this->ledgerService->balanceCents($userObj) : 0;
 
             if (!$userObj || $balanceCents < $amountCents) {
                 return false;

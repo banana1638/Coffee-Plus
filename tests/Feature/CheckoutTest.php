@@ -11,6 +11,7 @@ use App\Models\OrderItem;
 use App\Models\Product;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 class CheckoutTest extends TestCase
@@ -187,6 +188,53 @@ class CheckoutTest extends TestCase
         $coupon->refresh();
         $this->assertSame(1, $coupon->used_count);
         $this->assertDatabaseCount('coupon_redemptions', 1);
+    }
+
+    public function test_checkout_uses_final_discounted_amount_for_balance_check(): void
+    {
+        $user = User::factory()->create(['tangki_balance' => 7.00]);
+        $product = $this->createProduct();
+        $this->addCartItem($user, $product);
+
+        $coupon = new Coupon();
+        $coupon->code = 'FINAL5';
+        $coupon->type = 'fixed';
+        $coupon->value = 5.00;
+        $coupon->usage_limit = 10;
+        $coupon->used_count = 0;
+        $coupon->save();
+
+        $this->apiCheckout($user, [
+            'coupon_code' => 'FINAL5',
+        ])->assertStatus(200)
+            ->assertJsonPath('data.final_amount', 5)
+            ->assertJsonPath('data.final_amount_cents', 500);
+
+        $user->refresh();
+        $this->assertEquals('2.00', $user->tangki_balance);
+        $this->assertSame(200, $user->tangki_balance_cents);
+    }
+
+    public function test_checkout_accepts_legacy_balance_when_cents_cache_is_stale(): void
+    {
+        $user = User::factory()->create(['tangki_balance' => 20.00]);
+        DB::table('users')
+            ->where('id', $user->id)
+            ->update([
+                'tangki_balance' => 20.00,
+                'tangki_balance_cents' => 0,
+            ]);
+
+        $product = $this->createProduct();
+        $this->addCartItem($user, $product);
+
+        $this->apiCheckout($user->fresh())->assertStatus(200)
+            ->assertJsonPath('data.final_amount', 10)
+            ->assertJsonPath('data.final_amount_cents', 1000);
+
+        $user->refresh();
+        $this->assertEquals('10.00', $user->tangki_balance);
+        $this->assertSame(1000, $user->tangki_balance_cents);
     }
 
     public function test_checkout_rejects_when_tracked_stock_is_insufficient(): void

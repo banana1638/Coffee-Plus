@@ -10,13 +10,15 @@ class WalletLedger extends Model
 
     protected $fillable = [
         'user_id',
-        'type',
+        'direction',
         'amount_cents',
+        'balance_before_cents',
         'balance_after_cents',
-        'description',
+        'source_type',
+        'source_id',
         'idempotency_key',
-        'reference_type',
-        'reference_id',
+        'description',
+        'created_by',
     ];
 
     public function user()

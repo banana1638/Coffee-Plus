@@ -184,7 +184,7 @@ class OrderService
             return;
         }
 
-        $referralCashReversalCents = min((int) ($referrer->tangki_balance_cents ?? Money::toCents($referrer->tangki_balance)), 500);
+        $referralCashReversalCents = min($this->ledgerService->balanceCents($referrer), 500);
         if ($referralCashReversalCents > 0) {
             $this->ledgerService->debit(
                 $referrer,

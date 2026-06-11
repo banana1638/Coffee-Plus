@@ -13,6 +13,7 @@ class IdempotencyKey extends Model
         'user_id',
         'key',
         'route',
+        'request_hash',
         'status',
         'response_json',
         'locked_until',

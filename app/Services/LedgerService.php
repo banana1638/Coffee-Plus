@@ -91,8 +91,15 @@ class LedgerService
         });
     }
 
-    private function balanceCents(User $user): int
+    public function balanceCents(User $user): int
     {
-        return (int) ($user->tangki_balance_cents ?? Money::toCents($user->tangki_balance));
+        $legacyBalanceCents = Money::toCents($user->tangki_balance);
+        $storedBalanceCents = $user->tangki_balance_cents;
+
+        if ($storedBalanceCents === null) {
+            return $legacyBalanceCents;
+        }
+
+        return max((int) $storedBalanceCents, $legacyBalanceCents);
     }
 }

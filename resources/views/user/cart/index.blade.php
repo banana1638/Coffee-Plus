@@ -52,7 +52,8 @@
                     @foreach($cartItems as $item)
                         @php
                             $itemTotalCash = $item->unit_price * $item->quantity;
-                            $itemTotalOz = (int)($itemTotalCash * 100);
+                            $itemTotalCashCents = (int) round($itemTotalCash * 100);
+                            $itemTotalOz = $itemTotalCashCents;
                         @endphp
 
                         <x-ui.card padding="compact" class="group">
@@ -81,6 +82,7 @@
                                         <input type="checkbox" name="use_oz[]" value="{{ $item->id }}"
                                             class="peer sr-only oz-checkbox"
                                             data-price="{{ $itemTotalCash }}"
+                                            data-price-cents="{{ $itemTotalCashCents }}"
                                             data-oz-needed="{{ $itemTotalOz }}">
                                         <span class="h-6 w-11 rounded-full bg-slate-200 after:absolute after:left-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-slate-300 after:bg-white after:transition-all peer-checked:bg-indigo-600 peer-checked:after:translate-x-full peer-checked:after:border-white"></span>
                                         <span class="text-xs font-semibold uppercase tracking-wide text-slate-500 peer-checked:text-indigo-700">Redeem</span>
@@ -132,14 +134,14 @@
             if (!totalDisplay || !btnUseBalance || !userBalance) return;
 
             const userOzBalance = parseInt(userBalance.dataset.balance);
-            const userCashBalance = parseFloat("{{ Auth::user()->tangki_balance }}");
+            const userCashBalanceCents = {{ (int) round(Auth::user()->tangki_balance * 100) }};
 
             function updateCalculations() {
-                let currentTotalCash = 0;
+                let currentTotalCashCents = 0;
                 let totalOzUsed = 0;
 
                 checkboxes.forEach(cb => {
-                    const price = parseFloat(cb.dataset.price);
+                    const priceCents = parseInt(cb.dataset.priceCents);
                     const ozNeeded = parseInt(cb.dataset.ozNeeded);
                     const card = cb.closest('.group');
                     const priceLabel = card.querySelector('.item-price-label');
@@ -148,15 +150,16 @@
                         totalOzUsed += ozNeeded;
                         priceLabel.innerHTML = `<span class="text-slate-400 line-through">${priceLabel.dataset.cash}</span> <span class="ml-1 text-xs font-semibold text-indigo-700">REDEEMED</span>`;
                     } else {
-                        currentTotalCash += price;
+                        currentTotalCashCents += priceCents;
                         priceLabel.innerHTML = priceLabel.dataset.cash;
                     }
                 });
 
+                const currentTotalCash = currentTotalCashCents / 100;
                 totalDisplay.innerText = currentTotalCash.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
                 ozSummary.innerText = totalOzUsed > 0 ? `${totalOzUsed.toLocaleString()} OZ WILL BE DEDUCTED` : '';
 
-                if (currentTotalCash > userCashBalance) {
+                if (currentTotalCashCents > userCashBalanceCents) {
                     btnUseBalance.disabled = true;
                     btnText.innerText = 'Balance Insufficient';
                     balanceError.classList.remove('hidden');
