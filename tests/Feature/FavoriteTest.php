@@ -66,7 +66,8 @@ class FavoriteTest extends TestCase
         $this->assertDatabaseHas('favorites', [
             'user_id' => $user->id,
             'product_id' => $product->id,
-            'size' => 'Regular'
+            'size' => 'Regular',
+            'addons_signature' => \App\Support\AddonsSignature::from(['Extra Shot']),
         ]);
 
         // Second POST with same data — should conflict (409)
@@ -79,6 +80,29 @@ class FavoriteTest extends TestCase
         ]);
 
         $duplicate->assertStatus(409);
+    }
+
+    public function test_favorite_addons_signature_matches_sorted_addons(): void
+    {
+        [$user, $product] = $this->createProduct();
+
+        $this->actingAs($user)->postJson('/api/favorites', [
+            'product_id' => $product->id,
+            'size' => 'Regular',
+            'temp' => 'Hot',
+            'addons' => ['Vanilla Syrup', 'Extra Shot'],
+            'remark' => 'Make it strong',
+        ])->assertStatus(201);
+
+        $this->actingAs($user)->postJson('/api/favorites', [
+            'product_id' => $product->id,
+            'size' => 'Regular',
+            'temp' => 'Hot',
+            'addons' => ['Extra Shot', 'Vanilla Syrup'],
+            'remark' => 'Same recipe',
+        ])->assertStatus(409);
+
+        $this->assertDatabaseCount('favorites', 1);
     }
 
     public function test_user_can_remove_favorite()

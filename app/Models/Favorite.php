@@ -10,6 +10,7 @@ class Favorite extends Model
         'user_id',
         'product_id',
         'addons',
+        'addons_signature',
     ];
 
     protected $casts = [

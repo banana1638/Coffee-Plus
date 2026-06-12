@@ -13,6 +13,7 @@ class CartItem extends Model
         'product_id',
         'quantity',
         'addons',
+        'addons_signature',
         'unit_price',
         'unit_price_cents',
         'special_instructions',

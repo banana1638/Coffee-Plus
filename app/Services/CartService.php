@@ -8,6 +8,7 @@ use App\Models\CartItem;
 use App\Models\Product;
 use App\Models\User;
 use App\Services\PricingService;
+use App\Support\AddonsSignature;
 use App\Support\Money;
 use Illuminate\Support\Collection;
 
@@ -33,20 +34,20 @@ class CartService implements CartServiceInterface
             : Money::toCents($this->pricingService->calculateUnitPrice($product, $size, $addons));
         $finalUnitPrice = Money::fromCents($finalUnitPriceCents);
 
-        $addonsArray = $addons;
-        sort($addonsArray);
+        $addonsArray = AddonsSignature::normalize($addons);
+        $addonsSignature = AddonsSignature::from($addonsArray);
 
         /** @var CartItem|null $cartItem */
         $cartItem = CartItem::where('user_id', $user->id)
             ->where('product_id', $productId)
             ->where('size', $size)
             ->where('temp', $temp)
-            ->get()
-            ->first(function ($item) use ($addonsArray) {
-                $itemAddons = is_array($item->addons) ? $item->addons : [];
-                sort($itemAddons);
-                return $itemAddons === $addonsArray;
-            });
+            ->where('addons_signature', $addonsSignature)
+            ->first();
+
+        if (!$cartItem) {
+            $cartItem = $this->findLegacyCartItem($user, $productId, $size, $temp, $addonsArray);
+        }
 
         if ($cartItem) {
             $this->assertValidQuantity($cartItem->quantity + $quantity);
@@ -54,6 +55,7 @@ class CartService implements CartServiceInterface
             $cartItem->quantity += $quantity;
             $cartItem->unit_price = $finalUnitPrice;
             $cartItem->unit_price_cents = $finalUnitPriceCents;
+            $cartItem->addons_signature = $addonsSignature;
             $cartItem->save();
         } else {
             $cartItem = new CartItem();
@@ -63,6 +65,7 @@ class CartService implements CartServiceInterface
             $cartItem->size = $size;
             $cartItem->temp = $temp;
             $cartItem->addons = $addonsArray;
+            $cartItem->addons_signature = $addonsSignature;
             $cartItem->unit_price = $finalUnitPrice;
             $cartItem->unit_price_cents = $finalUnitPriceCents;
             $cartItem->save();
@@ -134,5 +137,18 @@ class CartService implements CartServiceInterface
         if ($quantity < 1 || $quantity > 99) {
             throw new \InvalidArgumentException('Cart quantity must be between 1 and 99.');
         }
+    }
+
+    private function findLegacyCartItem(User $user, int $productId, string $size, string $temp, array $addonsArray): ?CartItem
+    {
+        return CartItem::where('user_id', $user->id)
+            ->where('product_id', $productId)
+            ->where('size', $size)
+            ->where('temp', $temp)
+            ->whereNull('addons_signature')
+            ->get()
+            ->first(function ($item) use ($addonsArray) {
+                return AddonsSignature::normalize(is_array($item->addons) ? $item->addons : []) === $addonsArray;
+            });
     }
 }

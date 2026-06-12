@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Contracts\FavoriteServiceInterface;
 use App\Models\Favorite;
 use App\Models\User;
+use App\Support\AddonsSignature;
 use Illuminate\Support\Collection;
 use Exception;
 
@@ -23,20 +24,20 @@ class FavoriteService implements FavoriteServiceInterface
      */
     public function toggle(User $user, int $productId, string $size, string $temp, array $addons, ?string $remark): string
     {
-        $addonsArray = $addons;
-        sort($addonsArray);
+        $addonsArray = AddonsSignature::normalize($addons);
+        $addonsSignature = AddonsSignature::from($addonsArray);
 
         /** @var Favorite|null $favorite */
         $favorite = Favorite::where('user_id', $user->id)
             ->where('product_id', $productId)
             ->where('size', $size)
             ->where('temp', $temp)
-            ->get()
-            ->first(function ($item) use ($addonsArray) {
-                $itemAddons = is_array($item->addons) ? $item->addons : [];
-                sort($itemAddons);
-                return $itemAddons === $addonsArray;
-            });
+            ->where('addons_signature', $addonsSignature)
+            ->first();
+
+        if (!$favorite) {
+            $favorite = $this->findLegacyFavorite($user, $productId, $size, $temp, $addonsArray);
+        }
 
         if ($favorite) {
             $favorite->delete();
@@ -49,6 +50,7 @@ class FavoriteService implements FavoriteServiceInterface
         $favorite->size = $size;
         $favorite->temp = $temp;
         $favorite->addons = $addonsArray;
+        $favorite->addons_signature = $addonsSignature;
         $favorite->remark = $remark ?? '';
         $favorite->save();
 
@@ -60,19 +62,19 @@ class FavoriteService implements FavoriteServiceInterface
      */
     public function check(User $user, int $productId, string $size, string $temp, array $addons): bool
     {
-        $addonsArray = $addons;
-        sort($addonsArray);
+        $addonsArray = AddonsSignature::normalize($addons);
+        $addonsSignature = AddonsSignature::from($addonsArray);
 
-        return Favorite::where('user_id', $user->id)
+        if (Favorite::where('user_id', $user->id)
             ->where('product_id', $productId)
             ->where('size', $size)
             ->where('temp', $temp)
-            ->get()
-            ->contains(function ($item) use ($addonsArray) {
-                $itemAddons = is_array($item->addons) ? $item->addons : [];
-                sort($itemAddons);
-                return $itemAddons === $addonsArray;
-            });
+            ->where('addons_signature', $addonsSignature)
+            ->exists()) {
+            return true;
+        }
+
+        return $this->findLegacyFavorite($user, $productId, $size, $temp, $addonsArray) !== null;
     }
 
     /**
@@ -80,8 +82,8 @@ class FavoriteService implements FavoriteServiceInterface
      */
     public function add(User $user, int $productId, string $size, string $temp, array $addons, ?string $remark): Favorite
     {
-        $addonsArray = $addons;
-        sort($addonsArray);
+        $addonsArray = AddonsSignature::normalize($addons);
+        $addonsSignature = AddonsSignature::from($addonsArray);
 
         if ($this->check($user, $productId, $size, $temp, $addonsArray)) {
             throw new Exception('Favorite already exists', 409);
@@ -93,6 +95,7 @@ class FavoriteService implements FavoriteServiceInterface
         $favorite->size = $size;
         $favorite->temp = $temp;
         $favorite->addons = $addonsArray;
+        $favorite->addons_signature = $addonsSignature;
         $favorite->remark = $remark ?? '';
         $favorite->save();
 
@@ -106,5 +109,18 @@ class FavoriteService implements FavoriteServiceInterface
     {
         $favorite = Favorite::where('user_id', $user->id)->findOrFail($id);
         $favorite->delete();
+    }
+
+    private function findLegacyFavorite(User $user, int $productId, string $size, string $temp, array $addonsArray): ?Favorite
+    {
+        return Favorite::where('user_id', $user->id)
+            ->where('product_id', $productId)
+            ->where('size', $size)
+            ->where('temp', $temp)
+            ->whereNull('addons_signature')
+            ->get()
+            ->first(function ($item) use ($addonsArray) {
+                return AddonsSignature::normalize(is_array($item->addons) ? $item->addons : []) === $addonsArray;
+            });
     }
 }
