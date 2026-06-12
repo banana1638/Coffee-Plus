@@ -20,7 +20,7 @@
                             <input type="file" name="image" id="image-upload-edit" class="hidden" accept="image/*" onchange="previewImageEdit(event)">
                             <label for="image-upload-edit" class="group relative flex h-64 cursor-pointer flex-col items-center justify-center overflow-hidden rounded-xl border-2 border-dashed border-slate-300 bg-slate-50 transition hover:border-indigo-300 hover:bg-indigo-50/40">
                                 <img id="image-preview-edit"
-                                    src="{{ $product->image ? asset('images/products/'.$product->image) : '#' }}"
+                                    src="{{ $product->image ? $product->detail_image_url : '#' }}"
                                     class="{{ $product->image ? '' : 'hidden' }} h-full w-full object-cover" alt="{{ $product->name }} preview">
                                 <div id="preview-placeholder-edit" class="{{ $product->image ? 'hidden' : '' }} text-center">
                                     <p class="text-sm font-semibold text-slate-500">Select image</p>

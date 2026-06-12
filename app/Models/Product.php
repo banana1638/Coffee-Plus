@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Product extends Model
 {
     use SoftDeletes;
-    protected $appends = ['image_url'];
+    protected $appends = ['image_url', 'thumbnail_image_url', 'detail_image_url'];
 
     protected $fillable = [
         'menu_id',
@@ -19,6 +19,8 @@ class Product extends Model
         'price',
         'price_cents',
         'image',
+        'image_thumb',
+        'image_detail',
         'stock',
         'track_stock',
     ];
@@ -39,9 +41,33 @@ class Product extends Model
 
     public function getImageUrlAttribute()
     {
+        return $this->detail_image_url;
+    }
+
+    public function getThumbnailImageUrlAttribute()
+    {
+        if ($this->image_thumb) {
+            return asset($this->image_thumb);
+        }
+
+        return $this->originalImageUrl();
+    }
+
+    public function getDetailImageUrlAttribute()
+    {
+        if ($this->image_detail) {
+            return asset($this->image_detail);
+        }
+
+        return $this->originalImageUrl();
+    }
+
+    private function originalImageUrl(): string
+    {
         if ($this->image) {
             return asset('images/products/' . $this->image);
         }
+
         return 'https://placehold.co/400x400?text=' . urlencode($this->name);
     }
 

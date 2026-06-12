@@ -19,6 +19,8 @@ class ProductResource extends JsonResource
             'name' => $this->name,
             'description' => $this->description,
             'image_url' => $this->image_url,
+            'thumbnail_image_url' => $this->thumbnail_image_url,
+            'detail_image_url' => $this->detail_image_url,
             'base_price' => (float) $this->price,
             'base_price_cents' => (int) ($this->price_cents ?? round(((float) $this->price) * 100)),
             'category_id' => $this->menu_id,

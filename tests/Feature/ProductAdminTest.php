@@ -83,9 +83,16 @@ class ProductAdminTest extends TestCase
         $product->refresh();
 
         $this->assertNotNull($product->image);
+        $this->assertNotNull($product->image_thumb);
+        $this->assertNotNull($product->image_detail);
         $this->assertFileExists(public_path('images/products/' . $product->image));
+        $this->assertFileExists(public_path($product->image_thumb));
+        $this->assertFileExists(public_path($product->image_detail));
+        $this->assertSame($product->detail_image_url, $product->image_url);
 
         File::delete(public_path('images/products/' . $product->image));
+        File::delete(public_path($product->image_thumb));
+        File::delete(public_path($product->image_detail));
     }
 
     public function test_product_index_shows_stock_status(): void

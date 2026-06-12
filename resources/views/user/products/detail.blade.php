@@ -11,7 +11,7 @@
             <div class="grid gap-8 lg:grid-cols-2 lg:items-start">
                 <div class="lg:sticky lg:top-24 lg:self-start">
                     <div class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-                        <img src="{{ $product->image_url }}" class="aspect-square w-full object-cover" alt="{{ $product->name }}">
+                        <img src="{{ $product->detail_image_url }}" class="aspect-square w-full object-cover" alt="{{ $product->name }}">
                     </div>
                 </div>
 

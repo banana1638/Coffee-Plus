@@ -15,7 +15,7 @@
                         class="group overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition duration-200 hover:-translate-y-0.5 hover:shadow-md">
                         <div class="relative aspect-square bg-slate-100">
                             @if($product->image)
-                                <img src="{{ asset('images/products/' . $product->image) }}"
+                                <img src="{{ $product->thumbnail_image_url }}"
                                     class="h-full w-full object-cover transition duration-500 group-hover:scale-105"
                                     alt="{{ $product->name }}" onerror="this.src='https://placehold.co/400x400?text=Image+Missing'">
                             @else

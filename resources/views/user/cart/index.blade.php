@@ -59,7 +59,7 @@
                         <x-ui.card padding="compact" class="group">
                             <div class="grid gap-4 md:grid-cols-[88px_1fr_170px] md:items-center">
                                 <div class="h-20 w-20 overflow-hidden rounded-xl border border-slate-200 bg-slate-100">
-                                    <img src="{{ $item->product->image_url }}" class="h-20 w-20 object-cover" alt="{{ $item->product->name }}">
+                                    <img src="{{ $item->product->thumbnail_image_url }}" class="h-20 w-20 object-cover" alt="{{ $item->product->name }}">
                                 </div>
 
                                 <div>

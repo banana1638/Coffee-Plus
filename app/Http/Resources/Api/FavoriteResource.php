@@ -22,6 +22,8 @@ class FavoriteResource extends JsonResource
                 'name' => $this->product->name,
                 'price' => $this->product->price,
                 'image_url' => $this->product->image_url,
+                'thumbnail_image_url' => $this->product->thumbnail_image_url,
+                'detail_image_url' => $this->product->detail_image_url,
                 'description' => $this->product->description ?? '',
             ],
             'size' => $this->size,

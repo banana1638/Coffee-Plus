@@ -37,7 +37,7 @@
                                     <div class="flex items-center gap-4">
                                         <div class="h-14 w-14 shrink-0 overflow-hidden rounded-lg border border-slate-200 bg-slate-100">
                                             @if($product->image)
-                                                <img src="{{ asset('images/products/'.$product->image) }}" class="h-full w-full object-cover" alt="{{ $product->name }}">
+                                                <img src="{{ $product->thumbnail_image_url }}" class="h-full w-full object-cover" alt="{{ $product->name }}">
                                             @else
                                                 <div class="flex h-full w-full items-center justify-center text-xs font-semibold text-slate-400">No Img</div>
                                             @endif
