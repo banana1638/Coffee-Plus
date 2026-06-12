@@ -3,6 +3,7 @@
 namespace App\Exports;
 
 use App\Models\Order;
+use Carbon\Carbon;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithTitle;
@@ -63,10 +64,17 @@ class OrdersMonthlySheet implements FromCollection, WithHeadings, WithTitle
         $query = Order::query()->with('user');
 
         if ($this->date) {
-            $query->whereDate('created_at', $this->date);
+            $start = Carbon::parse($this->date)->startOfDay();
+            $end = $start->copy()->addDay();
+
+            $query->where('created_at', '>=', $start)
+                ->where('created_at', '<', $end);
         } else {
-            $query->whereYear('created_at', $this->year)
-                ->whereMonth('created_at', $this->month);
+            $start = Carbon::create((int) $this->year, (int) $this->month, 1)->startOfMonth();
+            $end = $start->copy()->addMonth();
+
+            $query->where('created_at', '>=', $start)
+                ->where('created_at', '<', $end);
         }
 
         return $query->get()->map(function ($order) {

@@ -38,13 +38,20 @@ class DashboardController extends Controller
             return redirect()->route('admin.dashboard')->with('error', 'Unauthorized access.');
         }
 
+        $todayStart = Carbon::today();
+        $tomorrowStart = $todayStart->copy()->addDay();
+        $monthStart = Carbon::now()->startOfMonth();
+        $nextMonthStart = $monthStart->copy()->addMonth();
+
         // Stats
         $totalRevenue = Order::where('status', 'completed')->sum('final_amount');
         $revenueToday = Order::where('status', 'completed')
-            ->whereDate('updated_at', Carbon::today())
+            ->where('updated_at', '>=', $todayStart)
+            ->where('updated_at', '<', $tomorrowStart)
             ->sum('final_amount');
         $revenueThisMonth = Order::where('status', 'completed')
-            ->whereMonth('updated_at', Carbon::now()->month)
+            ->where('updated_at', '>=', $monthStart)
+            ->where('updated_at', '<', $nextMonthStart)
             ->sum('final_amount');
 
         $totalOrders = Order::count();

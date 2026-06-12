@@ -18,7 +18,11 @@ class ProductAdminController extends Controller
     }
 
     public function index() {
-        $products = Product::with('menu')->latest()->get();
+        $products = Product::with('menu')
+            ->withAvg('reviews', 'rating')
+            ->latest()
+            ->paginate(20);
+
         return view('admin.products.index', compact('products'));
     }
 

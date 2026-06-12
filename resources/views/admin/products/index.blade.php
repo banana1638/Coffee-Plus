@@ -89,6 +89,10 @@
                     </tbody>
                 </table>
             </x-ui.table-shell>
+
+            <div>
+                {{ $products->links() }}
+            </div>
         </div>
     </div>
 </x-admin-layout>
