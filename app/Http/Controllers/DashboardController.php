@@ -3,11 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Models\Menu;
+use App\Services\DashboardMenuService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 
 class DashboardController extends Controller
 {
-    public function index(Request $request)
+    public function index(Request $request, DashboardMenuService $dashboardMenuService)
     {
         $search = $request->input('search');
         $category = $request->input('category', 'all');
@@ -26,24 +28,11 @@ class DashboardController extends Controller
             $menus = collect(); // We don't use regular menus for collections view
         } else {
             $favorites = collect();
-            $menus = Menu::whereHas('products', function ($query) use ($search) {
-                if ($search) {
-                    $query->where('name', 'like', '%' . $search . '%');
-                }
-            })
-                ->with(['products' => function ($query) use ($search) {
-                if ($search) {
-                    $query->where('name', 'like', '%' . $search . '%');
-                }
-            }])
-                ->when($category !== 'all', function ($query) use ($category) {
-                return $query->where('name', $category);
-            })
-                ->get();
+            $menus = $dashboardMenuService->menus($search, $category);
         }
 
-        $allCategoryNames = \Illuminate\Support\Facades\Cache::remember('menu_category_names', 3600, function () {
-            return Menu::pluck('name');
+        $allCategoryNames = Cache::remember('menu_category_names', 3600, function () {
+            return Menu::orderBy('name')->pluck('name');
         });
 
         return view('user.dashboard', compact('menus', 'favorites', 'allCategoryNames', 'search', 'category'));

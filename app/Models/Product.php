@@ -97,6 +97,10 @@ class Product extends Model
 
     public function getReviewsCountAttribute(): int
     {
+        if (array_key_exists('reviews_count', $this->attributes)) {
+            return (int) $this->attributes['reviews_count'];
+        }
+
         return (int) $this->reviews()->count();
     }
 }

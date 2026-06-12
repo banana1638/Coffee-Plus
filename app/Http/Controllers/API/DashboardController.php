@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\API;
 
 use App\Models\Menu;
+use App\Services\DashboardMenuService;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Api\CategoryResource;
@@ -11,40 +12,15 @@ use Illuminate\Support\Facades\Cache;
 
 class DashboardController extends Controller
 {
-    public function index(Request $request)
+    public function index(Request $request, DashboardMenuService $dashboardMenuService)
     {
         $search = $request->input('search');
         $category = $request->input('category', 'all');
 
-        $query = Menu::whereHas('products', function ($q) use ($search) {
-            $q->where('is_active', true);
-            if ($search) {
-                $q->where('name', 'like', '%' . $search . '%');
-            }
-        })
-        ->with([
-            'products' => function ($q) use ($search) {
-                $q->where('is_active', true);
-                if ($search) {
-                    $q->where('name', 'like', '%' . $search . '%');
-                }
-            }
-        ])
-        ->when($category !== 'all', function ($q) use ($category) {
-            return $q->where('name', $category);
-        });
-
-        if (empty($search)) {
-            $cacheKey = 'dashboard_menus_' . $category;
-            $menus = Cache::remember($cacheKey, 600, function () use ($query) {
-                return $query->get();
-            });
-        } else {
-            $menus = $query->get();
-        }
+        $menus = $dashboardMenuService->menus($search, $category, true);
 
         $allCategoryNames = Cache::remember('menu_category_names', 3600, function () {
-            return Menu::pluck('name');
+            return Menu::orderBy('name')->pluck('name');
         });
 
         return response()->json([
