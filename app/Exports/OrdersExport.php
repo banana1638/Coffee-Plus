@@ -4,10 +4,11 @@ namespace App\Exports;
 
 use App\Models\Order;
 use Carbon\Carbon;
-use Maatwebsite\Excel\Concerns\FromCollection;
+use Maatwebsite\Excel\Concerns\FromQuery;
 use Maatwebsite\Excel\Concerns\WithHeadings;
-use Maatwebsite\Excel\Concerns\WithTitle;
+use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithMultipleSheets;
+use Maatwebsite\Excel\Concerns\WithTitle;
 
 class OrdersExport implements WithMultipleSheets
 {
@@ -45,8 +46,8 @@ class OrdersExport implements WithMultipleSheets
     }
 }
 
-// 内部类：具体的 Sheet 逻辑
-class OrdersMonthlySheet implements FromCollection, WithHeadings, WithTitle
+// Sheet-specific export logic.
+class OrdersMonthlySheet implements FromQuery, WithHeadings, WithMapping, WithTitle
 {
     private $year;
     private $month;
@@ -59,7 +60,7 @@ class OrdersMonthlySheet implements FromCollection, WithHeadings, WithTitle
         $this->date = $date;
     }
 
-    public function collection()
+    public function query()
     {
         $query = Order::query()->with('user');
 
@@ -77,15 +78,18 @@ class OrdersMonthlySheet implements FromCollection, WithHeadings, WithTitle
                 ->where('created_at', '<', $end);
         }
 
-        return $query->get()->map(function ($order) {
-            return [
-                $order->bill_id,
-                $order->user->name,
-                $order->final_amount,
-                $order->status,
-                $order->created_at->format('Y-m-d H:i:s'),
-            ];
-        });
+        return $query->orderBy('created_at');
+    }
+
+    public function map($order): array
+    {
+        return [
+            $order->bill_id,
+            $order->user?->name,
+            $order->final_amount,
+            $order->status,
+            $order->created_at->format('Y-m-d H:i:s'),
+        ];
     }
 
     public function headings(): array

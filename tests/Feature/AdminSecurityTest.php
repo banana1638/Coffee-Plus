@@ -99,6 +99,20 @@ class AdminSecurityTest extends TestCase
         ]);
     }
 
+    public function test_owner_can_download_order_export(): void
+    {
+        $owner = $this->createAdmin('owner', 'export-owner@example.test');
+        $this->createOrder(Order::STATUS_COMPLETED);
+
+        $this->actingAs($owner, 'admin')
+            ->get(route('admin.orders.export.download', [
+                'type' => 'date',
+                'date' => now()->toDateString(),
+            ]))
+            ->assertStatus(200)
+            ->assertHeader('content-disposition');
+    }
+
     public function test_admin_login_creates_audit_log(): void
     {
         $admin = $this->createAdmin('owner', 'login-owner@example.test');
