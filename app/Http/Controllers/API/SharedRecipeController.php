@@ -27,9 +27,18 @@ class SharedRecipeController extends Controller
         $recipes = SharedRecipe::where('recipient_id', $request->user()->id)
             ->with(['sender:id,name', 'product'])
             ->latest()
-            ->get();
+            ->paginate($this->perPage($request));
 
-        return $this->success($recipes);
+        return response()->json([
+            'status' => 'success',
+            'data' => $recipes->items(),
+            'meta' => [
+                'current_page' => $recipes->currentPage(),
+                'last_page' => $recipes->lastPage(),
+                'per_page' => $recipes->perPage(),
+                'total' => $recipes->total(),
+            ],
+        ]);
     }
 
     /**
@@ -88,5 +97,10 @@ class SharedRecipeController extends Controller
         );
 
         return $this->success(null, 'Recipe added to your cart!');
+    }
+
+    private function perPage(Request $request): int
+    {
+        return min(max((int) $request->input('per_page', 20), 1), 50);
     }
 }

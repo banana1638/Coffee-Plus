@@ -44,7 +44,9 @@ class FavoriteTest extends TestCase
         $response = $this->actingAs($user)->getJson('/api/favorites');
 
         $response->assertStatus(200)
-            ->assertJsonCount(1);
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('meta.total', 1)
+            ->assertJsonPath('meta.per_page', 20);
     }
 
     public function test_user_can_add_favorite()

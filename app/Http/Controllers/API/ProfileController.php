@@ -104,10 +104,20 @@ class ProfileController extends Controller
      */
     public function notifications(Request $request)
     {
-        $notifications = $request->user()->notifications()->latest()->get();
+        $notifications = $request->user()
+            ->notifications()
+            ->latest()
+            ->paginate($this->perPage($request));
+
         return response()->json([
             'status' => 'success',
-            'notifications' => $notifications
+            'notifications' => $notifications->items(),
+            'meta' => [
+                'current_page' => $notifications->currentPage(),
+                'last_page' => $notifications->lastPage(),
+                'per_page' => $notifications->perPage(),
+                'total' => $notifications->total(),
+            ],
         ]);
     }
 
@@ -139,6 +149,11 @@ class ProfileController extends Controller
     public function deleteReadNotifications(Request $request) {
         $request->user()->readNotifications()->delete();
         return response()->json(['message' => 'Read notifications deleted successfully']);
+    }
+
+    private function perPage(Request $request): int
+    {
+        return min(max((int) $request->input('per_page', 20), 1), 50);
     }
 
 }

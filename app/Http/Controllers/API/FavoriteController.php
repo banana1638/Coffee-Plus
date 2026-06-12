@@ -6,6 +6,7 @@ use App\Contracts\FavoriteServiceInterface;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Api\FavoriteResource;
 use App\Http\Requests\API\StoreFavoriteRequest;
+use App\Models\Favorite;
 use App\Traits\ApiResponse;
 use Illuminate\Http\Request;
 
@@ -22,7 +23,11 @@ class FavoriteController extends Controller
 
     public function index(Request $request)
     {
-        $favorites = $this->favoriteService->getFavorites($request->user());
+        $favorites = Favorite::with('product')
+            ->where('user_id', $request->user()->id)
+            ->latest()
+            ->paginate($this->perPage($request));
+
         return FavoriteResource::collection($favorites);
     }
 
@@ -53,5 +58,10 @@ class FavoriteController extends Controller
         $this->favoriteService->delete(auth()->user(), (int) $id);
 
         return $this->success(null, 'Favorite removed');
+    }
+
+    private function perPage(Request $request): int
+    {
+        return min(max((int) $request->input('per_page', 20), 1), 50);
     }
 }
