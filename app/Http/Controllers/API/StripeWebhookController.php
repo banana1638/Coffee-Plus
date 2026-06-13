@@ -42,6 +42,10 @@ class StripeWebhookController extends Controller
             return response()->json(['message' => 'Missing session id.'], Response::HTTP_BAD_REQUEST);
         }
 
+        if ($this->shouldIgnoreSession($session, $metadata)) {
+            return response()->json(['status' => 'ignored']);
+        }
+
         $alreadyProcessed = PaymentEvent::where(function ($query) use ($event, $sessionId) {
                 $query->where('event_id', $event->id)
                     ->orWhere('session_id', $sessionId);
@@ -55,27 +59,43 @@ class StripeWebhookController extends Controller
 
         try {
             DB::transaction(function () use ($event, $session, $metadata, $sessionId) {
-                $paymentEvent = PaymentEvent::firstOrCreate(
-                    ['event_id' => $event->id],
-                    [
+                $metadataUserId = isset($metadata['user_id']) ? (int) $metadata['user_id'] : null;
+                $user = $metadataUserId ? User::find($metadataUserId) : null;
+
+                $paymentEvent = PaymentEvent::where(function ($query) use ($event, $sessionId) {
+                        $query->where('event_id', $event->id)
+                            ->orWhere('session_id', $sessionId);
+                    })
+                    ->lockForUpdate()
+                    ->first();
+
+                if (!$paymentEvent) {
+                    $paymentEvent = PaymentEvent::create([
                         'provider' => 'stripe',
+                        'event_id' => $event->id,
                         'session_id' => $sessionId,
-                        'user_id' => isset($metadata['user_id']) ? (int) $metadata['user_id'] : null,
+                        'user_id' => $user?->id,
                         'type' => $event->type,
                         'amount_cents' => (int) ($session->amount_total ?? 0),
                         'currency' => $session->currency ?? null,
                         'status' => 'processing',
                         'payload_json' => $event->toArray(),
-                    ]
-                );
+                    ]);
+                }
 
                 if ($paymentEvent->status === 'processed') {
                     return;
                 }
 
-                $user = User::find($paymentEvent->user_id);
                 if (!$user) {
-                    throw new \RuntimeException('Payment event user not found.');
+                    $paymentEvent->status = 'ignored';
+                    $paymentEvent->save();
+
+                    return;
+                }
+
+                if (($metadata['type'] ?? null) === 'tangki_refill') {
+                    $metadata['type'] = 'refill';
                 }
 
                 $result = new PaymentResult(
@@ -100,5 +120,17 @@ class StripeWebhookController extends Controller
         }
 
         return response()->json(['received' => true]);
+    }
+
+    private function shouldIgnoreSession(object $session, array $metadata): bool
+    {
+        $type = $metadata['type'] ?? null;
+
+        return ($session->payment_status ?? null) !== 'paid'
+            || ($session->mode ?? null) !== 'payment'
+            || strtolower((string) ($session->currency ?? '')) !== 'myr'
+            || (int) ($session->amount_total ?? 0) <= 0
+            || !in_array($type, ['refill', 'tangki_refill', 'checkout'], true)
+            || empty($metadata['user_id']);
     }
 }

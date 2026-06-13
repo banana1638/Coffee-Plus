@@ -33,6 +33,7 @@ class StripeWebhookTest extends TestCase
                     'object' => 'checkout.session',
                     'amount_total' => 1000,
                     'currency' => 'myr',
+                    'mode' => 'payment',
                     'payment_status' => 'paid',
                     'metadata' => [
                         'type' => 'refill',
@@ -81,6 +82,64 @@ class StripeWebhookTest extends TestCase
         $this->assertSame(1, Order::where('bill_id', 'like', 'TOPUP-%')->count());
         $this->assertSame(1, Transaction::where('type', 'refill')->count());
         $this->assertSame(1, PaymentEvent::where('status', 'processed')->count());
+    }
+
+    public function test_stripe_webhook_ignores_unpaid_session(): void
+    {
+        config(['services.stripe.webhook' => 'whsec_test']);
+
+        $user = User::factory()->create();
+        $payload = $this->checkoutCompletedPayload($user, 'evt_unpaid', 'cs_unpaid');
+        $payload = str_replace('"payment_status":"paid"', '"payment_status":"unpaid"', $payload);
+        $signature = $this->stripeSignature($payload, 'whsec_test');
+
+        $this->call('POST', '/api/stripe/webhook', [], [], [], [
+            'CONTENT_TYPE' => 'application/json',
+            'HTTP_STRIPE_SIGNATURE' => $signature,
+        ], $payload)->assertOk()
+            ->assertJsonPath('status', 'ignored');
+
+        $this->assertSame(0, Transaction::where('type', 'refill')->count());
+        $this->assertDatabaseCount('payment_events', 0);
+    }
+
+    public function test_stripe_webhook_ignores_wrong_currency(): void
+    {
+        config(['services.stripe.webhook' => 'whsec_test']);
+
+        $user = User::factory()->create();
+        $payload = $this->checkoutCompletedPayload($user, 'evt_usd', 'cs_usd');
+        $payload = str_replace('"currency":"myr"', '"currency":"usd"', $payload);
+        $signature = $this->stripeSignature($payload, 'whsec_test');
+
+        $this->call('POST', '/api/stripe/webhook', [], [], [], [
+            'CONTENT_TYPE' => 'application/json',
+            'HTTP_STRIPE_SIGNATURE' => $signature,
+        ], $payload)->assertOk()
+            ->assertJsonPath('status', 'ignored');
+
+        $this->assertSame(0, Transaction::where('type', 'refill')->count());
+    }
+
+    public function test_stripe_webhook_ignores_missing_user_safely(): void
+    {
+        config(['services.stripe.webhook' => 'whsec_test']);
+
+        $user = User::factory()->make(['id' => 99999]);
+        $payload = $this->checkoutCompletedPayload($user, 'evt_missing_user', 'cs_missing_user');
+        $signature = $this->stripeSignature($payload, 'whsec_test');
+
+        $this->call('POST', '/api/stripe/webhook', [], [], [], [
+            'CONTENT_TYPE' => 'application/json',
+            'HTTP_STRIPE_SIGNATURE' => $signature,
+        ], $payload)->assertOk();
+
+        $this->assertSame(0, Transaction::where('type', 'refill')->count());
+        $this->assertDatabaseHas('payment_events', [
+            'event_id' => 'evt_missing_user',
+            'session_id' => 'cs_missing_user',
+            'status' => 'ignored',
+        ]);
     }
 
     public function test_stripe_success_redirect_does_not_process_payment_business_logic(): void

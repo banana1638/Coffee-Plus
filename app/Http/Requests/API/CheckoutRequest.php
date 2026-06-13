@@ -8,9 +8,11 @@ class CheckoutRequest extends FormRequest
 {
     protected function prepareForValidation(): void
     {
-        $this->merge([
-            'idempotency_key' => $this->header('Idempotency-Key'),
-        ]);
+        if ($this->header('Idempotency-Key')) {
+            $this->merge([
+                'idempotency_key' => $this->header('Idempotency-Key'),
+            ]);
+        }
     }
 
     public function authorize(): bool

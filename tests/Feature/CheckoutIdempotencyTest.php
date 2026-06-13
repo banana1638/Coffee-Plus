@@ -41,6 +41,20 @@ class CheckoutIdempotencyTest extends TestCase
         $this->assertDatabaseCount('idempotency_keys', 1);
     }
 
+    public function test_checkout_accepts_body_idempotency_key_for_legacy_clients(): void
+    {
+        $user = User::factory()->create(['tangki_balance' => 20.00]);
+        $this->addCartItem($user, $this->createProduct());
+
+        $this->actingAs($user)
+            ->postJson('/api/checkout', [
+                'idempotency_key' => 'legacy-body-key-123456',
+            ])
+            ->assertStatus(200);
+
+        $this->assertSame(1, Order::count());
+    }
+
     public function test_same_idempotency_key_with_different_payload_is_rejected(): void
     {
         $user = User::factory()->create(['tangki_balance' => 20.00]);
