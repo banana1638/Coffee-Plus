@@ -15,6 +15,7 @@ use App\Http\Controllers\API\StripeWebhookController;
 use App\Http\Controllers\API\TangkiController;
 use App\Http\Controllers\API\TransactionController;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Broadcasting\BroadcastController;
 
 /*
 |--------------------------------------------------------------------------
@@ -36,6 +37,8 @@ Route::get('/dashboard', [DashboardController::class, 'index']);
 
 // Protected routes
 Route::middleware('auth:sanctum')->group(function () {
+    Route::post('/broadcasting/auth', [BroadcastController::class, 'authenticate'])->middleware('throttle:60,1');
+
     Route::post('/logout', [LoginController::class, 'logout']);
 
     Route::controller(CartController::class)->prefix('cart')->group(function () {
