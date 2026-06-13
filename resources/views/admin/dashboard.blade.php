@@ -28,7 +28,7 @@
                     <p class="mt-1 text-xs text-slate-500">RBAC controlled view</p>
                 </x-ui.card>
 
-                @adminCan('report.export')
+                @adminCan('report.view')
                     <x-ui.card>
                         <p class="text-sm font-medium text-slate-500">Total Balance</p>
                         <p class="mt-3 text-3xl font-semibold text-slate-950">
@@ -110,7 +110,7 @@
                             <span aria-hidden="true">-></span>
                         </x-ui.button>
 
-                        @adminCan('product.update')
+                        @adminCan('product.view')
                             <x-ui.button :href="route('admin.products.index')" variant="secondary" class="justify-between">
                                 Manage Products
                                 <span aria-hidden="true">-></span>
@@ -124,7 +124,7 @@
                             </x-ui.button>
                         @endadminCan
 
-                        @adminCan('report.export')
+                        @adminCan('report.view')
                             <x-ui.button :href="route('admin.owner.dashboard')" variant="secondary" class="justify-between">
                                 Analytics
                                 <span aria-hidden="true">-></span>

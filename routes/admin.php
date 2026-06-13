@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::middleware('guest:admin')->group(function () {
     Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
-    Route::post('/login', [LoginController::class, 'login'])->middleware('throttle:5,1')->name('login.post');
+    Route::post('/login', [LoginController::class, 'login'])->middleware('throttle:admin-login')->name('login.post');
 });
 
 Route::middleware(['auth:admin'])->group(function () {
@@ -24,11 +24,11 @@ Route::middleware(['auth:admin'])->group(function () {
 
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/owner/dashboard', [DashboardController::class, 'ownerDashboard'])
-        ->middleware('admin.permission:report.export')
+        ->middleware('admin.permission:report.view')
         ->name('owner.dashboard');
 
     Route::controller(ProductAdminController::class)->prefix('products')->name('products.')->group(function () {
-        Route::get('/', 'index')->middleware('admin.permission:product.update')->name('index');
+        Route::get('/', 'index')->middleware('admin.permission:product.view')->name('index');
         Route::get('/create', 'create')->middleware('admin.permission:product.create')->name('create');
         Route::post('/', 'store')->middleware('admin.permission:product.create')->name('store');
         Route::get('/{id}/edit', 'edit')->middleware('admin.permission:product.update')->name('edit');

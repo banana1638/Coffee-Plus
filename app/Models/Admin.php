@@ -20,6 +20,7 @@ class Admin extends Authenticatable
         'super_admin' => ['*'],
         'owner' => ['*'],
         'manager' => [
+            'product.view',
             'product.create',
             'product.update',
             'product.delete',
@@ -29,6 +30,7 @@ class Admin extends Authenticatable
             'coupon.create',
             'coupon.update',
             'coupon.delete',
+            'report.view',
             'report.export',
         ],
         'staff' => [

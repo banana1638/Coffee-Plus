@@ -35,7 +35,7 @@ class LoginController extends Controller
         }
 
         return back()->withErrors([
-            'email' => 'Access Denied. These credentials do not match our admin records.',
+            'email' => 'These credentials do not match our records.',
         ])->onlyInput('email');
     }
 

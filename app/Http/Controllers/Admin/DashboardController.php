@@ -16,7 +16,7 @@ class DashboardController extends Controller
      */
     public function index()
     {
-        if (auth()->guard('admin')->user()->canPerform('report.export')) {
+        if (auth()->guard('admin')->user()->canPerform('report.view')) {
             return redirect()->route('admin.owner.dashboard');
         }
 
@@ -34,7 +34,7 @@ class DashboardController extends Controller
      */
     public function ownerDashboard()
     {
-        if (!auth()->guard('admin')->user()->canPerform('report.export')) {
+        if (!auth()->guard('admin')->user()->canPerform('report.view')) {
             return redirect()->route('admin.dashboard')->with('error', 'Unauthorized access.');
         }
 

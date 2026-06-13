@@ -55,11 +55,11 @@
                 </div>
             </div>
 
-            @if($admin->canPerform('product.update') || $admin->canPerform('coupon.view') || $admin->canPerform('report.export'))
+            @if($admin->canPerform('product.view') || $admin->canPerform('coupon.view') || $admin->canPerform('report.view'))
                 <div>
                     <p class="px-3 text-xs font-semibold uppercase tracking-wide text-slate-400">Management</p>
                     <div class="mt-2 space-y-1">
-                        @adminCan('report.export')
+                        @adminCan('report.view')
                             <a href="{{ route('admin.owner.dashboard') }}"
                                 class="group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-semibold transition {{ request()->routeIs('admin.owner.dashboard') ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-950' }}">
                                 <span class="h-2 w-2 rounded-full {{ request()->routeIs('admin.owner.dashboard') ? 'bg-emerald-400' : 'bg-slate-300 group-hover:bg-indigo-500' }}"></span>
@@ -67,7 +67,7 @@
                             </a>
                         @endadminCan
 
-                        @adminCan('product.update')
+                        @adminCan('product.view')
                             <a href="{{ route('admin.products.index') }}"
                                 class="group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-semibold transition {{ request()->routeIs('admin.products.*') ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-950' }}">
                                 <span class="h-2 w-2 rounded-full {{ request()->routeIs('admin.products.*') ? 'bg-emerald-400' : 'bg-slate-300 group-hover:bg-indigo-500' }}"></span>
