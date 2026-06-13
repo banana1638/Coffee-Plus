@@ -11,10 +11,10 @@ class RegistrationTest extends TestCase
 
     public function test_registration_screen_can_be_rendered(): void
     {
-        // The app redirects /register to / (SPA mode - registration is embedded in dashboard)
+        // The app redirects /register to the dashboard register modal.
         $response = $this->get('/register');
 
-        $response->assertRedirect('/');
+        $response->assertRedirect(route('dashboard', ['auth' => 'register'], false));
     }
 
     public function test_new_users_can_register(): void
