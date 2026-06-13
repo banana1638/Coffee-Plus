@@ -134,8 +134,8 @@ class CartService implements CartServiceInterface
 
     private function assertValidQuantity(int $quantity): void
     {
-        if ($quantity < 1 || $quantity > 99) {
-            throw new \InvalidArgumentException('Cart quantity must be between 1 and 99.');
+        if ($quantity < 1 || $quantity > 20) {
+            throw new \InvalidArgumentException('Cart quantity must be between 1 and 20.');
         }
     }
 

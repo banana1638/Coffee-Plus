@@ -3,10 +3,13 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
+use App\Models\ProductAddon;
 use App\Models\SharedRecipe;
 use App\Contracts\CartServiceInterface;
 use App\Traits\ApiResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
 
 class SharedRecipeController extends Controller
 {
@@ -46,15 +49,38 @@ class SharedRecipeController extends Controller
      */
     public function store(Request $request)
     {
-        $request->validate([
+        $sizes = collect(config('coffee.options.sizes', []))->pluck('name')->all();
+        $temps = config('coffee.options.temps', []);
+
+        $validator = Validator::make($request->all(), [
             'recipient_id' => 'required|exists:users,id',
             'product_id' => 'required|exists:products,id',
             'name' => 'required|string|max:100',
-            'size' => 'required|string',
-            'temp' => 'required|string',
-            'addons' => 'nullable|array',
-            'remark' => 'nullable|string',
+            'size' => ['required', 'string', Rule::in($sizes)],
+            'temp' => ['required', 'string', Rule::in($temps)],
+            'addons' => 'nullable|array|max:20',
+            'addons.*' => 'string|max:100',
+            'remark' => 'nullable|string|max:1000',
         ]);
+
+        $validator->after(function ($validator) use ($request) {
+            $productId = (int) $request->input('product_id');
+            $addons = array_values(array_unique($request->input('addons', []) ?? []));
+
+            if (!$productId || $addons === []) {
+                return;
+            }
+
+            $validAddons = ProductAddon::where('product_id', $productId)
+                ->whereIn('name', $addons)
+                ->count();
+
+            if ($validAddons !== count($addons)) {
+                $validator->errors()->add('addons', 'Selected add-ons are invalid for this product.');
+            }
+        });
+
+        $validator->validate();
 
         // Ensure the recipient is an accepted friend
         $isFriend = $request->user()->friends()
