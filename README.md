@@ -163,7 +163,7 @@ Authorization: Bearer <sanctum_token>
 |--------|----------|------|-------------|
 | `GET` | `/cart` | ✓ | View cart |
 | `POST` | `/cart/add` | ✓ | Add item (with add-ons) |
-| `POST` | `/cart/update` | ✓ | Update quantity `min:1 max:99` |
+| `POST` | `/cart/update` | ✓ | Update quantity `min:1 max:20` |
 | `POST` | `/cart/remove` | ✓ | Remove item |
 
 ### Orders & Checkout
@@ -207,6 +207,20 @@ Authorization: Bearer <sanctum_token>
 | `POST` | `/stripe/webhook` | Stripe signed event receiver |
 
 > Webhook verifies `Stripe-Signature` header using `STRIPE_WEBHOOK_SECRET`. All order creation and wallet top-ups are triggered exclusively from here — never from redirect URLs.
+
+### Production Security Checklist
+
+- Set `APP_ENV=production`, `APP_DEBUG=false`, and `APP_URL=https://your-domain.com`.
+- Enforce HTTPS/WSS at the web server and load balancer.
+- Block public access to `.env`, logs, private storage, backups, and directory listings.
+- Use `SESSION_SECURE_COOKIE=true`, `SESSION_HTTP_ONLY=true`, and `SESSION_SAME_SITE=lax`.
+- Set `SANCTUM_STATEFUL_DOMAINS` and CORS origins to trusted domains only.
+- Use strong random Reverb keys/secrets; do not reuse local examples.
+- Configure `STRIPE_KEY`, `STRIPE_SECRET`, and `STRIPE_WEBHOOK_SECRET` with production values only on the server.
+- Keep `composer audit` clean before release.
+- Run queue workers under Supervisor/Horizon and monitor failed jobs.
+- Encrypt database backups and verify restore procedures.
+- Keep Telescope disabled in production unless access is explicitly restricted.
 
 ---
 

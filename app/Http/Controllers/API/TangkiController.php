@@ -64,6 +64,7 @@ class TangkiController extends Controller
             return response()->json([
                 'status' => 'success',
                 'redirect_url' => $url,
+                'message' => 'Redirect to Stripe checkout.',
             ]);
         } catch (\Exception $e) {
             return response()->json([
