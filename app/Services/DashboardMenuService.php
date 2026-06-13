@@ -31,7 +31,6 @@ class DashboardMenuService
                         'id',
                         'menu_id',
                         'name',
-                        'description',
                         'price',
                         'price_cents',
                         'image',

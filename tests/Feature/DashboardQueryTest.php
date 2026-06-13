@@ -7,6 +7,7 @@ use App\Models\Order;
 use App\Models\Product;
 use App\Models\ProductReview;
 use App\Models\User;
+use App\Services\DashboardMenuService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -56,6 +57,16 @@ class DashboardQueryTest extends TestCase
         $response->assertStatus(200)
             ->assertJsonPath('menus.0.product_count', 1)
             ->assertJsonPath('menus.0.products.0.name', 'Matcha Latte');
+    }
+
+    public function test_dashboard_menu_query_matches_product_table_columns(): void
+    {
+        $menu = $this->createMenu('Drink');
+        $this->createProduct($menu, 'Flat White');
+
+        $menus = app(DashboardMenuService::class)->menus(null, 'all', false, false);
+
+        $this->assertArrayNotHasKey('description', $menus->first()->products->first()->getAttributes());
     }
 
     private function createMenu(string $name): Menu

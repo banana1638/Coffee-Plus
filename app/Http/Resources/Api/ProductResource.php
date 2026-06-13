@@ -17,7 +17,9 @@ class ProductResource extends JsonResource
         return [
             'id' => $this->id,
             'name' => $this->name,
-            'description' => $this->description,
+            'description' => array_key_exists('description', $this->resource->getAttributes())
+                ? ($this->resource->getAttribute('description') ?? '')
+                : '',
             'image_url' => $this->image_url,
             'thumbnail_image_url' => $this->thumbnail_image_url,
             'detail_image_url' => $this->detail_image_url,
