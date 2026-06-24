@@ -3,9 +3,9 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
-use App\Models\ProductAddon;
 use App\Models\SharedRecipe;
 use App\Contracts\CartServiceInterface;
+use App\Support\ProductAddonSelection;
 use App\Traits\ApiResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -65,17 +65,9 @@ class SharedRecipeController extends Controller
 
         $validator->after(function ($validator) use ($request) {
             $productId = (int) $request->input('product_id');
-            $addons = array_values(array_unique($request->input('addons', []) ?? []));
+            $addons = ProductAddonSelection::normalize($request->input('addons', []));
 
-            if (!$productId || $addons === []) {
-                return;
-            }
-
-            $validAddons = ProductAddon::where('product_id', $productId)
-                ->whereIn('name', $addons)
-                ->count();
-
-            if ($validAddons !== count($addons)) {
+            if (!ProductAddonSelection::belongsToProduct($productId, $addons)) {
                 $validator->errors()->add('addons', 'Selected add-ons are invalid for this product.');
             }
         });

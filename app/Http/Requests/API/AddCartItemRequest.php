@@ -2,7 +2,7 @@
 
 namespace App\Http\Requests\API;
 
-use App\Models\ProductAddon;
+use App\Support\ProductAddonSelection;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
@@ -33,17 +33,9 @@ class AddCartItemRequest extends FormRequest
     {
         $validator->after(function (Validator $validator) {
             $productId = (int) $this->input('product_id');
-            $addons = array_values(array_unique($this->input('addons', []) ?? []));
+            $addons = ProductAddonSelection::normalize($this->input('addons', []));
 
-            if (!$productId || $addons === []) {
-                return;
-            }
-
-            $validAddons = ProductAddon::where('product_id', $productId)
-                ->whereIn('name', $addons)
-                ->count();
-
-            if ($validAddons !== count($addons)) {
+            if (!ProductAddonSelection::belongsToProduct($productId, $addons)) {
                 $validator->errors()->add('addons', 'Selected add-ons are invalid for this product.');
             }
         });
