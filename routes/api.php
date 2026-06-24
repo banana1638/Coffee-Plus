@@ -7,6 +7,7 @@ use App\Http\Controllers\API\CouponController;
 use App\Http\Controllers\API\DashboardController;
 use App\Http\Controllers\API\FavoriteController;
 use App\Http\Controllers\API\OrderController;
+use App\Http\Controllers\API\PaymentStatusController;
 use App\Http\Controllers\API\ProductController;
 use App\Http\Controllers\API\ProductReviewController;
 use App\Http\Controllers\API\ProfileController;
@@ -49,6 +50,7 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     Route::post('/checkout', [OrderController::class, 'checkout'])->middleware('throttle:3,1');
+    Route::get('/payments/{sessionId}/status', PaymentStatusController::class)->middleware('throttle:30,1');
     Route::get('/coupons/validate', [CouponController::class, 'validateCode'])->middleware('throttle:10,1');
     Route::get('/orders', [OrderController::class, 'index']);
     Route::get('/orders/{order}', [OrderController::class, 'show']);
