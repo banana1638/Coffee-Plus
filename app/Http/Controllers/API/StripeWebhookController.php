@@ -14,6 +14,10 @@ use Symfony\Component\HttpFoundation\Response;
 
 class StripeWebhookController extends Controller
 {
+    private const PROVIDER = 'stripe';
+    private const COMPLETED_CHECKOUT_EVENT = 'checkout.session.completed';
+    private const SUPPORTED_METADATA_TYPES = ['refill', 'tangki_refill', 'checkout'];
+
     public function __construct(private readonly PaymentHandlerFactory $handlerFactory)
     {
     }
@@ -30,7 +34,7 @@ class StripeWebhookController extends Controller
             return response()->json(['message' => 'Invalid signature.'], Response::HTTP_BAD_REQUEST);
         }
 
-        if ($event->type !== 'checkout.session.completed') {
+        if ($event->type !== self::COMPLETED_CHECKOUT_EVENT) {
             return response()->json(['received' => true]);
         }
 
@@ -46,10 +50,7 @@ class StripeWebhookController extends Controller
             return response()->json(['status' => 'ignored']);
         }
 
-        $alreadyProcessed = PaymentEvent::where(function ($query) use ($event, $sessionId) {
-                $query->where('event_id', $event->id)
-                    ->orWhere('session_id', $sessionId);
-            })
+        $alreadyProcessed = $this->paymentEventQuery($event->id, $sessionId)
             ->where('status', 'processed')
             ->exists();
 
@@ -62,16 +63,13 @@ class StripeWebhookController extends Controller
                 $metadataUserId = isset($metadata['user_id']) ? (int) $metadata['user_id'] : null;
                 $user = $metadataUserId ? User::find($metadataUserId) : null;
 
-                $paymentEvent = PaymentEvent::where(function ($query) use ($event, $sessionId) {
-                        $query->where('event_id', $event->id)
-                            ->orWhere('session_id', $sessionId);
-                    })
+                $paymentEvent = $this->paymentEventQuery($event->id, $sessionId)
                     ->lockForUpdate()
                     ->first();
 
                 if (!$paymentEvent) {
                     $paymentEvent = PaymentEvent::create([
-                        'provider' => 'stripe',
+                        'provider' => self::PROVIDER,
                         'event_id' => $event->id,
                         'session_id' => $sessionId,
                         'user_id' => $user?->id,
@@ -94,13 +92,11 @@ class StripeWebhookController extends Controller
                     return;
                 }
 
-                if (($metadata['type'] ?? null) === 'tangki_refill') {
-                    $metadata['type'] = 'refill';
-                }
+                $metadata['type'] = $this->normalizePaymentType($metadata['type'] ?? null);
 
                 $result = new PaymentResult(
                     status: 'success',
-                    amount: ((int) ($session->amount_total ?? 0)) / 100,
+                    amount: $this->sessionAmount($session),
                     metadata: $metadata,
                     platformRef: $sessionId
                 );
@@ -130,7 +126,25 @@ class StripeWebhookController extends Controller
             || ($session->mode ?? null) !== 'payment'
             || strtolower((string) ($session->currency ?? '')) !== 'myr'
             || (int) ($session->amount_total ?? 0) <= 0
-            || !in_array($type, ['refill', 'tangki_refill', 'checkout'], true)
+            || !in_array($type, self::SUPPORTED_METADATA_TYPES, true)
             || empty($metadata['user_id']);
+    }
+
+    private function paymentEventQuery(string $eventId, string $sessionId)
+    {
+        return PaymentEvent::where(function ($query) use ($eventId, $sessionId) {
+            $query->where('event_id', $eventId)
+                ->orWhere('session_id', $sessionId);
+        });
+    }
+
+    private function normalizePaymentType(?string $type): string
+    {
+        return $type === 'tangki_refill' ? 'refill' : ($type ?: 'checkout');
+    }
+
+    private function sessionAmount(object $session): float
+    {
+        return ((int) ($session->amount_total ?? 0)) / 100;
     }
 }
