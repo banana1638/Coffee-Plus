@@ -95,6 +95,58 @@ class ProductAdminTest extends TestCase
         File::delete(public_path($product->image_detail));
     }
 
+    public function test_admin_cannot_upload_svg_product_image(): void
+    {
+        $admin = $this->createAdmin();
+        $menu = $this->createMenu();
+        $image = UploadedFile::fake()->createWithContent(
+            'bad.svg',
+            '<svg xmlns="http://www.w3.org/2000/svg"><script>alert(1)</script></svg>'
+        );
+
+        $this->actingAs($admin, 'admin')
+            ->from(route('admin.products.create'))
+            ->post(route('admin.products.store'), [
+                'name' => 'Unsafe Latte',
+                'price' => 12.50,
+                'menu_id' => $menu->id,
+                'oz_redeem_value' => 150,
+                'image' => $image,
+            ])
+            ->assertRedirect(route('admin.products.create'))
+            ->assertSessionHasErrors('image');
+
+        $this->assertDatabaseMissing('products', [
+            'name' => 'Unsafe Latte',
+        ]);
+    }
+
+    public function test_admin_cannot_upload_disguised_product_image(): void
+    {
+        $admin = $this->createAdmin();
+        $menu = $this->createMenu();
+        $image = UploadedFile::fake()->createWithContent(
+            'bad.jpg',
+            '<html><body>not an image</body></html>'
+        );
+
+        $this->actingAs($admin, 'admin')
+            ->from(route('admin.products.create'))
+            ->post(route('admin.products.store'), [
+                'name' => 'Fake Image Latte',
+                'price' => 12.50,
+                'menu_id' => $menu->id,
+                'oz_redeem_value' => 150,
+                'image' => $image,
+            ])
+            ->assertRedirect(route('admin.products.create'))
+            ->assertSessionHasErrors('image');
+
+        $this->assertDatabaseMissing('products', [
+            'name' => 'Fake Image Latte',
+        ]);
+    }
+
     public function test_product_index_shows_stock_status(): void
     {
         $admin = $this->createAdmin();

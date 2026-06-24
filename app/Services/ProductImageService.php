@@ -4,6 +4,8 @@ namespace App\Services;
 
 use App\Models\Product;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 
@@ -12,9 +14,13 @@ class ProductImageService
     private const BASE_DIRECTORY = 'images/products';
     private const THUMB_DIRECTORY = 'images/products/optimized/thumbs';
     private const DETAIL_DIRECTORY = 'images/products/optimized/detail';
+    private const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+    private const ALLOWED_EXTENSIONS = ['jpg', 'jpeg', 'png', 'webp'];
 
     public function store(UploadedFile $image): array
     {
+        $this->validateImage($image);
+
         File::ensureDirectoryExists(public_path(self::BASE_DIRECTORY));
 
         $filename = (string) Str::uuid() . '.' . $image->extension();
@@ -106,5 +112,21 @@ class ProductImageService
         imagedestroy($source);
 
         return $saved ? $relativePath : null;
+    }
+
+    private function validateImage(UploadedFile $image): void
+    {
+        Validator::make(
+            ['image' => $image],
+            ['image' => 'required|file|image|mimetypes:' . implode(',', self::ALLOWED_MIME_TYPES) . '|extensions:' . implode(',', self::ALLOWED_EXTENSIONS) . '|max:5120']
+        )->validate();
+
+        $imageInfo = @getimagesize($image->getRealPath());
+
+        if (!$imageInfo || !in_array($imageInfo['mime'] ?? '', self::ALLOWED_MIME_TYPES, true)) {
+            throw ValidationException::withMessages([
+                'image' => 'The image must be a valid JPEG, PNG, or WebP file.',
+            ]);
+        }
     }
 }

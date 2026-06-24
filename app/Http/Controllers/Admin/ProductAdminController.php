@@ -40,7 +40,7 @@ class ProductAdminController extends Controller
             'oz_redeem_value' => 'nullable|numeric',
             'track_stock' => 'nullable|boolean',
             'stock' => 'nullable|integer|min:0|required_if:track_stock,1',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
+            'image' => 'nullable|file|image|mimetypes:image/jpeg,image/png,image/webp|extensions:jpg,jpeg,png,webp|max:5120',
         ]);
 
         $product = new Product();
@@ -110,7 +110,7 @@ class ProductAdminController extends Controller
             'oz_redeem_value' => 'nullable|numeric',
             'track_stock' => 'nullable|boolean',
             'stock' => 'nullable|integer|min:0|required_if:track_stock,1',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
+            'image' => 'nullable|file|image|mimetypes:image/jpeg,image/png,image/webp|extensions:jpg,jpeg,png,webp|max:5120',
         ]);
 
         $product->name = $request->name;
