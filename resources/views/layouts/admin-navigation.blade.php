@@ -55,7 +55,7 @@
                 </div>
             </div>
 
-            @if($admin->canPerform('product.view') || $admin->canPerform('coupon.view') || $admin->canPerform('report.view'))
+            @if($admin->canPerform('product.view') || $admin->canPerform('coupon.view') || $admin->canPerform('report.view') || $admin->canPerform('payment.view'))
                 <div>
                     <p class="px-3 text-xs font-semibold uppercase tracking-wide text-slate-400">Management</p>
                     <div class="mt-2 space-y-1">
@@ -80,6 +80,14 @@
                                 class="group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-semibold transition {{ request()->routeIs('admin.coupons.*') ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-950' }}">
                                 <span class="h-2 w-2 rounded-full {{ request()->routeIs('admin.coupons.*') ? 'bg-emerald-400' : 'bg-slate-300 group-hover:bg-indigo-500' }}"></span>
                                 Coupons
+                            </a>
+                        @endadminCan
+
+                        @adminCan('payment.view')
+                            <a href="{{ route('admin.payment-events.index') }}"
+                                class="group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-semibold transition {{ request()->routeIs('admin.payment-events.*') ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-950' }}">
+                                <span class="h-2 w-2 rounded-full {{ request()->routeIs('admin.payment-events.*') ? 'bg-emerald-400' : 'bg-slate-300 group-hover:bg-indigo-500' }}"></span>
+                                Payments
                             </a>
                         @endadminCan
                     </div>

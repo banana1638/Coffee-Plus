@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\AdminOrderController;
 use App\Http\Controllers\Admin\CouponAdminController;
 use App\Http\Controllers\Admin\LoginController;
+use App\Http\Controllers\Admin\PaymentEventAdminController;
 use App\Http\Controllers\Admin\ProductAdminController;
 use App\Http\Controllers\Admin\WalletAdminController;
 use App\Http\Controllers\Admin\DashboardController;
@@ -58,4 +59,9 @@ Route::middleware(['auth:admin'])->group(function () {
     Route::post('/wallet/adjust', [WalletAdminController::class, 'adjust'])
         ->middleware('admin.permission:wallet.adjust')
         ->name('wallet.adjust');
+
+    Route::prefix('payment-events')->name('payment-events.')->middleware('admin.permission:payment.view')->group(function () {
+        Route::get('/', [PaymentEventAdminController::class, 'index'])->name('index');
+        Route::get('/{paymentEvent}', [PaymentEventAdminController::class, 'show'])->name('show');
+    });
 });

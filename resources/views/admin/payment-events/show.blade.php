@@ -1,0 +1,62 @@
+<x-admin-layout>
+    <div class="px-4 py-6 sm:px-6 lg:px-8">
+        <div class="mx-auto max-w-[1100px] space-y-6">
+            <x-layout.page-header title="Payment Event" description="Read-only Stripe webhook event detail.">
+                <x-slot:actions>
+                    <x-ui.button :href="route('admin.payment-events.index')" variant="secondary">
+                        Back to Payment Events
+                    </x-ui.button>
+                </x-slot:actions>
+            </x-layout.page-header>
+
+            <div class="grid gap-4 sm:grid-cols-2">
+                <x-ui.card>
+                    <x-slot:header>
+                        <h2 class="text-sm font-semibold text-slate-950">Event</h2>
+                    </x-slot:header>
+                    <dl class="space-y-3 text-sm">
+                        <div>
+                            <dt class="font-medium text-slate-500">Event ID</dt>
+                            <dd class="mt-1 font-mono text-xs text-slate-950">{{ $paymentEvent->event_id }}</dd>
+                        </div>
+                        <div>
+                            <dt class="font-medium text-slate-500">Session ID</dt>
+                            <dd class="mt-1 font-mono text-xs text-slate-950">{{ $paymentEvent->session_id ?? 'None' }}</dd>
+                        </div>
+                        <div>
+                            <dt class="font-medium text-slate-500">Status</dt>
+                            <dd class="mt-1">{{ $paymentEvent->status }}</dd>
+                        </div>
+                    </dl>
+                </x-ui.card>
+
+                <x-ui.card>
+                    <x-slot:header>
+                        <h2 class="text-sm font-semibold text-slate-950">Payment</h2>
+                    </x-slot:header>
+                    <dl class="space-y-3 text-sm">
+                        <div>
+                            <dt class="font-medium text-slate-500">User</dt>
+                            <dd class="mt-1 text-slate-950">{{ $paymentEvent->user->email ?? 'Unknown' }}</dd>
+                        </div>
+                        <div>
+                            <dt class="font-medium text-slate-500">Amount</dt>
+                            <dd class="mt-1 font-semibold text-slate-950">{{ strtoupper((string) $paymentEvent->currency) }} {{ number_format($paymentEvent->amount_cents / 100, 2) }}</dd>
+                        </div>
+                        <div>
+                            <dt class="font-medium text-slate-500">Processed At</dt>
+                            <dd class="mt-1 text-slate-950">{{ $paymentEvent->processed_at?->format('Y-m-d H:i') ?? 'Not processed' }}</dd>
+                        </div>
+                    </dl>
+                </x-ui.card>
+            </div>
+
+            <x-ui.card>
+                <x-slot:header>
+                    <h2 class="text-sm font-semibold text-slate-950">Payload</h2>
+                </x-slot:header>
+                <pre class="max-h-[520px] overflow-auto rounded-lg bg-slate-950 p-4 text-xs leading-6 text-slate-100">{{ json_encode($paymentEvent->payload_json, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) }}</pre>
+            </x-ui.card>
+        </div>
+    </div>
+</x-admin-layout>
