@@ -37,6 +37,7 @@ class ApiOrderTest extends TestCase
         $item = new OrderItem();
         $item->order_id = $order->id;
         $item->product_id = $product->id;
+        $item->product_name = 'Latte';
         $item->quantity = 1;
         $item->price = 10.00;
         $item->price_at_time = 10.00;

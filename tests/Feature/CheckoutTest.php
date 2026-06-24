@@ -167,12 +167,21 @@ class CheckoutTest extends TestCase
         ]);
         $first->assertStatus(200)
             ->assertJsonPath('data.final_amount', 5)
-            ->assertJsonPath('data.final_amount_cents', 500);
+            ->assertJsonPath('data.final_amount_cents', 500)
+            ->assertJsonPath('data.coupon_code', 'ONCE5')
+            ->assertJsonPath('data.discount_cents', 500)
+            ->assertJsonPath('data.coupon_discount', 5);
 
         $this->assertDatabaseHas('coupon_redemptions', [
             'coupon_id' => $coupon->id,
             'user_id' => $user->id,
             'order_id' => $first->json('data.id'),
+            'discount_cents' => 500,
+        ]);
+
+        $this->assertDatabaseHas('orders', [
+            'id' => $first->json('data.id'),
+            'coupon_code' => 'ONCE5',
             'discount_cents' => 500,
         ]);
 
@@ -188,6 +197,30 @@ class CheckoutTest extends TestCase
         $coupon->refresh();
         $this->assertSame(1, $coupon->used_count);
         $this->assertDatabaseCount('coupon_redemptions', 1);
+    }
+
+    public function test_order_item_keeps_product_name_snapshot_after_product_changes(): void
+    {
+        $user = User::factory()->create(['tangki_balance' => 20.00]);
+        $product = $this->createProduct();
+        $this->addCartItem($user, $product);
+
+        $checkout = $this->apiCheckout($user);
+        $checkout->assertStatus(200)
+            ->assertJsonPath('data.items.0.product_name', 'Latte');
+
+        $product->name = 'Renamed Latte';
+        $product->save();
+
+        $this->actingAs($user)
+            ->getJson('/api/orders/' . $checkout->json('data.id'))
+            ->assertOk()
+            ->assertJsonPath('data.items.0.product_name', 'Latte');
+
+        $this->assertDatabaseHas('order_items', [
+            'order_id' => $checkout->json('data.id'),
+            'product_name' => 'Latte',
+        ]);
     }
 
     public function test_checkout_uses_final_discounted_amount_for_balance_check(): void

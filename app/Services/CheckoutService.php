@@ -74,6 +74,7 @@ class CheckoutService implements CheckoutServiceInterface
                     $orderItem = new OrderItem();
                     $orderItem->order_id = $order->id;
                     $orderItem->product_id = $item->product_id;
+                    $orderItem->product_name = $item->product->name;
                     $orderItem->quantity = $quantity;
                     $orderItem->options = [
                         'size' => $item->size,
@@ -122,6 +123,8 @@ class CheckoutService implements CheckoutServiceInterface
                 $order->subtotal_cents = $totalCashToPayCents + $totalOzToDrain;
                 $order->final_amount = Money::fromCents(max(0, $totalCashToPayCents - $discountCents));
                 $order->final_amount_cents = max(0, $totalCashToPayCents - $discountCents);
+                $order->coupon_code = $discountCents > 0 ? strtoupper((string) $couponCode) : null;
+                $order->discount_cents = $discountCents;
                 $order->oz_used = $totalOzToDrain;
                 $order->pickup_time = $pickupTime;
                 $order->save();
@@ -205,6 +208,7 @@ class CheckoutService implements CheckoutServiceInterface
                 $orderItem = new OrderItem();
                 $orderItem->order_id = $order->id;
                 $orderItem->product_id = $item['product_id'];
+                $orderItem->product_name = $item['product_name'] ?? null;
                 $orderItem->quantity = $item['quantity'];
                 $orderItem->options = [
                     'size' => $item['size'],
@@ -229,6 +233,10 @@ class CheckoutService implements CheckoutServiceInterface
                     throw new CheckoutException('Coupon can no longer be redeemed.');
                 }
             }
+
+            $order->coupon_code = $lockedSnapshot->discount_cents > 0 ? $lockedSnapshot->coupon_code : null;
+            $order->discount_cents = $lockedSnapshot->discount_cents;
+            $order->save();
 
             $lockedSnapshot->status = CartSnapshot::STATUS_PROCESSED;
             $lockedSnapshot->save();
