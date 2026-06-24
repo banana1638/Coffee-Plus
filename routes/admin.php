@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\AdminOrderController;
 use App\Http\Controllers\Admin\CouponAdminController;
 use App\Http\Controllers\Admin\LoginController;
 use App\Http\Controllers\Admin\ProductAdminController;
+use App\Http\Controllers\Admin\WalletAdminController;
 use App\Http\Controllers\Admin\DashboardController;
 use Illuminate\Support\Facades\Route;
 
@@ -53,4 +54,8 @@ Route::middleware(['auth:admin'])->group(function () {
         Route::match(['post', 'patch'], '/{order}/advance-status', [AdminOrderController::class, 'advanceStatus'])->middleware('admin.permission:order.status.update')->name('advance-status');
         Route::match(['post', 'patch'], '/{order}/complete', [AdminOrderController::class, 'complete'])->middleware('admin.permission:order.status.update')->name('complete');
     });
+
+    Route::post('/wallet/adjust', [WalletAdminController::class, 'adjust'])
+        ->middleware('admin.permission:wallet.adjust')
+        ->name('wallet.adjust');
 });
