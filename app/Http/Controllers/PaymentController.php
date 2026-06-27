@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
 use App\Contracts\PaymentGatewayInterface;
+use App\Contracts\CheckoutServiceInterface;
 use App\Services\CartSnapshotService;
 use App\Services\Payment\PaymentHandlerFactory;
 
@@ -16,15 +17,18 @@ class PaymentController extends Controller
     private PaymentGatewayInterface $gateway;
     private PaymentHandlerFactory $handlerFactory;
     private CartSnapshotService $cartSnapshotService;
+    private CheckoutServiceInterface $checkoutService;
 
     public function __construct(
         PaymentGatewayInterface $gateway,
         PaymentHandlerFactory $handlerFactory,
-        CartSnapshotService $cartSnapshotService
+        CartSnapshotService $cartSnapshotService,
+        CheckoutServiceInterface $checkoutService,
     ) {
         $this->gateway = $gateway;
         $this->handlerFactory = $handlerFactory;
         $this->cartSnapshotService = $cartSnapshotService;
+        $this->checkoutService = $checkoutService;
     }
 
     public function checkout(Request $request)
@@ -60,9 +64,26 @@ class PaymentController extends Controller
             ];
         }
 
-        // If everything is fully paid by OZ, just route to normal checkout directly
-        if (empty($items)) {
-            return app(\App\Http\Controllers\OrderController::class)->checkout($request);
+        // Zero-cash orders do not need an external payment session.
+        if (empty($items) || $snapshot->final_amount_cents === 0) {
+            $order = $this->checkoutService->processCheckout($user, $useOzIds, $couponCode, $pickupTime);
+
+            return redirect()->route('tangki.transactions')
+                ->with('success', 'Enjoy your coffee! Order #' . $order->bill_id . ' placed.');
+        }
+
+        if ($snapshot->discount_cents > 0) {
+            $items = [[
+                'price_data' => [
+                    'currency' => 'myr',
+                    'product_data' => [
+                        'name' => 'Coffee Plus Order',
+                        'description' => 'Coupon discount applied',
+                    ],
+                    'unit_amount' => $snapshot->final_amount_cents,
+                ],
+                'quantity' => 1,
+            ]];
         }
 
         $metadata = [

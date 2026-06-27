@@ -7,6 +7,7 @@ use App\DataTransferObjects\PaymentResult;
 use App\DataTransferObjects\PaymentInitiation;
 use App\Models\CartSnapshot;
 use App\Models\CartItem;
+use App\Models\Coupon;
 use App\Models\Menu;
 use App\Models\Order;
 use App\Models\Product;
@@ -46,11 +47,21 @@ class StripeMetadataTest extends TestCase
         $cashItem->unit_price = 12.00;
         $cashItem->save();
 
+        Coupon::create([
+            'code' => 'SAVE5',
+            'type' => 'fixed',
+            'value' => 5.00,
+            'usage_limit' => 10,
+            'used_count' => 0,
+        ]);
+
         $gateway = new class implements PaymentGatewayInterface {
             public array $metadata = [];
+            public array $items = [];
 
             public function createCheckout(User $user, array $items, array $metadata): PaymentInitiation
             {
+                $this->items = $items;
                 $this->metadata = $metadata;
 
                 return new PaymentInitiation('cs_checkout_pending', 'https://stripe.test/checkout');
@@ -78,16 +89,19 @@ class StripeMetadataTest extends TestCase
         $this->assertSame('SAVE5', $gateway->metadata['coupon_code']);
         $this->assertSame('2026-06-06 15:00:00', $gateway->metadata['pickup_time']);
         $this->assertSame(json_encode([$cartItem->id]), $gateway->metadata['use_oz']);
+        $this->assertSame(700, $gateway->items[0]['price_data']['unit_amount']);
+        $this->assertSame(1, $gateway->items[0]['quantity']);
         $this->assertDatabaseHas('cart_snapshots', [
             'id' => $gateway->metadata['cart_snapshot_id'],
             'user_id' => $user->id,
-            'final_amount_cents' => 1200,
+            'discount_cents' => 500,
+            'final_amount_cents' => 700,
         ]);
         $this->assertDatabaseHas('payment_events', [
             'session_id' => 'cs_checkout_pending',
             'user_id' => $user->id,
             'type' => 'checkout',
-            'amount_cents' => 1200,
+            'amount_cents' => 700,
             'status' => 'pending',
         ]);
     }
@@ -122,6 +136,46 @@ class StripeMetadataTest extends TestCase
             'type' => 'checkout',
             'cart_snapshot_id' => $snapshot->id,
         ], 'cs_snapshot'), $user);
+    }
+
+    public function test_fully_discounted_checkout_completes_without_stripe(): void
+    {
+        $user = User::factory()->create(['tangki_balance' => 0]);
+        $product = $this->createProduct();
+
+        $cartItem = new CartItem();
+        $cartItem->user_id = $user->id;
+        $cartItem->product_id = $product->id;
+        $cartItem->quantity = 1;
+        $cartItem->size = 'Regular';
+        $cartItem->temp = 'Hot';
+        $cartItem->addons = [];
+        $cartItem->unit_price = 10.00;
+        $cartItem->save();
+
+        Coupon::create([
+            'code' => 'FREE10',
+            'type' => 'fixed',
+            'value' => 10.00,
+            'usage_limit' => 1,
+            'used_count' => 0,
+        ]);
+
+        $this->actingAs($user)
+            ->post(route('stripe.checkout'), [
+                'coupon_code' => 'FREE10',
+                'pickup_time' => '2026-06-27 15:00:00',
+            ])
+            ->assertRedirect(route('tangki.transactions'));
+
+        $this->assertDatabaseHas('orders', [
+            'user_id' => $user->id,
+            'coupon_code' => 'FREE10',
+            'discount_cents' => 1000,
+            'final_amount_cents' => 0,
+            'pickup_time' => '2026-06-27 15:00:00',
+        ]);
+        $this->assertDatabaseCount('payment_events', 0);
     }
 
     public function test_stripe_checkout_handler_rejects_snapshot_amount_mismatch(): void
