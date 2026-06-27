@@ -77,33 +77,33 @@ class Coupon extends Model
 
     public function redeemForOrder(User $user, Order $order, int $discountCents): bool
     {
-        if ($discountCents <= 0 || CouponRedemption::where('coupon_id', $this->id)->where('user_id', $user->id)->exists()) {
-            return false;
-        }
+        return DB::transaction(function () use ($user, $order, $discountCents) {
+            $coupon = self::whereKey($this->getKey())->lockForUpdate()->first();
 
-        $updated = self::where('id', $this->id)
-            ->where(function ($query) {
-                $query->whereNull('usage_limit')
-                    ->orWhereColumn('used_count', '<', 'usage_limit');
-            })
-            ->update([
-                'used_count' => DB::raw('used_count + 1'),
+            if ($discountCents <= 0 || !$coupon || !$coupon->isValid()) {
+                return false;
+            }
+
+            $alreadyRedeemed = CouponRedemption::where('coupon_id', $coupon->id)
+                ->where('user_id', $user->id)
+                ->exists();
+
+            if ($alreadyRedeemed) {
+                return false;
+            }
+
+            CouponRedemption::create([
+                'coupon_id' => $coupon->id,
+                'user_id' => $user->id,
+                'order_id' => $order->id,
+                'discount_cents' => $discountCents,
             ]);
 
-        if ($updated !== 1) {
-            return false;
-        }
+            $coupon->increment('used_count');
+            $this->setRawAttributes($coupon->fresh()->getAttributes(), true);
 
-        CouponRedemption::create([
-            'coupon_id' => $this->id,
-            'user_id' => $user->id,
-            'order_id' => $order->id,
-            'discount_cents' => $discountCents,
-        ]);
-
-        $this->refresh();
-
-        return true;
+            return true;
+        });
     }
 
     public function redemptions()

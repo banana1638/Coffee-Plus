@@ -199,6 +199,33 @@ class CheckoutTest extends TestCase
         $this->assertDatabaseCount('coupon_redemptions', 1);
     }
 
+    public function test_coupon_redemption_rechecks_locked_database_state(): void
+    {
+        $user = User::factory()->create();
+        $coupon = Coupon::create([
+            'code' => 'STALE5',
+            'type' => 'fixed',
+            'value' => 5.00,
+            'usage_limit' => 1,
+            'used_count' => 0,
+        ]);
+        $staleCoupon = Coupon::findOrFail($coupon->id);
+
+        $order = new Order();
+        $order->user_id = $user->id;
+        $order->bill_id = 'CP-STALE-COUPON';
+        $order->subtotal = 10.00;
+        $order->final_amount = 10.00;
+        $order->status = Order::STATUS_PENDING;
+        $order->save();
+
+        Coupon::whereKey($coupon->id)->update(['used_count' => 1]);
+
+        $this->assertFalse($staleCoupon->redeemForOrder($user, $order, 500));
+        $this->assertDatabaseCount('coupon_redemptions', 0);
+        $this->assertSame(1, $coupon->fresh()->used_count);
+    }
+
     public function test_order_item_keeps_product_name_snapshot_after_product_changes(): void
     {
         $user = User::factory()->create(['tangki_balance' => 20.00]);
