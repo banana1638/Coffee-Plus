@@ -51,8 +51,15 @@ class CoffeeSecurityCheck extends Command
             $warnings[] = 'Public storage link was not found at public/storage.';
         }
 
-        if (!config('cors')) {
-            $warnings[] = 'config/cors.php was not found; verify API origins are controlled elsewhere.';
+        $corsOrigins = config('cors.allowed_origins', []);
+        $corsOriginPatterns = config('cors.allowed_origins_patterns', []);
+
+        if ($enforceProduction && $corsOrigins === [] && $corsOriginPatterns === []) {
+            $failures[] = 'CORS must define at least one allowed origin in production.';
+        }
+
+        if ($enforceProduction && in_array('*', $corsOrigins, true)) {
+            $failures[] = 'CORS wildcard origins are not allowed in production.';
         }
 
         foreach ($failures as $failure) {

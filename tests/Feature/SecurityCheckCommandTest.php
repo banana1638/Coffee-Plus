@@ -35,10 +35,31 @@ class SecurityCheckCommandTest extends TestCase
             'services.stripe.webhook' => 'whsec_test',
             'broadcasting.default' => 'null',
             'telescope.enabled' => false,
+            'cors.allowed_origins' => ['https://coffee-plus.example'],
+            'cors.allowed_origins_patterns' => [],
         ]);
 
         $this->artisan('coffee:security-check --production')
             ->expectsOutputToContain('Coffee-Plus backend security check passed.')
             ->assertExitCode(0);
+    }
+
+    public function test_security_check_rejects_wildcard_cors_in_production(): void
+    {
+        config([
+            'app.debug' => false,
+            'app.key' => 'base64:test',
+            'services.stripe.key' => 'pk_test',
+            'services.stripe.secret' => 'sk_test',
+            'services.stripe.webhook' => 'whsec_test',
+            'broadcasting.default' => 'null',
+            'telescope.enabled' => false,
+            'cors.allowed_origins' => ['*'],
+            'cors.allowed_origins_patterns' => [],
+        ]);
+
+        $this->artisan('coffee:security-check --production')
+            ->expectsOutputToContain('CORS wildcard origins are not allowed in production.')
+            ->assertExitCode(1);
     }
 }
