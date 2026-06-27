@@ -51,7 +51,7 @@ class StripeWebhookController extends Controller
         }
 
         $alreadyProcessed = $this->paymentEventQuery($event->id, $sessionId)
-            ->where('status', 'processed')
+            ->where('status', PaymentEvent::STATUS_PROCESSED)
             ->exists();
 
         if ($alreadyProcessed) {
@@ -73,20 +73,32 @@ class StripeWebhookController extends Controller
                         'event_id' => $event->id,
                         'session_id' => $sessionId,
                         'user_id' => $user?->id,
-                        'type' => $event->type,
+                        'type' => $this->normalizePaymentType($metadata['type'] ?? null),
                         'amount_cents' => (int) ($session->amount_total ?? 0),
                         'currency' => $session->currency ?? null,
-                        'status' => 'processing',
+                        'status' => PaymentEvent::STATUS_PROCESSING,
                         'payload_json' => $event->toArray(),
                     ]);
-                }
+                } else {
+                    if ($paymentEvent->status === PaymentEvent::STATUS_PROCESSED) {
+                        return;
+                    }
 
-                if ($paymentEvent->status === 'processed') {
-                    return;
+                    $this->assertPendingPaymentMatches($paymentEvent, $metadataUserId, $session, $metadata);
+
+                    $paymentEvent->fill([
+                        'event_id' => $event->id,
+                        'user_id' => $user?->id ?? $paymentEvent->user_id,
+                        'type' => $this->normalizePaymentType($metadata['type'] ?? null),
+                        'amount_cents' => (int) ($session->amount_total ?? 0),
+                        'currency' => $session->currency ?? null,
+                        'status' => PaymentEvent::STATUS_PROCESSING,
+                        'payload_json' => $event->toArray(),
+                    ])->save();
                 }
 
                 if (!$user) {
-                    $paymentEvent->status = 'ignored';
+                    $paymentEvent->status = PaymentEvent::STATUS_IGNORED;
                     $paymentEvent->save();
 
                     return;
@@ -103,14 +115,15 @@ class StripeWebhookController extends Controller
 
                 $this->handlerFactory->make($result->getType())->handle($result, $user);
 
-                $paymentEvent->status = 'processed';
+                $paymentEvent->status = PaymentEvent::STATUS_PROCESSED;
                 $paymentEvent->processed_at = now();
                 $paymentEvent->save();
             });
         } catch (\Throwable $e) {
             report($e);
 
-            PaymentEvent::where('event_id', $event->id)->update(['status' => 'failed']);
+            $this->paymentEventQuery($event->id, $sessionId)
+                ->update(['status' => PaymentEvent::STATUS_FAILED]);
 
             return response()->json(['message' => 'Webhook processing failed.'], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
@@ -141,6 +154,26 @@ class StripeWebhookController extends Controller
     private function normalizePaymentType(?string $type): string
     {
         return $type === 'tangki_refill' ? 'refill' : ($type ?: 'checkout');
+    }
+
+    private function assertPendingPaymentMatches(
+        PaymentEvent $paymentEvent,
+        ?int $metadataUserId,
+        object $session,
+        array $metadata,
+    ): void {
+        if (!str_starts_with($paymentEvent->event_id, 'pending:')) {
+            return;
+        }
+
+        $matches = (int) $paymentEvent->user_id === $metadataUserId
+            && $paymentEvent->amount_cents === (int) ($session->amount_total ?? 0)
+            && strtolower((string) $paymentEvent->currency) === strtolower((string) ($session->currency ?? ''))
+            && $paymentEvent->type === $this->normalizePaymentType($metadata['type'] ?? null);
+
+        if (!$matches) {
+            throw new \RuntimeException('Stripe session does not match the pending payment record.');
+        }
     }
 
     private function sessionAmount(object $session): float

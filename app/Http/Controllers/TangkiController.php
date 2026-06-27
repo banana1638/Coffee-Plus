@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Contracts\PaymentGatewayInterface;
+use App\Models\PaymentEvent;
 
 class TangkiController extends Controller
 {
@@ -44,12 +45,15 @@ class TangkiController extends Controller
             ]
         ];
 
-        $url = $this->paymentGateway->createCheckoutUrl($user, $items, [
+        $metadata = [
             'type' => 'refill',
             'user_id' => $user->id,
             'amount' => $amount,
-        ]);
+        ];
+        $payment = $this->paymentGateway->createCheckout($user, $items, $metadata);
 
-        return redirect($url);
+        PaymentEvent::recordPending($user, $payment->sessionId, 'refill', (int) round($amount * 100), $metadata);
+
+        return redirect($payment->redirectUrl);
     }
 }

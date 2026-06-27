@@ -3,10 +3,11 @@
 namespace App\Services\Payment\Gateways;
 
 use App\Contracts\PaymentGatewayInterface;
-use Stripe\Checkout\Session;
-use App\Models\User;
-use Stripe\Stripe;
+use App\DataTransferObjects\PaymentInitiation;
 use App\DataTransferObjects\PaymentResult;
+use App\Models\User;
+use Stripe\Checkout\Session;
+use Stripe\Stripe;
 
 class StripeGateway implements PaymentGatewayInterface
 {
@@ -19,9 +20,8 @@ class StripeGateway implements PaymentGatewayInterface
      * @param User $user
      * @param array<int, array{price_data: array{currency: string, product_data: array{name: string}, unit_amount: int}, quantity: int}> $items
      * @param array<string, mixed> $metadata
-     * @return string
      */
-    public function createCheckoutUrl(User $user, array $items, array $metadata): string
+    public function createCheckout(User $user, array $items, array $metadata): PaymentInitiation
     {
         $session = Session::create([
             'payment_method_types' => ['card'],
@@ -32,7 +32,7 @@ class StripeGateway implements PaymentGatewayInterface
             'cancel_url' => route('cart.index'),
         ]);
 
-        return $session->url;
+        return new PaymentInitiation($session->id, $session->url);
     }
 
     public function getSessionData(string $sessionId): PaymentResult

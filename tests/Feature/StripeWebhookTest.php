@@ -84,6 +84,65 @@ class StripeWebhookTest extends TestCase
         $this->assertSame(1, PaymentEvent::where('status', 'processed')->count());
     }
 
+    public function test_stripe_webhook_transitions_pending_payment_to_processed(): void
+    {
+        config(['services.stripe.webhook' => 'whsec_test']);
+
+        $user = User::factory()->create();
+        PaymentEvent::recordPending($user, 'cs_pending_once', 'refill', 1000, [
+            'type' => 'refill',
+            'user_id' => $user->id,
+            'amount' => '10.00',
+        ]);
+
+        $payload = $this->checkoutCompletedPayload($user, 'evt_pending_once', 'cs_pending_once');
+        $signature = $this->stripeSignature($payload, 'whsec_test');
+
+        $this->call('POST', '/api/stripe/webhook', [], [], [], [
+            'CONTENT_TYPE' => 'application/json',
+            'HTTP_STRIPE_SIGNATURE' => $signature,
+        ], $payload)->assertOk();
+
+        $this->assertDatabaseHas('payment_events', [
+            'event_id' => 'evt_pending_once',
+            'session_id' => 'cs_pending_once',
+            'user_id' => $user->id,
+            'type' => 'refill',
+            'amount_cents' => 1000,
+            'status' => 'processed',
+        ]);
+        $this->assertDatabaseCount('payment_events', 1);
+    }
+
+    public function test_stripe_webhook_rejects_payment_that_does_not_match_pending_amount(): void
+    {
+        config(['services.stripe.webhook' => 'whsec_test']);
+
+        $user = User::factory()->create();
+        PaymentEvent::recordPending($user, 'cs_amount_mismatch', 'refill', 2000, [
+            'type' => 'refill',
+            'user_id' => $user->id,
+            'amount' => '20.00',
+        ]);
+
+        $payload = $this->checkoutCompletedPayload($user, 'evt_amount_mismatch', 'cs_amount_mismatch');
+        $signature = $this->stripeSignature($payload, 'whsec_test');
+
+        for ($attempt = 0; $attempt < 2; $attempt++) {
+            $this->call('POST', '/api/stripe/webhook', [], [], [], [
+                'CONTENT_TYPE' => 'application/json',
+                'HTTP_STRIPE_SIGNATURE' => $signature,
+            ], $payload)->assertStatus(500);
+        }
+
+        $this->assertDatabaseHas('payment_events', [
+            'session_id' => 'cs_amount_mismatch',
+            'amount_cents' => 2000,
+            'status' => 'failed',
+        ]);
+        $this->assertSame(0, Transaction::where('type', 'refill')->count());
+    }
+
     public function test_stripe_webhook_ignores_unpaid_session(): void
     {
         config(['services.stripe.webhook' => 'whsec_test']);

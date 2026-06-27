@@ -1,5 +1,12 @@
 # Flutter Sync Report
 
+## 2026-06-27 Payment Initiation Update
+
+- `POST /api/tangki/refill` now also returns `session_id` alongside `redirect_url`.
+- Persist this `session_id` and poll `GET /api/payments/{sessionId}/status` after returning from Stripe.
+- Treat only `data.status == processed` as successful; `pending`, `processing`, and `failed` must not credit Tangki locally.
+- No existing response field was removed.
+
 Date: 2026-06-24
 
 Repository: Coffee-Plus backend

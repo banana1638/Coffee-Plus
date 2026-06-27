@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\CartItem;
+use App\Models\PaymentEvent;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
@@ -64,16 +65,25 @@ class PaymentController extends Controller
             return app(\App\Http\Controllers\OrderController::class)->checkout($request);
         }
 
-        $url = $this->gateway->createCheckoutUrl($user, $items, [
+        $metadata = [
             'type' => 'checkout',
             'user_id' => $user->id,
             'cart_snapshot_id' => $snapshot->id,
             'coupon_code' => $couponCode,
             'pickup_time' => $pickupTime,
             'use_oz' => json_encode($useOzIds),
-        ]);
+        ];
+        $payment = $this->gateway->createCheckout($user, $items, $metadata);
 
-        return Redirect::away($url);
+        PaymentEvent::recordPending(
+            $user,
+            $payment->sessionId,
+            'checkout',
+            $snapshot->final_amount_cents,
+            $metadata,
+        );
+
+        return Redirect::away($payment->redirectUrl);
     }
 
     public function success(Request $request)

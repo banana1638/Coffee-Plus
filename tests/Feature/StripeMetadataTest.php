@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Contracts\PaymentGatewayInterface;
 use App\DataTransferObjects\PaymentResult;
+use App\DataTransferObjects\PaymentInitiation;
 use App\Models\CartSnapshot;
 use App\Models\CartItem;
 use App\Models\Menu;
@@ -48,11 +49,11 @@ class StripeMetadataTest extends TestCase
         $gateway = new class implements PaymentGatewayInterface {
             public array $metadata = [];
 
-            public function createCheckoutUrl(User $user, array $items, array $metadata): string
+            public function createCheckout(User $user, array $items, array $metadata): PaymentInitiation
             {
                 $this->metadata = $metadata;
 
-                return 'https://stripe.test/checkout';
+                return new PaymentInitiation('cs_checkout_pending', 'https://stripe.test/checkout');
             }
 
             public function getSessionData(string $sessionId): PaymentResult
@@ -81,6 +82,13 @@ class StripeMetadataTest extends TestCase
             'id' => $gateway->metadata['cart_snapshot_id'],
             'user_id' => $user->id,
             'final_amount_cents' => 1200,
+        ]);
+        $this->assertDatabaseHas('payment_events', [
+            'session_id' => 'cs_checkout_pending',
+            'user_id' => $user->id,
+            'type' => 'checkout',
+            'amount_cents' => 1200,
+            'status' => 'pending',
         ]);
     }
 

@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Api\TransactionResource;
 use App\Http\Resources\Api\UserResource;
+use App\Models\PaymentEvent;
 
 class TangkiController extends Controller
 {
@@ -46,7 +47,12 @@ class TangkiController extends Controller
         $amountCents = (int) round($amount * 100);
 
         try {
-            $url = $this->gateway->createCheckoutUrl($user, [
+            $metadata = [
+                'type' => 'refill',
+                'user_id' => $user->id,
+                'amount' => (string) $amount,
+            ];
+            $payment = $this->gateway->createCheckout($user, [
                 [
                     'price_data' => [
                         'currency' => 'myr',
@@ -55,15 +61,14 @@ class TangkiController extends Controller
                     ],
                     'quantity' => 1,
                 ],
-            ], [
-                'type' => 'refill',
-                'user_id' => $user->id,
-                'amount' => (string) $amount,
-            ]);
+            ], $metadata);
+
+            PaymentEvent::recordPending($user, $payment->sessionId, 'refill', $amountCents, $metadata);
 
             return response()->json([
                 'status' => 'success',
-                'redirect_url' => $url,
+                'session_id' => $payment->sessionId,
+                'redirect_url' => $payment->redirectUrl,
                 'message' => 'Redirect to Stripe checkout.',
             ]);
         } catch (\Exception $e) {

@@ -51,6 +51,21 @@ class PaymentStatusApiTest extends TestCase
             ->assertJsonPath('data.status', 'pending');
     }
 
+    public function test_user_can_view_pending_payment_created_at_initiation(): void
+    {
+        $user = User::factory()->create();
+        PaymentEvent::recordPending($user, 'cs_pending_status', 'refill', 2500);
+
+        $this->actingAs($user)
+            ->getJson('/api/payments/cs_pending_status/status')
+            ->assertOk()
+            ->assertJsonPath('data.session_id', 'cs_pending_status')
+            ->assertJsonPath('data.type', 'refill')
+            ->assertJsonPath('data.status', 'pending')
+            ->assertJsonPath('data.amount_cents', 2500)
+            ->assertJsonPath('data.currency', 'myr');
+    }
+
     public function test_user_cannot_view_another_users_payment_status(): void
     {
         $user = User::factory()->create();
