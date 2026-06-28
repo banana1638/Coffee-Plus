@@ -2,14 +2,14 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Exceptions\OrderException;
 use App\Exports\OrdersExport;
 use App\Http\Controllers\Controller;
-use App\Exceptions\OrderException;
 use App\Models\Order;
 use App\Models\Transaction;
-use Illuminate\Http\Request;
 use App\Services\AuditLogService;
 use App\Services\OrderService;
+use Illuminate\Http\Request;
 use Maatwebsite\Excel\Facades\Excel;
 
 class AdminOrderController extends Controller
@@ -17,19 +17,19 @@ class AdminOrderController extends Controller
     public function __construct(
         private readonly OrderService $orderService,
         private readonly AuditLogService $auditLogService
-    )
-    {
-    }
+    ) {}
 
     public function index()
     {
         $orders = Order::with('user', 'items.product')->latest()->paginate(10);
+
         return view('admin.orders.index', compact('orders'));
     }
 
     public function show(Order $order)
     {
-        $order->load(['user', 'items.product']);
+        $order->load(['user', 'items.product', 'statusHistories']);
+
         return view('admin.orders.show', compact('order'));
     }
 
@@ -106,9 +106,10 @@ class AdminOrderController extends Controller
         return view('admin.orders.refunds', compact('refunds'));
     }
 
-    public function export(Request $request) 
+    public function export(Request $request)
     {
-        $fileName = 'CoffeePlus_Report_' . now()->format('Ymd') . '.xlsx';
+        $fileName = 'CoffeePlus_Report_'.now()->format('Ymd').'.xlsx';
+
         return Excel::download(new OrdersExport($request), $fileName);
     }
 }

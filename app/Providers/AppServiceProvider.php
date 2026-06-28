@@ -2,15 +2,17 @@
 
 namespace App\Providers;
 
+use App\Models\Order;
 use App\Models\User;
+use App\Observers\OrderObserver;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\View;
-use Illuminate\Support\Str;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Str;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -62,10 +64,12 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        Order::observe(OrderObserver::class);
+
         RateLimiter::for('admin-login', function (Request $request) {
             $email = Str::lower((string) $request->input('email'));
 
-            return Limit::perMinute(5)->by($email . '|' . $request->ip());
+            return Limit::perMinute(5)->by($email.'|'.$request->ip());
         });
 
         Blade::if('adminCan', function (string $permission): bool {
@@ -75,7 +79,7 @@ class AppServiceProvider extends ServiceProvider
         });
 
         View::composer('layouts.navigation', function ($view) {
-            if (!Auth::check()) {
+            if (! Auth::check()) {
                 return;
             }
 

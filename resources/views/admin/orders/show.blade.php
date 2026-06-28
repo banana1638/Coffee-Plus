@@ -66,6 +66,42 @@
                             @endforeach
                         </div>
                     </x-ui.card>
+
+                    <x-ui.card>
+                        <x-slot:header>
+                            <div>
+                                <h2 class="text-base font-semibold text-slate-950">Status History</h2>
+                                <p class="text-sm text-slate-600">Immutable record of order state changes.</p>
+                            </div>
+                        </x-slot:header>
+
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-slate-200 text-sm">
+                                <thead class="bg-slate-50 text-left text-xs font-semibold uppercase text-slate-500">
+                                    <tr>
+                                        <th class="px-4 py-3">Time</th>
+                                        <th class="px-4 py-3">Transition</th>
+                                        <th class="px-4 py-3">Actor</th>
+                                        <th class="px-4 py-3">Source</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-200">
+                                    @foreach($order->statusHistories as $history)
+                                        <tr>
+                                            <td class="whitespace-nowrap px-4 py-3 text-slate-600">{{ $history->created_at->format('Y-m-d H:i:s') }}</td>
+                                            <td class="whitespace-nowrap px-4 py-3 font-medium text-slate-950">
+                                                {{ $history->from_status ?? 'created' }} &rarr; {{ $history->to_status }}
+                                            </td>
+                                            <td class="whitespace-nowrap px-4 py-3 text-slate-600">
+                                                {{ $history->actor_type }}{{ $history->actor_id ? ' #' . $history->actor_id : '' }}
+                                            </td>
+                                            <td class="px-4 py-3 text-slate-600">{{ $history->source ?? 'unknown' }}</td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    </x-ui.card>
                 </div>
 
                 <aside class="space-y-6">

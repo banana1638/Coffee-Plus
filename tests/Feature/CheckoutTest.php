@@ -2,8 +2,8 @@
 
 namespace Tests\Feature;
 
-use App\Models\CartItem;
 use App\Models\Admin;
+use App\Models\CartItem;
 use App\Models\Coupon;
 use App\Models\Menu;
 use App\Models\Order;
@@ -20,11 +20,11 @@ class CheckoutTest extends TestCase
 
     private function createProduct(float $price = 10.00): Product
     {
-        $menu = new Menu();
+        $menu = new Menu;
         $menu->name = 'Coffee';
         $menu->save();
 
-        $product = new Product();
+        $product = new Product;
         $product->menu_id = $menu->id;
         $product->name = 'Latte';
         $product->price = $price;
@@ -35,7 +35,7 @@ class CheckoutTest extends TestCase
 
     private function addCartItem(User $user, Product $product, float $unitPrice = 10.00): CartItem
     {
-        $cartItem = new CartItem();
+        $cartItem = new CartItem;
         $cartItem->user_id = $user->id;
         $cartItem->product_id = $product->id;
         $cartItem->quantity = 1;
@@ -70,7 +70,7 @@ class CheckoutTest extends TestCase
         ]);
         $product = $this->createProduct();
 
-        $refillOrder = new Order();
+        $refillOrder = new Order;
         $refillOrder->user_id = $user->id;
         $refillOrder->bill_id = 'REFILL-1';
         $refillOrder->subtotal = 20.00;
@@ -96,7 +96,7 @@ class CheckoutTest extends TestCase
         ]);
         $product = $this->createProduct();
 
-        $previousOrder = new Order();
+        $previousOrder = new Order;
         $previousOrder->user_id = $user->id;
         $previousOrder->bill_id = 'CP-PREVIOUS';
         $previousOrder->subtotal = 10.00;
@@ -104,7 +104,7 @@ class CheckoutTest extends TestCase
         $previousOrder->status = 'completed';
         $previousOrder->save();
 
-        $previousItem = new OrderItem();
+        $previousItem = new OrderItem;
         $previousItem->order_id = $previousOrder->id;
         $previousItem->product_id = $product->id;
         $previousItem->quantity = 1;
@@ -129,7 +129,7 @@ class CheckoutTest extends TestCase
         $product = $this->createProduct();
         $this->addCartItem($user, $product);
 
-        $coupon = new Coupon();
+        $coupon = new Coupon;
         $coupon->code = 'USEDUP';
         $coupon->type = 'fixed';
         $coupon->value = 5.00;
@@ -154,7 +154,7 @@ class CheckoutTest extends TestCase
         $product = $this->createProduct();
         $this->addCartItem($user, $product);
 
-        $coupon = new Coupon();
+        $coupon = new Coupon;
         $coupon->code = 'ONCE5';
         $coupon->type = 'fixed';
         $coupon->value = 5.00;
@@ -211,7 +211,7 @@ class CheckoutTest extends TestCase
         ]);
         $staleCoupon = Coupon::findOrFail($coupon->id);
 
-        $order = new Order();
+        $order = new Order;
         $order->user_id = $user->id;
         $order->bill_id = 'CP-STALE-COUPON';
         $order->subtotal = 10.00;
@@ -240,7 +240,7 @@ class CheckoutTest extends TestCase
         $product->save();
 
         $this->actingAs($user)
-            ->getJson('/api/orders/' . $checkout->json('data.id'))
+            ->getJson('/api/orders/'.$checkout->json('data.id'))
             ->assertOk()
             ->assertJsonPath('data.items.0.product_name', 'Latte');
 
@@ -256,7 +256,7 @@ class CheckoutTest extends TestCase
         $product = $this->createProduct();
         $this->addCartItem($user, $product);
 
-        $coupon = new Coupon();
+        $coupon = new Coupon;
         $coupon->code = 'FINAL5';
         $coupon->type = 'fixed';
         $coupon->value = 5.00;
@@ -326,7 +326,7 @@ class CheckoutTest extends TestCase
         $product->refresh();
         $this->assertSame(0, $product->stock);
 
-        $this->actingAs($user)->postJson('/api/orders/' . $checkout->json('data.id') . '/cancel')
+        $this->actingAs($user)->postJson('/api/orders/'.$checkout->json('data.id').'/cancel')
             ->assertStatus(200);
 
         $product->refresh();
@@ -367,6 +367,13 @@ class CheckoutTest extends TestCase
             'type' => 'refund',
             'oz_delta' => -500,
         ]);
+        $this->assertDatabaseHas('order_status_histories', [
+            'order_id' => $orderId,
+            'from_status' => Order::STATUS_PENDING,
+            'to_status' => Order::STATUS_CANCELLED,
+            'actor_type' => 'user',
+            'actor_id' => $user->id,
+        ]);
     }
 
     public function test_user_can_cancel_pending_oz_order_and_receive_oz_refund(): void
@@ -386,7 +393,7 @@ class CheckoutTest extends TestCase
         $user->refresh();
         $this->assertSame(0, $user->tangki_oz);
 
-        $response = $this->actingAs($user)->postJson('/api/orders/' . $checkout->json('data.id') . '/cancel');
+        $response = $this->actingAs($user)->postJson('/api/orders/'.$checkout->json('data.id').'/cancel');
 
         $response->assertStatus(200);
 
@@ -427,14 +434,14 @@ class CheckoutTest extends TestCase
         $this->assertNotEmpty($pickupCode);
         $this->assertStringStartsWith('PU', $pickupCode);
         $this->assertSame(
-            'COFFEEPLUS|' . $response->json('data.bill_id') . '|' . $pickupCode,
+            'COFFEEPLUS|'.$response->json('data.bill_id').'|'.$pickupCode,
             $response->json('data.pickup_qr_payload')
         );
     }
 
     public function test_admin_can_complete_order_by_pickup_code(): void
     {
-        $admin = new Admin();
+        $admin = new Admin;
         $admin->name = 'Staff';
         $admin->email = 'staff@example.test';
         $admin->password = 'password';
@@ -465,7 +472,7 @@ class CheckoutTest extends TestCase
 
     public function test_admin_can_advance_order_status_flow(): void
     {
-        $admin = new Admin();
+        $admin = new Admin;
         $admin->name = 'Staff';
         $admin->email = 'flow@example.test';
         $admin->password = 'password';
@@ -501,11 +508,18 @@ class CheckoutTest extends TestCase
         $order->refresh();
         $this->assertSame(Order::STATUS_COMPLETED, $order->status);
         $this->assertNotNull($order->completed_at);
+        $this->assertDatabaseHas('order_status_histories', [
+            'order_id' => $order->id,
+            'from_status' => Order::STATUS_READY,
+            'to_status' => Order::STATUS_COMPLETED,
+            'actor_type' => 'admin',
+            'actor_id' => $admin->id,
+        ]);
     }
 
     public function test_pickup_code_cannot_complete_order_before_ready_status(): void
     {
-        $admin = new Admin();
+        $admin = new Admin;
         $admin->name = 'Staff';
         $admin->email = 'not-ready@example.test';
         $admin->password = 'password';

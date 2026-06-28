@@ -4,8 +4,8 @@ namespace App\Models;
 
 use App\Support\Money;
 use Illuminate\Database\Eloquent\Casts\Attribute;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 
 class Order extends Model
 {
@@ -30,9 +30,13 @@ class Order extends Model
     ];
 
     public const STATUS_PENDING = 'pending';
+
     public const STATUS_PREPARING = 'preparing';
+
     public const STATUS_READY = 'ready_for_pickup';
+
     public const STATUS_COMPLETED = 'completed';
+
     public const STATUS_CANCELLED = 'cancelled';
 
     public const STATUS_FLOW = [
@@ -103,7 +107,7 @@ class Order extends Model
 
     public function getPickupQrPayloadAttribute(): ?string
     {
-        if (!$this->pickup_code) {
+        if (! $this->pickup_code) {
             return null;
         }
 
@@ -123,5 +127,10 @@ class Order extends Model
     public function reviews()
     {
         return $this->hasMany(ProductReview::class);
+    }
+
+    public function statusHistories()
+    {
+        return $this->hasMany(OrderStatusHistory::class)->latest();
     }
 }
