@@ -6,6 +6,14 @@
                     <x-ui.button :href="route('admin.payment-events.index')" variant="secondary">
                         Back to Payment Events
                     </x-ui.button>
+                    @if($paymentEvent->canRetry() && auth('admin')->user()?->canPerform('payment.retry'))
+                        <form method="POST" action="{{ route('admin.payment-events.retry', $paymentEvent) }}">
+                            @csrf
+                            <x-ui.button type="submit">
+                                Verify and Retry
+                            </x-ui.button>
+                        </form>
+                    @endif
                 </x-slot:actions>
             </x-layout.page-header>
 
@@ -47,6 +55,16 @@
                             <dt class="font-medium text-slate-500">Processed At</dt>
                             <dd class="mt-1 text-slate-950">{{ $paymentEvent->processed_at?->format('Y-m-d H:i') ?? 'Not processed' }}</dd>
                         </div>
+                        <div>
+                            <dt class="font-medium text-slate-500">Retry Attempts</dt>
+                            <dd class="mt-1 text-slate-950">{{ $paymentEvent->retry_attempts }}</dd>
+                        </div>
+                        @if($paymentEvent->last_error)
+                            <div>
+                                <dt class="font-medium text-slate-500">Last Error</dt>
+                                <dd class="mt-1 text-rose-700">{{ $paymentEvent->last_error }}</dd>
+                            </div>
+                        @endif
                     </dl>
                 </x-ui.card>
             </div>

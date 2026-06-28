@@ -7,9 +7,13 @@ use Illuminate\Database\Eloquent\Model;
 class PaymentEvent extends Model
 {
     public const STATUS_PENDING = 'pending';
+
     public const STATUS_PROCESSING = 'processing';
+
     public const STATUS_PROCESSED = 'processed';
+
     public const STATUS_FAILED = 'failed';
+
     public const STATUS_IGNORED = 'ignored';
 
     protected $fillable = [
@@ -21,6 +25,9 @@ class PaymentEvent extends Model
         'amount_cents',
         'currency',
         'status',
+        'retry_attempts',
+        'last_error',
+        'last_retried_at',
         'payload_json',
         'processed_at',
     ];
@@ -28,6 +35,7 @@ class PaymentEvent extends Model
     protected $casts = [
         'payload_json' => 'array',
         'processed_at' => 'datetime',
+        'last_retried_at' => 'datetime',
     ];
 
     public function user()
@@ -44,7 +52,7 @@ class PaymentEvent extends Model
     ): self {
         return self::create([
             'provider' => 'stripe',
-            'event_id' => 'pending:' . $sessionId,
+            'event_id' => 'pending:'.$sessionId,
             'session_id' => $sessionId,
             'user_id' => $user->id,
             'type' => $type,
@@ -53,5 +61,13 @@ class PaymentEvent extends Model
             'status' => self::STATUS_PENDING,
             'payload_json' => ['metadata' => $metadata],
         ]);
+    }
+
+    public function canRetry(): bool
+    {
+        return $this->status === self::STATUS_FAILED
+            && str_starts_with($this->event_id, 'pending:')
+            && $this->session_id !== null
+            && $this->user_id !== null;
     }
 }

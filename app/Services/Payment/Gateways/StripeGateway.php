@@ -17,9 +17,8 @@ class StripeGateway implements PaymentGatewayInterface
     }
 
     /**
-     * @param User $user
-     * @param array<int, array{price_data: array{currency: string, product_data: array{name: string}, unit_amount: int}, quantity: int}> $items
-     * @param array<string, mixed> $metadata
+     * @param  array<int, array{price_data: array{currency: string, product_data: array{name: string}, unit_amount: int}, quantity: int}>  $items
+     * @param  array<string, mixed>  $metadata
      */
     public function createCheckout(User $user, array $items, array $metadata): PaymentInitiation
     {
@@ -43,8 +42,8 @@ class StripeGateway implements PaymentGatewayInterface
             status: $session->payment_status === 'paid' ? 'success' : 'failed',
             amount: $session->amount_total / 100,
             metadata: $session->metadata->toArray(),
-            platformRef: $session->id
+            platformRef: $session->id,
+            currency: $session->currency,
         );
     }
-
 }

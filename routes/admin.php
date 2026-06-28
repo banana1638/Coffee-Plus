@@ -62,6 +62,9 @@ Route::middleware(['auth:admin'])->group(function () {
 
     Route::prefix('payment-events')->name('payment-events.')->middleware('admin.permission:payment.view')->group(function () {
         Route::get('/', [PaymentEventAdminController::class, 'index'])->name('index');
+        Route::post('/{paymentEvent}/retry', [PaymentEventAdminController::class, 'retry'])
+            ->middleware('admin.permission:payment.retry')
+            ->name('retry');
         Route::get('/{paymentEvent}', [PaymentEventAdminController::class, 'show'])->name('show');
     });
 });

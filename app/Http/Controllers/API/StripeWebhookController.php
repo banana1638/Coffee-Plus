@@ -15,12 +15,12 @@ use Symfony\Component\HttpFoundation\Response;
 class StripeWebhookController extends Controller
 {
     private const PROVIDER = 'stripe';
+
     private const COMPLETED_CHECKOUT_EVENT = 'checkout.session.completed';
+
     private const SUPPORTED_METADATA_TYPES = ['refill', 'tangki_refill', 'checkout'];
 
-    public function __construct(private readonly PaymentHandlerFactory $handlerFactory)
-    {
-    }
+    public function __construct(private readonly PaymentHandlerFactory $handlerFactory) {}
 
     public function __invoke(Request $request)
     {
@@ -42,7 +42,7 @@ class StripeWebhookController extends Controller
         $metadata = $session->metadata?->toArray() ?? [];
         $sessionId = $session->id ?? null;
 
-        if (!$sessionId) {
+        if (! $sessionId) {
             return response()->json(['message' => 'Missing session id.'], Response::HTTP_BAD_REQUEST);
         }
 
@@ -67,7 +67,7 @@ class StripeWebhookController extends Controller
                     ->lockForUpdate()
                     ->first();
 
-                if (!$paymentEvent) {
+                if (! $paymentEvent) {
                     $paymentEvent = PaymentEvent::create([
                         'provider' => self::PROVIDER,
                         'event_id' => $event->id,
@@ -97,7 +97,7 @@ class StripeWebhookController extends Controller
                     ])->save();
                 }
 
-                if (!$user) {
+                if (! $user) {
                     $paymentEvent->status = PaymentEvent::STATUS_IGNORED;
                     $paymentEvent->save();
 
@@ -110,7 +110,8 @@ class StripeWebhookController extends Controller
                     status: 'success',
                     amount: $this->sessionAmount($session),
                     metadata: $metadata,
-                    platformRef: $sessionId
+                    platformRef: $sessionId,
+                    currency: $session->currency ?? null,
                 );
 
                 $this->handlerFactory->make($result->getType())->handle($result, $user);
@@ -139,7 +140,7 @@ class StripeWebhookController extends Controller
             || ($session->mode ?? null) !== 'payment'
             || strtolower((string) ($session->currency ?? '')) !== 'myr'
             || (int) ($session->amount_total ?? 0) <= 0
-            || !in_array($type, self::SUPPORTED_METADATA_TYPES, true)
+            || ! in_array($type, self::SUPPORTED_METADATA_TYPES, true)
             || empty($metadata['user_id']);
     }
 
@@ -162,7 +163,7 @@ class StripeWebhookController extends Controller
         object $session,
         array $metadata,
     ): void {
-        if (!str_starts_with($paymentEvent->event_id, 'pending:')) {
+        if (! str_starts_with($paymentEvent->event_id, 'pending:')) {
             return;
         }
 
@@ -171,7 +172,7 @@ class StripeWebhookController extends Controller
             && strtolower((string) $paymentEvent->currency) === strtolower((string) ($session->currency ?? ''))
             && $paymentEvent->type === $this->normalizePaymentType($metadata['type'] ?? null);
 
-        if (!$matches) {
+        if (! $matches) {
             throw new \RuntimeException('Stripe session does not match the pending payment record.');
         }
     }

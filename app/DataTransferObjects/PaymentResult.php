@@ -8,7 +8,8 @@ class PaymentResult
         public readonly string $status,
         public readonly float $amount,
         public readonly array $metadata,
-        public readonly ?string $platformRef = null
+        public readonly ?string $platformRef = null,
+        public readonly ?string $currency = null,
     ) {}
 
     public function isSuccess(): bool
