@@ -14,9 +14,10 @@ use App\Http\Controllers\API\ProfileController;
 use App\Http\Controllers\API\SharedRecipeController;
 use App\Http\Controllers\API\StripeWebhookController;
 use App\Http\Controllers\API\TangkiController;
+use App\Http\Controllers\API\TokenController;
 use App\Http\Controllers\API\TransactionController;
-use Illuminate\Support\Facades\Route;
 use Illuminate\Broadcasting\BroadcastController;
+use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
@@ -41,6 +42,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/broadcasting/auth', [BroadcastController::class, 'authenticate'])->middleware('throttle:60,1');
 
     Route::post('/logout', [LoginController::class, 'logout']);
+    Route::get('/tokens', [TokenController::class, 'index'])->middleware('throttle:30,1');
+    Route::delete('/tokens', [TokenController::class, 'destroyAll'])->middleware('throttle:10,1');
+    Route::delete('/tokens/{token}', [TokenController::class, 'destroy'])
+        ->whereNumber('token')
+        ->middleware('throttle:10,1');
 
     Route::controller(CartController::class)->prefix('cart')->group(function () {
         Route::get('/', 'index');

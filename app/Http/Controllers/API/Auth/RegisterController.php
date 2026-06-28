@@ -3,14 +3,17 @@
 namespace App\Http\Controllers\API\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\Api\UserResource;
 use App\Models\User;
+use App\Services\ApiTokenService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules;
-use App\Http\Resources\Api\UserResource;
 
 class RegisterController extends Controller
 {
+    public function __construct(private readonly ApiTokenService $apiTokenService) {}
+
     /**
      * Handle an incoming registration request.
      */
@@ -23,6 +26,7 @@ class RegisterController extends Controller
             'phone' => 'nullable|string|max:20',
             'address' => 'nullable|string|max:500',
             'ref' => ['nullable', 'uuid'],
+            'device_name' => ['nullable', 'string', 'max:100'],
         ]);
 
         $referrerId = null;
@@ -32,7 +36,7 @@ class RegisterController extends Controller
             $referrerId = $referrer?->id;
         }
 
-        $user = new User();
+        $user = new User;
         $user->name = $request->name;
         $user->email = $request->email;
         $user->password = Hash::make($request->password);
@@ -42,14 +46,14 @@ class RegisterController extends Controller
         $user->referred_by = $referrerId;
         $user->save();
 
-        $token = $user->createToken('api_token')->plainTextToken;
+        $token = $this->apiTokenService->issue($user, $request->input('device_name'))->plainTextToken;
 
         return response()->json([
             'status' => 'success',
             'message' => 'Registration successful.',
             'access_token' => $token,
             'token_type' => 'Bearer',
-            'user' => new UserResource($user)
+            'user' => new UserResource($user),
         ], 201);
     }
 }

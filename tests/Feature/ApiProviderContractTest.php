@@ -2,7 +2,6 @@
 
 namespace Tests\Feature;
 
-use App\Models\CartItem;
 use App\Models\Coupon;
 use App\Models\Menu;
 use App\Models\Order;
@@ -25,6 +24,7 @@ class ApiProviderContractTest extends TestCase
         $this->postJson('/api/login', [
             'email' => $user->email,
             'password' => 'password',
+            'device_name' => 'Contract Phone',
         ])
             ->assertOk()
             ->assertJsonStructure([
@@ -43,6 +43,11 @@ class ApiProviderContractTest extends TestCase
             ])
             ->assertJsonPath('status', 'success')
             ->assertJsonPath('token_type', 'Bearer');
+
+        $this->assertDatabaseHas('personal_access_tokens', [
+            'tokenable_id' => $user->id,
+            'name' => 'Contract Phone',
+        ]);
     }
 
     public function test_dashboard_guest_contract_contains_menus_options_and_guest_user(): void
@@ -85,7 +90,7 @@ class ApiProviderContractTest extends TestCase
     {
         $user = User::factory()->create();
 
-        $coupon = new Coupon();
+        $coupon = new Coupon;
         $coupon->code = 'CONTRACT5';
         $coupon->type = 'fixed';
         $coupon->value = 5.00;
@@ -190,17 +195,17 @@ class ApiProviderContractTest extends TestCase
 
     private function createOrder(User $user): Order
     {
-        $menu = new Menu();
+        $menu = new Menu;
         $menu->name = 'Coffee';
         $menu->save();
 
-        $product = new Product();
+        $product = new Product;
         $product->menu_id = $menu->id;
         $product->name = 'Contract Latte';
         $product->price = 10.00;
         $product->save();
 
-        $order = new Order();
+        $order = new Order;
         $order->user_id = $user->id;
         $order->bill_id = 'CP-CONTRACT';
         $order->subtotal = 10.00;
@@ -208,7 +213,7 @@ class ApiProviderContractTest extends TestCase
         $order->status = Order::STATUS_PENDING;
         $order->save();
 
-        $item = new OrderItem();
+        $item = new OrderItem;
         $item->order_id = $order->id;
         $item->product_id = $product->id;
         $item->product_name = $product->name;

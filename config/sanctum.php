@@ -49,6 +49,8 @@ return [
 
     'expiration' => 60 * 24 * 30, // 30 days in minutes
 
+    'max_tokens_per_user' => env('SANCTUM_MAX_TOKENS_PER_USER', 10),
+
     /*
     |--------------------------------------------------------------------------
     | Token Prefix

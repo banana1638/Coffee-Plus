@@ -1,5 +1,14 @@
 # Flutter Sync Report
 
+## 2026-06-28 Device Token Management
+
+- Login and registration accept optional `device_name` (maximum 100 characters).
+- `GET /api/tokens` lists device token metadata and identifies the current token.
+- `DELETE /api/tokens/{tokenId}` revokes one owned device token.
+- `DELETE /api/tokens` revokes every API token for the authenticated user.
+- Token secrets are never returned by the list endpoint; only login, registration, and password change return a new plaintext token.
+- The Flutter app should send a stable human-readable device name and clear local credentials when the current or all-device token is revoked.
+
 ## 2026-06-27 Payment Initiation Update
 
 - `POST /api/tangki/refill` now also returns `session_id` alongside `redirect_url`.

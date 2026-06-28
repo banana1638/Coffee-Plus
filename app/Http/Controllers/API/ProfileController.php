@@ -2,15 +2,19 @@
 
 namespace App\Http\Controllers\API;
 
-use App\Http\Requests\ProfileUpdateRequest;
-use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\ProfileUpdateRequest;
 use App\Http\Resources\Api\UserResource;
-use Illuminate\Support\Facades\Hash; 
+use App\Services\ApiTokenService;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules\Password;
+use Laravel\Sanctum\PersonalAccessToken;
 
 class ProfileController extends Controller
 {
+    public function __construct(private readonly ApiTokenService $apiTokenService) {}
+
     /**
      * Display the user's profile form.
      */
@@ -43,7 +47,7 @@ class ProfileController extends Controller
         return response()->json([
             'status' => 'success',
             'message' => 'Profile updated successfully.',
-            'user' => new UserResource($request->user())
+            'user' => new UserResource($request->user()),
         ]);
     }
 
@@ -56,6 +60,8 @@ class ProfileController extends Controller
 
         /** @var \App\Models\User $user */
         $user = $request->user();
+        $currentToken = $user->currentAccessToken();
+        $deviceName = $currentToken instanceof PersonalAccessToken ? $currentToken->name : null;
         $user->password = Hash::make($validated['password']);
         $user->save();
 
@@ -63,7 +69,7 @@ class ProfileController extends Controller
         $user->tokens()->delete();
 
         // Issue a fresh token for the current session
-        $newToken = $user->createToken('api_token')->plainTextToken;
+        $newToken = $this->apiTokenService->issue($user, $deviceName)->plainTextToken;
 
         return response()->json([
             'status' => 'success',
@@ -95,7 +101,7 @@ class ProfileController extends Controller
 
         return response()->json([
             'status' => 'success',
-            'message' => 'Account deleted successfully.'
+            'message' => 'Account deleted successfully.',
         ]);
     }
 
@@ -133,21 +139,26 @@ class ProfileController extends Controller
 
         return response()->json([
             'status' => 'success',
-            'message' => 'Notification marked as read.'
+            'message' => 'Notification marked as read.',
         ]);
     }
 
-    public function batchDeleteNotifications(Request $request) {
+    public function batchDeleteNotifications(Request $request)
+    {
         $ids = $request->input('ids', []);
-        if (!empty($ids)) {
+        if (! empty($ids)) {
             $request->user()->notifications()->whereIn('id', $ids)->delete();
+
             return response()->json(['message' => 'Notifications deleted successfully']);
         }
+
         return response()->json(['message' => 'No notifications selected'], 400);
     }
 
-    public function deleteReadNotifications(Request $request) {
+    public function deleteReadNotifications(Request $request)
+    {
         $request->user()->readNotifications()->delete();
+
         return response()->json(['message' => 'Read notifications deleted successfully']);
     }
 
@@ -155,5 +166,4 @@ class ProfileController extends Controller
     {
         return min(max((int) $request->input('per_page', 20), 1), 50);
     }
-
 }
