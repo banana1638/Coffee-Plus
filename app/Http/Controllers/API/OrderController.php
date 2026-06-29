@@ -65,7 +65,6 @@ class OrderController extends Controller
             );
 
             $order = Order::with(['items.product'])->findOrFail($result['order_id']);
-            $order->load(['items.product']);
 
             return $this->success(
                 new OrderResource($order),
