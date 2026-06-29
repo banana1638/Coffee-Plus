@@ -9,9 +9,7 @@ use Illuminate\Support\Facades\Auth;
 
 class LoginController extends Controller
 {
-    public function __construct(private readonly AuditLogService $auditLogService)
-    {
-    }
+    public function __construct(private readonly AuditLogService $auditLogService) {}
 
     public function showLoginForm()
     {
@@ -26,10 +24,24 @@ class LoginController extends Controller
         ]);
 
         if (Auth::guard('admin')->attempt($credentials, $request->remember)) {
+            $admin = Auth::guard('admin')->user();
+
+            if ($admin->hasTwoFactorAuthentication()) {
+                Auth::guard('admin')->logout();
+                $request->session()->regenerate();
+                $request->session()->put([
+                    'admin.two_factor_id' => $admin->id,
+                    'admin.two_factor_remember' => $request->boolean('remember'),
+                    'admin.two_factor_started_at' => now()->timestamp,
+                ]);
+
+                return redirect()->route('admin.two-factor.challenge');
+            }
+
             $request->session()->regenerate();
             $this->auditLogService->record('admin.login', null, null, [
                 'email' => $credentials['email'],
-            ], Auth::guard('admin')->user(), $request);
+            ], $admin, $request);
 
             return redirect()->intended(route('admin.dashboard'));
         }
@@ -44,6 +56,7 @@ class LoginController extends Controller
         Auth::guard('admin')->logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
+
         return redirect()->route('admin.login');
     }
 }

@@ -111,6 +111,10 @@
                         Log Out
                     </x-ui.button>
                 </form>
+                <a href="{{ route('admin.two-factor.show') }}"
+                    class="mt-2 inline-flex w-full items-center justify-center rounded-lg px-3 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 hover:text-slate-950">
+                    Security settings
+                </a>
             </div>
         </div>
     </aside>

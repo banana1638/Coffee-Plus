@@ -39,10 +39,19 @@ class Admin extends Authenticatable
         ],
     ];
 
-    protected $hidden = ['password', 'remember_token'];
+    protected $hidden = [
+        'password',
+        'remember_token',
+        'two_factor_secret',
+        'two_factor_recovery_codes',
+    ];
 
     protected $casts = [
         'password' => 'hashed',
+        'two_factor_secret' => 'encrypted',
+        'two_factor_recovery_codes' => 'encrypted:array',
+        'two_factor_confirmed_at' => 'datetime',
+        'two_factor_last_used_step' => 'integer',
     ];
 
     /**
@@ -66,5 +75,10 @@ class Admin extends Authenticatable
         $permissions = self::ROLE_PERMISSIONS[$this->role] ?? [];
 
         return in_array('*', $permissions, true) || in_array($permission, $permissions, true);
+    }
+
+    public function hasTwoFactorAuthentication(): bool
+    {
+        return $this->two_factor_secret !== null && $this->two_factor_confirmed_at !== null;
     }
 }

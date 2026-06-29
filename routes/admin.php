@@ -2,11 +2,13 @@
 
 use App\Http\Controllers\Admin\AdminOrderController;
 use App\Http\Controllers\Admin\CouponAdminController;
+use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\LoginController;
 use App\Http\Controllers\Admin\PaymentEventAdminController;
 use App\Http\Controllers\Admin\ProductAdminController;
+use App\Http\Controllers\Admin\TwoFactorChallengeController;
+use App\Http\Controllers\Admin\TwoFactorController;
 use App\Http\Controllers\Admin\WalletAdminController;
-use App\Http\Controllers\Admin\DashboardController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -18,11 +20,22 @@ use Illuminate\Support\Facades\Route;
 Route::middleware('guest:admin')->group(function () {
     Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
     Route::post('/login', [LoginController::class, 'login'])->middleware('throttle:admin-login')->name('login.post');
+    Route::get('/two-factor-challenge', [TwoFactorChallengeController::class, 'show'])->name('two-factor.challenge');
+    Route::post('/two-factor-challenge', [TwoFactorChallengeController::class, 'store'])
+        ->middleware('throttle:admin-two-factor')
+        ->name('two-factor.verify');
 });
 
 Route::middleware(['auth:admin'])->group(function () {
 
     Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
+
+    Route::prefix('security/two-factor')->name('two-factor.')->group(function () {
+        Route::get('/', [TwoFactorController::class, 'show'])->name('show');
+        Route::post('/confirm', [TwoFactorController::class, 'confirm'])->name('confirm');
+        Route::post('/recovery-codes', [TwoFactorController::class, 'regenerateRecoveryCodes'])->name('recovery-codes');
+        Route::delete('/', [TwoFactorController::class, 'disable'])->name('disable');
+    });
 
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/owner/dashboard', [DashboardController::class, 'ownerDashboard'])

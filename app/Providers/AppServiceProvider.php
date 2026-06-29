@@ -72,6 +72,12 @@ class AppServiceProvider extends ServiceProvider
             return Limit::perMinute(5)->by($email.'|'.$request->ip());
         });
 
+        RateLimiter::for('admin-two-factor', function (Request $request) {
+            $pendingAdminId = $request->session()->get('admin.two_factor_id', 'missing');
+
+            return Limit::perMinute(5)->by($pendingAdminId.'|'.$request->ip());
+        });
+
         Blade::if('adminCan', function (string $permission): bool {
             $admin = Auth::guard('admin')->user();
 
