@@ -1,7 +1,6 @@
 <x-admin-layout>
     @php
         $admin = Auth::guard('admin')->user();
-        $pendingOrders = \App\Models\Order::where('status', 'pending')->with(['user', 'items.product'])->oldest()->get();
     @endphp
 
     <div class="px-4 py-6 sm:px-6 lg:px-8">
@@ -18,7 +17,7 @@
             <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
                 <x-ui.card>
                     <p class="text-sm font-medium text-slate-500">Live Orders</p>
-                    <p class="mt-3 text-3xl font-semibold text-slate-950">{{ $pendingOrders->count() }}</p>
+                    <p class="mt-3 text-3xl font-semibold text-slate-950">{{ $pendingOrders->total() }}</p>
                     <p class="mt-1 text-xs text-slate-500">Pending kitchen queue</p>
                 </x-ui.card>
 
@@ -52,7 +51,7 @@
                             <h2 class="text-base font-semibold text-slate-950">Live Orders</h2>
                             <p class="text-sm text-slate-600">Oldest orders stay at the top for faster service flow.</p>
                         </div>
-                        <x-ui.badge variant="info">Queue: {{ $pendingOrders->count() }}</x-ui.badge>
+                        <x-ui.badge variant="info">Queue: {{ $pendingOrders->total() }}</x-ui.badge>
                     </div>
 
                     <div class="space-y-3">
@@ -96,6 +95,12 @@
                             </div>
                         @endforelse
                     </div>
+
+                    @if($pendingOrders->hasPages())
+                        <div>
+                            {{ $pendingOrders->links() }}
+                        </div>
+                    @endif
                 </section>
 
                 <aside class="space-y-4 lg:col-span-4">

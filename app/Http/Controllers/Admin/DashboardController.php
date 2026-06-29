@@ -5,8 +5,8 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Order;
 use App\Models\User;
-use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {
@@ -22,8 +22,9 @@ class DashboardController extends Controller
 
         $pendingOrders = Order::where('status', 'pending')
             ->with(['user', 'items.product'])
-            ->oldest()
-            ->get();
+            ->orderBy('id')
+            ->paginate(10)
+            ->withQueryString();
 
         return view('admin.dashboard', compact('pendingOrders'));
     }
@@ -34,7 +35,7 @@ class DashboardController extends Controller
      */
     public function ownerDashboard()
     {
-        if (!auth()->guard('admin')->user()->canPerform('report.view')) {
+        if (! auth()->guard('admin')->user()->canPerform('report.view')) {
             return redirect()->route('admin.dashboard')->with('error', 'Unauthorized access.');
         }
 
