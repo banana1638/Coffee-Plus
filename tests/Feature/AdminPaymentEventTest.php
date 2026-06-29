@@ -9,6 +9,7 @@ use App\Models\Admin;
 use App\Models\PaymentEvent;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 class AdminPaymentEventTest extends TestCase
@@ -20,6 +21,10 @@ class AdminPaymentEventTest extends TestCase
         $admin = $this->createAdmin('owner');
         $user = User::factory()->create(['email' => 'payer@example.test']);
         $event = $this->createPaymentEvent($user, 'failed');
+        $queries = [];
+        DB::listen(function ($query) use (&$queries) {
+            $queries[] = $query->sql;
+        });
 
         $this->actingAs($admin, 'admin')
             ->get(route('admin.payment-events.index', ['status' => 'failed']))
@@ -27,6 +32,11 @@ class AdminPaymentEventTest extends TestCase
             ->assertSee($event->session_id)
             ->assertSee('payer@example.test')
             ->assertSee('failed');
+
+        $paymentListQuery = collect($queries)->first(fn (string $sql) => str_contains($sql, 'from "payment_events"') && str_contains($sql, '"event_id"')
+        );
+        $this->assertNotNull($paymentListQuery);
+        $this->assertStringNotContainsString('payload_json', $paymentListQuery);
     }
 
     public function test_owner_can_view_payment_event_detail(): void

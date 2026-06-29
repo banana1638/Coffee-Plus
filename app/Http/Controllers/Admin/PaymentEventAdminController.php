@@ -18,7 +18,20 @@ class PaymentEventAdminController extends Controller
 
     public function index(Request $request)
     {
-        $query = PaymentEvent::with('user')->latest();
+        $query = PaymentEvent::query()
+            ->select([
+                'id',
+                'event_id',
+                'session_id',
+                'user_id',
+                'amount_cents',
+                'currency',
+                'status',
+                'processed_at',
+                'created_at',
+            ])
+            ->with('user:id,email')
+            ->latest();
 
         if ($request->filled('status')) {
             $query->where('status', $request->input('status'));
