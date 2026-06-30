@@ -1,5 +1,11 @@
 # Flutter Sync Report
 
+## 2026-06-29 Product Review Loading
+
+- `GET /api/products/{id}` keeps the existing `product.reviews` field but now returns at most the latest five reviews.
+- `product.average_rating` and `product.reviews_count` still represent all reviews.
+- Use `GET /api/products/{product}/reviews` when the user opens the complete review list or requests additional pages.
+
 ## 2026-06-28 Device Token Management
 
 - Login and registration accept optional `device_name` (maximum 100 characters).

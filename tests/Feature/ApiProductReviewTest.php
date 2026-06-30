@@ -17,11 +17,11 @@ class ApiProductReviewTest extends TestCase
 
     private function createProduct(): Product
     {
-        $menu = new Menu();
+        $menu = new Menu;
         $menu->name = 'Coffee';
         $menu->save();
 
-        $product = new Product();
+        $product = new Product;
         $product->menu_id = $menu->id;
         $product->name = 'Latte';
         $product->price = 10.00;
@@ -32,15 +32,15 @@ class ApiProductReviewTest extends TestCase
 
     private function createOrderWithProduct(User $user, Product $product, string $status): Order
     {
-        $order = new Order();
+        $order = new Order;
         $order->user_id = $user->id;
-        $order->bill_id = 'CP-API-REVIEW-' . strtoupper(substr(md5((string) microtime(true)), 0, 6));
+        $order->bill_id = 'CP-API-REVIEW-'.strtoupper(substr(md5((string) microtime(true)), 0, 6));
         $order->subtotal = 10.00;
         $order->final_amount = 10.00;
         $order->status = $status;
         $order->save();
 
-        $item = new OrderItem();
+        $item = new OrderItem;
         $item->order_id = $order->id;
         $item->product_id = $product->id;
         $item->quantity = 1;
@@ -59,7 +59,7 @@ class ApiProductReviewTest extends TestCase
         $product = $this->createProduct();
         $order = $this->createOrderWithProduct($user, $product, Order::STATUS_COMPLETED);
 
-        $review = new ProductReview();
+        $review = new ProductReview;
         $review->user_id = $user->id;
         $review->product_id = $product->id;
         $review->order_id = $order->id;
@@ -71,6 +71,34 @@ class ApiProductReviewTest extends TestCase
             ->assertStatus(200)
             ->assertJsonPath('data.average_rating', 5)
             ->assertJsonPath('data.reviews.data.0.comment', 'Great');
+    }
+
+    public function test_product_detail_returns_only_five_latest_reviews_with_full_totals(): void
+    {
+        $product = $this->createProduct();
+
+        for ($number = 1; $number <= 7; $number++) {
+            $user = User::factory()->create();
+            $order = $this->createOrderWithProduct($user, $product, Order::STATUS_COMPLETED);
+            $review = new ProductReview;
+            $review->user_id = $user->id;
+            $review->product_id = $product->id;
+            $review->order_id = $order->id;
+            $review->rating = 5;
+            $review->comment = "Review {$number}";
+            $review->save();
+            $review->forceFill(['created_at' => now()->addSeconds($number)])->saveQuietly();
+        }
+
+        $response = $this->getJson("/api/products/{$product->id}")
+            ->assertOk()
+            ->assertJsonPath('product.reviews_count', 7)
+            ->assertJsonPath('product.average_rating', 5)
+            ->assertJsonPath('product.reviews.0.comment', 'Review 7');
+
+        $this->assertCount(5, $response->json('product.reviews'));
+        $this->assertStringNotContainsString('Review 1', $response->getContent());
+        $this->assertStringNotContainsString('Review 2', $response->getContent());
     }
 
     public function test_user_can_create_review_via_api(): void

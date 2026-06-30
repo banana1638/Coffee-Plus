@@ -97,7 +97,7 @@
             <x-ui.card>
                 <h2 class="text-base font-semibold text-slate-950">Customer Reviews</h2>
                 <div class="mt-4 grid gap-3 md:grid-cols-2">
-                    @forelse($product->reviews->sortByDesc('created_at')->take(10) as $review)
+                    @forelse($product->reviews as $review)
                         <div class="rounded-xl border border-slate-200 bg-slate-50 p-4">
                             <div class="flex justify-between gap-3">
                                 <p class="font-semibold text-slate-950">{{ $review->user->name ?? 'Customer' }}</p>

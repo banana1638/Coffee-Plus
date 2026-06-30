@@ -30,14 +30,15 @@ class ProductResource extends JsonResource
             'addons' => $this->whenLoaded('addons'),
             'average_rating' => $this->average_rating,
             'reviews_count' => $this->reviews_count,
-            'reviews' => $this->whenLoaded('reviews', fn () => $this->reviews->map(fn ($review) => [
-                'rating' => $review->rating,
-                'comment' => $review->comment,
-                'user_name' => $review->user?->name,
-                'created_at' => $review->created_at->format('Y-m-d'),
-            ])),
+            'reviews' => $this->whenLoaded('reviews', fn () => $this->reviews
+                ->map(fn ($review) => [
+                    'rating' => $review->rating,
+                    'comment' => $review->comment,
+                    'user_name' => $review->user?->name,
+                    'created_at' => $review->created_at->format('Y-m-d'),
+                ])
+                ->values()),
             'created_at' => $this->created_at->format('Y-m-d'),
         ];
     }
 }
-
