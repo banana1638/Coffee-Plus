@@ -27,7 +27,14 @@ class ProductResource extends JsonResource
             'base_price_cents' => (int) ($this->price_cents ?? round(((float) $this->price) * 100)),
             'category_id' => $this->menu_id,
             'is_available' => (bool) ($this->is_active ?? true),
-            'addons' => $this->whenLoaded('addons'),
+            'addons' => $this->whenLoaded('addons', fn () => $this->addons
+                ->map(fn ($addon) => [
+                    'id' => $addon->id,
+                    'name' => $addon->name,
+                    'price' => (float) $addon->price,
+                    'price_cents' => (int) $addon->price_cents,
+                ])
+                ->values()),
             'average_rating' => $this->average_rating,
             'reviews_count' => $this->reviews_count,
             'reviews' => $this->whenLoaded('reviews', fn () => $this->reviews

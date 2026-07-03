@@ -12,6 +12,7 @@ class ProductController extends Controller
     {
         $product = Product::query()
             ->with([
+                'addons:id,product_id,name,price,price_cents',
                 'reviews' => fn ($query) => $query
                     ->with('user:id,name')
                     ->latest()

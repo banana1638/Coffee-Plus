@@ -7,6 +7,7 @@ use App\Models\Menu;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
+use App\Models\ProductAddon;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -69,6 +70,45 @@ class ApiProviderContractTest extends TestCase
                 ],
             ])
             ->assertJsonPath('user.name', 'Guest');
+    }
+
+    public function test_product_detail_contract_contains_addons(): void
+    {
+        $product = $this->createProduct('Add-on Latte');
+
+        ProductAddon::create([
+            'product_id' => $product->id,
+            'name' => 'Extra Shot',
+            'price' => 1.50,
+        ]);
+        ProductAddon::create([
+            'product_id' => $product->id,
+            'name' => 'Oat Milk',
+            'price' => 2.00,
+        ]);
+
+        $this->getJson("/api/products/{$product->id}")
+            ->assertOk()
+            ->assertJsonCount(2, 'product.addons')
+            ->assertJsonPath('product.addons.0.name', 'Extra Shot')
+            ->assertJsonPath('product.addons.0.price', 1.5)
+            ->assertJsonPath('product.addons.0.price_cents', 150)
+            ->assertJsonStructure([
+                'product' => [
+                    'addons' => [
+                        '*' => ['id', 'name', 'price', 'price_cents'],
+                    ],
+                ],
+            ]);
+    }
+
+    public function test_product_detail_contract_returns_empty_addons_array(): void
+    {
+        $product = $this->createProduct('Plain Coffee');
+
+        $this->getJson("/api/products/{$product->id}")
+            ->assertOk()
+            ->assertJsonPath('product.addons', []);
     }
 
     public function test_cart_contract_contains_cart_items_wrapper(): void
@@ -229,5 +269,20 @@ class ApiProviderContractTest extends TestCase
         $item->save();
 
         return $order;
+    }
+
+    private function createProduct(string $name): Product
+    {
+        $menu = new Menu;
+        $menu->name = "{$name} Menu";
+        $menu->save();
+
+        $product = new Product;
+        $product->menu_id = $menu->id;
+        $product->name = $name;
+        $product->price = 10.00;
+        $product->save();
+
+        return $product;
     }
 }
