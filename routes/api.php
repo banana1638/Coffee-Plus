@@ -88,7 +88,9 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('/refunds', [TransactionController::class, 'refunds']);
 
-    Route::apiResource('favorites', FavoriteController::class)->middleware('throttle:30,1');
+    Route::apiResource('favorites', FavoriteController::class)
+        ->names('api.favorites')
+        ->middleware('throttle:30,1');
 
     // Shared recipes
     Route::controller(SharedRecipeController::class)->prefix('recipes')->group(function () {
