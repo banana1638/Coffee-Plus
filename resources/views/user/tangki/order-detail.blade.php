@@ -12,7 +12,7 @@
 
     <div class="px-4 py-6 sm:px-6 lg:px-8">
         <div class="mx-auto max-w-6xl space-y-6">
-            <x-layout.page-header title="Order {{ $order->bill_id }}" description="Order status, pickup code, item manifest, and review options.">
+            <x-layout.page-header title="Pickup ticket {{ $order->bill_id }}" description="Backend-confirmed order status, collection code, item recipe, and payment summary.">
                 <x-slot:actions>
                     <x-ui.button :href="url()->previous()" variant="secondary">
                         Back
@@ -48,8 +48,8 @@
                                 @foreach($steps as $key => $label)
                                     @php $stepIndex = $loop->iteration; @endphp
                                     <div>
-                                        <div class="h-2 rounded-full {{ $stepIndex <= $activeStep ? 'bg-indigo-600' : 'bg-slate-200' }}"></div>
-                                        <p class="mt-2 text-xs font-semibold {{ $stepIndex <= $activeStep ? 'text-indigo-700' : 'text-slate-400' }}">
+                                        <div class="h-2 rounded-full {{ $stepIndex <= $activeStep ? 'bg-emerald-700' : 'bg-slate-200' }}"></div>
+                                        <p class="mt-2 text-xs font-semibold {{ $stepIndex <= $activeStep ? 'text-emerald-800' : 'text-slate-400' }}">
                                             {{ $label }}
                                         </p>
                                     </div>
@@ -59,7 +59,7 @@
                     </x-ui.card>
 
                     <x-ui.card>
-                        <h2 class="text-base font-semibold text-slate-950">Items Purchased</h2>
+                        <h2 class="text-base font-bold text-[rgb(var(--cp-ink))]">Drink manifest</h2>
                         <div class="mt-4 divide-y divide-slate-200">
                             @foreach($order->items as $item)
                                 @php
@@ -86,14 +86,14 @@
                                         @endif
 
                                         @if($item->oz_at_time > 0)
-                                            <p class="mt-2 text-xs font-semibold uppercase tracking-wide text-indigo-700">Paid with Tangki balance</p>
+                                            <p class="mt-2 text-xs font-semibold uppercase text-emerald-800">Paid with Tangki balance</p>
                                         @endif
 
                                         <p class="mt-2 text-sm text-slate-500">Quantity: {{ $item->quantity }}</p>
 
                                         @if($order->status === 'completed')
                                             @if($existingReview)
-                                                <div class="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-3">
+                                                <div class="mt-4 rounded-lg border border-amber-200 bg-amber-50 p-3">
                                                     <p class="text-xs font-semibold uppercase tracking-wide text-amber-700">
                                                         Your rating: {{ $existingReview->rating }} / 5
                                                     </p>
@@ -103,12 +103,12 @@
                                                 </div>
                                             @else
                                                 <form action="{{ route('orders.reviews.store', $order) }}" method="POST"
-                                                    class="mt-4 space-y-3 rounded-xl border border-slate-200 bg-slate-50 p-3">
+                                                    class="mt-4 space-y-3 rounded-lg border border-[rgb(var(--cp-line))] bg-stone-100 p-3">
                                                     @csrf
                                                     <input type="hidden" name="product_id" value="{{ $item->product_id }}">
                                                     <div class="flex gap-2">
                                                         <select name="rating" required
-                                                            class="rounded-lg border-slate-300 bg-white text-sm font-semibold text-slate-800 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                                            class="rounded-lg border-[rgb(var(--cp-line))] bg-white text-sm font-semibold text-slate-800 shadow-sm focus:border-emerald-600 focus:ring-emerald-600">
                                                             <option value="">Rating</option>
                                                             @for($rating = 5; $rating >= 1; $rating--)
                                                                 <option value="{{ $rating }}">{{ $rating }} / 5</option>
@@ -117,7 +117,7 @@
                                                         <x-ui.button type="submit" size="sm">Review</x-ui.button>
                                                     </div>
                                                     <textarea name="comment" rows="2" maxlength="1000" placeholder="Comment"
-                                                        class="w-full rounded-lg border-slate-300 bg-white text-sm font-medium text-slate-800 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"></textarea>
+                                                        class="w-full rounded-lg border-[rgb(var(--cp-line))] bg-white text-sm font-medium text-slate-800 shadow-sm focus:border-emerald-600 focus:ring-emerald-600"></textarea>
                                                 </form>
                                             @endif
                                         @endif
@@ -144,8 +144,8 @@
                 <aside class="space-y-6">
                     @if($order->pickup_code)
                         <x-ui.card>
-                            <h2 class="text-base font-semibold text-slate-950">Pickup QR</h2>
-                            <div class="mt-5 rounded-xl border border-slate-200 bg-slate-50 p-4 text-center">
+                            <h2 class="text-base font-bold text-[rgb(var(--cp-ink))]">Collection code</h2>
+                            <div class="mt-5 rounded-lg border border-dashed border-[rgb(var(--cp-line))] bg-stone-100 p-4 text-center">
                                 <img class="mx-auto h-40 w-40 rounded-lg border border-slate-200 bg-white p-2"
                                     src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data={{ urlencode($order->pickup_qr_payload) }}"
                                     alt="Pickup QR code">
@@ -162,10 +162,10 @@
                             </div>
 
                             @if($order->oz_used > 0)
-                                <div class="rounded-xl border border-indigo-200 bg-indigo-50 p-3">
+                                <div class="rounded-lg border border-emerald-200 bg-emerald-50 p-3">
                                     <div class="flex justify-between gap-3">
-                                        <span class="text-sm font-semibold text-indigo-700">Tangki Deduction</span>
-                                        <span class="font-semibold text-indigo-700">-{{ number_format($order->oz_used, 1) }} OZ</span>
+                                        <span class="text-sm font-semibold text-emerald-800">Tangki deduction</span>
+                                        <span class="cp-tabular font-bold text-emerald-800">-{{ number_format($order->oz_used, 1) }} OZ</span>
                                     </div>
                                 </div>
                             @endif

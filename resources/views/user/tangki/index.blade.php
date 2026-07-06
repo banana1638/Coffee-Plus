@@ -1,7 +1,7 @@
 <x-app-layout>
     <div class="px-4 py-6 sm:px-6 lg:px-8">
         <div class="mx-auto max-w-7xl space-y-6">
-            <x-layout.page-header title="Tangki Management" description="Manage storage, balance, refills, and recent activity.">
+            <x-layout.page-header title="My Tangki" description="Backend-confirmed OZ storage, cash balance, refills, and ledger activity.">
                 <x-slot:actions>
                     <x-ui.button :href="url()->previous()" variant="secondary">
                         Back
@@ -19,16 +19,16 @@
                             @include('components.tank-visualization')
                         </div>
 
-                        <div class="grid grid-cols-2 gap-4 border-t border-slate-200 pt-6">
+                        <div class="grid grid-cols-2 gap-4 border-t border-[rgb(var(--cp-line))] pt-6">
                             <div>
-                                <p class="text-sm font-medium text-slate-500">Current Storage</p>
-                                <p class="mt-2 text-3xl font-semibold text-indigo-700">
+                                <p class="text-xs font-semibold uppercase text-emerald-800">OZ available</p>
+                                <p class="cp-tabular mt-2 text-3xl font-bold text-[rgb(var(--cp-brand-strong))]">
                                     {{ Auth::user()->tangki_oz }} <span class="text-sm text-slate-500">oz</span>
                                 </p>
                             </div>
                             <div>
-                                <p class="text-sm font-medium text-slate-500">Account Balance</p>
-                                <p class="mt-2 text-3xl font-semibold text-slate-950">
+                                <p class="text-xs font-semibold uppercase text-amber-800">Cash balance</p>
+                                <p class="cp-tabular mt-2 text-3xl font-bold text-[rgb(var(--cp-ink))]">
                                     <span class="text-sm text-slate-500">RM</span>{{ number_format(Auth::user()->tangki_balance, 2) }}
                                 </p>
                             </div>
@@ -36,8 +36,8 @@
                     </x-ui.card>
 
                     <x-ui.card>
-                        <h2 class="text-base font-semibold text-slate-950">Refill Tangki</h2>
-                        <p class="mt-1 text-sm text-slate-600">1 RM = 10 oz.</p>
+                        <h2 class="text-base font-bold text-[rgb(var(--cp-ink))]">Add funds</h2>
+                        <p class="mt-1 text-sm text-[rgb(var(--cp-muted))]">1 RM = 10 OZ. Balance changes only after payment confirmation.</p>
 
                         <form action="{{ route('tangki.refill') }}" method="POST" id="refillForm" class="mt-5 space-y-4">
                             @csrf
@@ -53,11 +53,11 @@
                                 <label for="amountInput" class="text-sm font-medium text-slate-700">Custom amount</label>
                                 <input type="number" id="amountInput" name="amount" step="0.01" inputmode="decimal"
                                     placeholder="e.g. 10.00" onwheel="this.blur()" onblur="formatDecimal(this)"
-                                    class="w-full rounded-lg border-slate-300 text-center text-sm font-semibold text-slate-800 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none">
+                                    class="w-full rounded-lg border-[rgb(var(--cp-line))] bg-[rgb(var(--cp-surface))] text-center text-sm font-semibold text-[rgb(var(--cp-ink))] shadow-sm focus:border-emerald-600 focus:ring-emerald-600 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none">
                             </div>
 
                             <x-ui.button type="submit" class="w-full">
-                                Confirm Refill
+                                Continue to secure payment
                             </x-ui.button>
                         </form>
                     </x-ui.card>
@@ -66,8 +66,8 @@
                 <x-ui.card>
                     <div class="mb-5 flex items-center justify-between">
                         <div>
-                            <h2 class="text-base font-semibold text-slate-950">Recent Transactions</h2>
-                            <p class="text-sm text-slate-600">Latest Tangki activity.</p>
+                            <h2 class="text-base font-bold text-[rgb(var(--cp-ink))]">Recent ledger entries</h2>
+                            <p class="text-sm text-[rgb(var(--cp-muted))]">Only backend-confirmed balance movements appear here.</p>
                         </div>
                         <x-ui.badge>Activity Log</x-ui.badge>
                     </div>
@@ -79,7 +79,7 @@
                                     <p class="font-semibold text-slate-950">{{ $trx->description }}</p>
                                     <p class="mt-1 text-sm text-slate-500">{{ $trx->created_at->format('M d, Y h:i A') }}</p>
                                 </div>
-                                <p class="text-lg font-semibold {{ $trx->oz_delta > 0 ? 'text-emerald-700' : 'text-indigo-700' }}">
+                                <p class="cp-tabular text-lg font-bold {{ $trx->oz_delta > 0 ? 'text-emerald-700' : 'text-slate-800' }}">
                                     {{ $trx->oz_delta > 0 ? '+' : '' }}{{ $trx->oz_delta }} <span class="text-xs">oz</span>
                                 </p>
                                 <x-ui.button :href="route('tangki.order-detail', $trx->bill_id)" variant="secondary" size="sm">
@@ -88,7 +88,8 @@
                             </div>
                         @empty
                             <div class="py-12 text-center">
-                                <p class="text-sm font-semibold text-slate-500">No transaction data available.</p>
+                                <p class="font-semibold text-[rgb(var(--cp-ink))]">No ledger activity yet</p>
+                                <p class="mt-1 text-sm text-[rgb(var(--cp-muted))]">Confirmed refills and order deductions will appear here.</p>
                             </div>
                         @endforelse
                     </div>
