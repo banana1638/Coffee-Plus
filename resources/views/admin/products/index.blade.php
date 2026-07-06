@@ -1,18 +1,18 @@
 <x-admin-layout>
     <div class="px-4 py-6 sm:px-6 lg:px-8">
         <div class="mx-auto max-w-[1500px] space-y-6">
-            <x-layout.page-header title="Product Manager" description="Desktop inventory control for menu items, pricing, ratings, and stock.">
+            <x-layout.page-header title="Product and stock workspace" description="Manage backend-owned menu pricing, availability, stock tracking, imagery, and add-ons.">
                 <x-slot:actions>
                     @adminCan('product.create')
                         <x-ui.button :href="route('admin.products.create')" size="lg">
-                            Add New Coffee
+                            Add product
                         </x-ui.button>
                     @endadminCan
                 </x-slot:actions>
             </x-layout.page-header>
 
             @if(session('success'))
-                <div class="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-700">
+                <div class="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-700" role="status">
                     {{ session('success') }}
                 </div>
             @endif
@@ -52,7 +52,7 @@
                                     <x-ui.badge>{{ $product->menu->name ?? 'Uncategorized' }}</x-ui.badge>
                                 </td>
                                 <td class="px-4 py-3">
-                                    <p class="font-semibold text-slate-950">RM {{ number_format($product->price, 2) }}</p>
+                                    <p class="cp-tabular font-bold text-[rgb(var(--cp-ink))]">RM {{ number_format($product->price, 2) }}</p>
                                     <p class="mt-1 text-xs text-slate-500">{{ $product->oz_redeem_value }} oz redeem</p>
                                     <p class="mt-1 text-xs font-semibold text-amber-700">{{ number_format($product->average_rating, 1) }}/5 reviews</p>
                                 </td>

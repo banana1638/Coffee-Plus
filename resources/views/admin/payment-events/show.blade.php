@@ -1,7 +1,7 @@
 <x-admin-layout>
     <div class="px-4 py-6 sm:px-6 lg:px-8">
         <div class="mx-auto max-w-[1100px] space-y-6">
-            <x-layout.page-header title="Payment Event" description="Read-only Stripe webhook event detail.">
+            <x-layout.page-header title="Payment verification event" description="Read-only server event detail. Retry re-checks Stripe before invoking idempotent handlers.">
                 <x-slot:actions>
                     <x-ui.button :href="route('admin.payment-events.index')" variant="secondary">
                         Back to Payment Events
@@ -10,7 +10,7 @@
                         <form method="POST" action="{{ route('admin.payment-events.retry', $paymentEvent) }}">
                             @csrf
                             <x-ui.button type="submit">
-                                Verify and Retry
+                                Verify provider and retry
                             </x-ui.button>
                         </form>
                     @endif
@@ -49,7 +49,7 @@
                         </div>
                         <div>
                             <dt class="font-medium text-slate-500">Amount</dt>
-                            <dd class="mt-1 font-semibold text-slate-950">{{ strtoupper((string) $paymentEvent->currency) }} {{ number_format($paymentEvent->amount_cents / 100, 2) }}</dd>
+                            <dd class="cp-tabular mt-1 font-bold text-[rgb(var(--cp-ink))]">{{ strtoupper((string) $paymentEvent->currency) }} {{ number_format($paymentEvent->amount_cents / 100, 2) }}</dd>
                         </div>
                         <div>
                             <dt class="font-medium text-slate-500">Processed At</dt>
