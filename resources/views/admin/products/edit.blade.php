@@ -18,7 +18,7 @@
                         <div class="space-y-2">
                             <label for="image-upload-edit" class="text-sm font-medium text-slate-700">Product Photography</label>
                             <input type="file" name="image" id="image-upload-edit" class="hidden" accept="image/*" onchange="previewImageEdit(event)">
-                            <label for="image-upload-edit" class="group relative flex h-64 cursor-pointer flex-col items-center justify-center overflow-hidden rounded-xl border-2 border-dashed border-[rgb(var(--cp-line))] bg-slate-50 transition hover:border-emerald-400 hover:bg-emerald-50/40">
+                            <label for="image-upload-edit" class="group relative flex h-64 cursor-pointer flex-col items-center justify-center overflow-hidden rounded-lg border-2 border-dashed border-[rgb(var(--cp-line))] bg-stone-100 transition hover:border-emerald-400 hover:bg-emerald-50/40">
                                 <img id="image-preview-edit"
                                     src="{{ $product->image ? $product->detail_image_url : '#' }}"
                                     class="{{ $product->image ? '' : 'hidden' }} h-full w-full object-cover" alt="{{ $product->name }} preview">
@@ -65,7 +65,7 @@
                         </div>
                     </div>
 
-                    <div class="rounded-xl border border-[rgb(var(--cp-line))] bg-stone-100 p-4">
+                    <div class="rounded-lg border border-[rgb(var(--cp-line))] bg-stone-100 p-4">
                         <div class="flex items-center justify-between gap-4">
                             <div>
                                 <label for="track-stock-edit" class="text-sm font-semibold text-slate-950">Stock Tracking</label>

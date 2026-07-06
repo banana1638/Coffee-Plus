@@ -90,7 +90,7 @@
 
         <div class="p-6 sm:p-8">
             <div class="relative mb-8 grid grid-cols-2 rounded-lg border border-[rgb(var(--cp-line))] bg-stone-100 p-1">
-                <div class="absolute inset-y-1 left-1 w-[calc(50%-0.25rem)] rounded-lg bg-slate-900 shadow-sm transition-transform duration-300 ease-out"
+                <div class="absolute inset-y-1 left-1 w-[calc(50%-0.25rem)] rounded-lg bg-emerald-800 shadow-sm transition-transform duration-300 ease-out"
                     :class="tab === 'register' ? 'translate-x-full' : 'translate-x-0'"></div>
                 <button type="button" @click="tab = 'login'"
                     :class="tab === 'login' ? 'text-white' : 'text-slate-600 hover:text-slate-950'"

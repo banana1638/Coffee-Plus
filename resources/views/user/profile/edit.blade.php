@@ -2,7 +2,7 @@
     @if (session('status'))
         <div x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 3000)" x-transition
             class="fixed left-1/2 top-6 z-[100] w-full max-w-sm -translate-x-1/2 px-4">
-            <div class="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-700 shadow-sm">
+            <div class="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-700 shadow-sm" role="status">
                 {{ session('status') === 'profile-updated' ? 'Profile updated.' : 'Action successful.' }}
             </div>
         </div>

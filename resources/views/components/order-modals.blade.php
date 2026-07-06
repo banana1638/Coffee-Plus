@@ -1,7 +1,7 @@
 <div id="confirmModal" class="fixed inset-0 z-[60] hidden items-center justify-center bg-slate-950/60 p-4 backdrop-blur-sm">
-    <div class="w-full max-w-sm rounded-xl border border-slate-200 bg-white p-6 shadow-lg">
+    <div class="w-full max-w-sm rounded-lg border border-[rgb(var(--cp-line))] bg-[rgb(var(--cp-surface))] p-6 shadow-lg">
         <div class="text-center">
-            <div class="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-xl bg-indigo-50 text-indigo-700">
+            <div class="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-lg bg-emerald-50 text-emerald-800">
                 <svg class="h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
                 </svg>
@@ -21,9 +21,9 @@
 </div>
 
 <div id="successModal" class="fixed inset-0 z-[60] hidden items-center justify-center bg-slate-950/60 p-4 backdrop-blur-sm">
-    <div class="w-full max-w-sm rounded-xl border border-slate-200 bg-white p-6 shadow-lg">
+    <div class="w-full max-w-sm rounded-lg border border-[rgb(var(--cp-line))] bg-[rgb(var(--cp-surface))] p-6 shadow-lg">
         <div class="text-center">
-            <div class="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700">
+            <div class="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-lg bg-emerald-50 text-emerald-700">
                 <svg class="h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path d="M5 13l4 4L19 7" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
                 </svg>

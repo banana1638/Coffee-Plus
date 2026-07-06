@@ -96,7 +96,7 @@
         </nav>
 
         <div class="border-t border-slate-200 p-4">
-            <div class="rounded-xl bg-slate-50 p-4">
+            <div class="rounded-lg bg-stone-100 p-4">
                 <div class="flex items-center justify-between gap-3">
                     <div>
                         <p class="text-sm font-semibold text-slate-950">{{ $admin->name }}</p>

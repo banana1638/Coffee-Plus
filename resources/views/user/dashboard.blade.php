@@ -62,7 +62,7 @@
                     <input id="search" type="text" name="search" value="{{ request('search') }}" placeholder="Search coffee..."
                         class="w-full rounded-lg border-[rgb(var(--cp-line))] bg-[rgb(var(--cp-surface))] py-3 pl-4 pr-11 text-sm font-medium text-[rgb(var(--cp-ink))] shadow-sm focus:border-emerald-600 focus:ring-emerald-600">
                     <input type="hidden" name="category" value="{{ request('category', 'all') }}">
-                    <button type="submit" class="absolute right-3 top-1/2 -translate-y-1/2 rounded-lg p-2 text-slate-400 hover:bg-slate-100 hover:text-indigo-700" aria-label="Search">
+                    <button type="submit" class="absolute right-3 top-1/2 -translate-y-1/2 rounded-lg p-2 text-slate-400 hover:bg-emerald-50 hover:text-emerald-800" aria-label="Search">
                         <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                         </svg>

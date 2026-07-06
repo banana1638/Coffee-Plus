@@ -10,13 +10,13 @@
 
                 <div class="hidden items-center gap-1 md:flex">
                     <a href="{{ route('dashboard') }}"
-                        class="rounded-lg px-3 py-2 text-sm font-semibold transition {{ request()->routeIs('dashboard') ? 'bg-slate-900 text-white' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-950' }}">
+                        class="rounded-lg px-3 py-2 text-sm font-semibold transition {{ request()->routeIs('dashboard') ? 'bg-emerald-800 text-white' : 'text-slate-600 hover:bg-emerald-50 hover:text-emerald-900' }}">
                         Menu
                     </a>
 
                     @auth
                         <a href="{{ route('tangki.index') }}"
-                            class="rounded-lg px-3 py-2 text-sm font-semibold transition {{ request()->routeIs('tangki.*') ? 'bg-slate-900 text-white' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-950' }}">
+                            class="rounded-lg px-3 py-2 text-sm font-semibold transition {{ request()->routeIs('tangki.*') ? 'bg-emerald-800 text-white' : 'text-slate-600 hover:bg-emerald-50 hover:text-emerald-900' }}">
                             My Tangki
                         </a>
                     @endauth
@@ -26,13 +26,13 @@
             <div class="hidden items-center gap-2 md:flex">
                 @auth
                     <a href="{{ route('cart.index') }}"
-                        class="relative inline-flex h-10 w-10 items-center justify-center rounded-lg text-slate-500 transition hover:bg-slate-100 hover:text-indigo-700"
+                        class="relative inline-flex h-10 w-10 items-center justify-center rounded-lg text-slate-500 transition hover:bg-emerald-50 hover:text-emerald-800"
                         aria-label="Cart">
                         <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
                         </svg>
                         @if($cartCount > 0)
-                            <span id="cart-badge" class="absolute -right-1 -top-1 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-indigo-600 px-1 text-xs font-semibold text-white ring-2 ring-white">
+                            <span id="cart-badge" class="absolute -right-1 -top-1 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-emerald-700 px-1 text-xs font-semibold text-white ring-2 ring-white">
                                 {{ $cartCount }}
                             </span>
                         @endif
@@ -41,7 +41,7 @@
                     <div class="relative">
                         <button type="button" @click="activeMenu = activeMenu === 'notification' ? null : 'notification'"
                             @click.away="if(activeMenu === 'notification') activeMenu = null"
-                            class="relative inline-flex h-10 w-10 items-center justify-center rounded-lg text-slate-500 transition hover:bg-slate-100 hover:text-indigo-700"
+                            class="relative inline-flex h-10 w-10 items-center justify-center rounded-lg text-slate-500 transition hover:bg-emerald-50 hover:text-emerald-800"
                             aria-label="Notifications">
                             <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
@@ -52,13 +52,13 @@
                         </button>
 
                         <div x-show="activeMenu === 'notification'" x-cloak x-transition
-                            class="absolute right-0 mt-3 w-96 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg">
+                            class="absolute right-0 mt-3 w-96 overflow-hidden rounded-lg border border-[rgb(var(--cp-line))] bg-[rgb(var(--cp-surface))] shadow-lg">
                             <div class="flex items-center justify-between border-b border-slate-200 bg-slate-50 px-4 py-3">
                                 <span class="text-xs font-semibold uppercase tracking-wide text-slate-500">Notifications</span>
                                 @if($navbarUnreadCount > 0)
                                     <form action="{{ route('notifications.markAllAsRead') }}" method="POST">
                                         @csrf
-                                        <button type="submit" class="text-xs font-semibold text-indigo-700 hover:text-indigo-900">
+                                        <button type="submit" class="text-xs font-semibold text-emerald-700 hover:text-emerald-900">
                                             Mark all as read
                                         </button>
                                     </form>
@@ -66,7 +66,7 @@
                             </div>
                             <div class="max-h-96 divide-y divide-slate-200 overflow-y-auto">
                                 @forelse($navbarNotifications as $notification)
-                                    <div class="{{ $notification->read_at ? '' : 'bg-indigo-50/50' }} group relative px-4 py-3 transition hover:bg-slate-50">
+                                    <div class="{{ $notification->read_at ? '' : 'bg-emerald-50/60' }} group relative px-4 py-3 transition hover:bg-stone-100">
                                         <form action="{{ route('notifications.markAsRead', $notification->id) }}" method="POST" class="pr-8">
                                             @csrf
                                             <button type="submit" class="block w-full text-left">
@@ -111,7 +111,7 @@
                         </button>
 
                         <div x-show="activeMenu === 'user'" x-cloak x-transition
-                            class="absolute right-0 mt-3 w-52 overflow-hidden rounded-xl border border-slate-200 bg-white py-2 shadow-lg">
+                            class="absolute right-0 mt-3 w-52 overflow-hidden rounded-lg border border-[rgb(var(--cp-line))] bg-[rgb(var(--cp-surface))] py-2 shadow-lg">
                             <x-dropdown-link :href="route('profile.edit')">Personal Center</x-dropdown-link>
                             <form method="POST" action="{{ route('logout') }}">
                                 @csrf
@@ -151,7 +151,7 @@
                 <a href="{{ route('profile.edit') }}" class="block rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100">Profile</a>
             @else
                 <button type="button" @click="authModal = 'login'; mobileOpen = false" class="block w-full rounded-lg px-3 py-2 text-left text-sm font-semibold text-slate-700 hover:bg-slate-100">Login</button>
-                <button type="button" @click="authModal = 'register'; mobileOpen = false" class="block w-full rounded-lg px-3 py-2 text-left text-sm font-semibold text-indigo-700 hover:bg-indigo-50">Register</button>
+                <button type="button" @click="authModal = 'register'; mobileOpen = false" class="block w-full rounded-lg px-3 py-2 text-left text-sm font-semibold text-emerald-800 hover:bg-emerald-50">Register</button>
             @endauth
         </div>
     </div>
