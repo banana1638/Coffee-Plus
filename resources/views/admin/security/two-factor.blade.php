@@ -1,7 +1,7 @@
 <x-admin-layout>
     <div class="px-4 py-6 sm:px-6 lg:px-8">
         <div class="mx-auto max-w-[900px] space-y-6">
-            <x-layout.page-header title="Two-factor authentication" description="Protect this administrator account with an authenticator app." />
+            <x-layout.page-header title="Two-factor authentication" description="Protect this administrator account with a time-based authenticator or one-time recovery code." />
 
             @if(session('recovery_codes'))
                 <x-ui.card>
@@ -11,7 +11,7 @@
                     <p class="text-sm text-slate-600">Each code works once. They will not be shown again.</p>
                     <div class="mt-4 grid gap-2 sm:grid-cols-2">
                         @foreach(session('recovery_codes') as $code)
-                            <code class="rounded-lg bg-slate-100 px-3 py-2 text-sm font-semibold text-slate-950">{{ $code }}</code>
+                            <code class="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm font-semibold text-amber-950">{{ $code }}</code>
                         @endforeach
                     </div>
                 </x-ui.card>
@@ -29,7 +29,7 @@
                             @csrf
                             <label for="recovery-password" class="text-sm font-medium text-slate-700">Current password</label>
                             <input id="recovery-password" name="password" type="password" required
-                                class="w-full rounded-lg border-slate-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                class="w-full rounded-lg border-[rgb(var(--cp-line))] bg-white shadow-sm focus:border-emerald-600 focus:ring-emerald-600">
                             <x-ui.button type="submit" variant="secondary">Regenerate recovery codes</x-ui.button>
                         </form>
 
@@ -38,7 +38,7 @@
                             @method('DELETE')
                             <label for="disable-password" class="text-sm font-medium text-slate-700">Current password</label>
                             <input id="disable-password" name="password" type="password" required
-                                class="w-full rounded-lg border-slate-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                class="w-full rounded-lg border-[rgb(var(--cp-line))] bg-white shadow-sm focus:border-emerald-600 focus:ring-emerald-600">
                             <x-ui.button type="submit" variant="danger">Disable two-factor authentication</x-ui.button>
                         </form>
                     </div>
@@ -70,7 +70,7 @@
                         <div class="flex-1 space-y-2">
                             <label for="code" class="text-sm font-medium text-slate-700">Six-digit code</label>
                             <input id="code" name="code" type="text" required inputmode="numeric" autocomplete="one-time-code"
-                                class="w-full rounded-lg border-slate-300 font-mono shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                class="cp-tabular w-full rounded-lg border-[rgb(var(--cp-line))] bg-white font-mono text-lg shadow-sm focus:border-emerald-600 focus:ring-emerald-600">
                             @error('code')
                                 <p class="text-sm font-medium text-rose-600">{{ $message }}</p>
                             @enderror

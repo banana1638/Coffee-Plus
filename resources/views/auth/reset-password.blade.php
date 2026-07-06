@@ -1,13 +1,13 @@
 <x-guest-layout>
-    <div class="flex min-h-screen items-center justify-center bg-slate-50 px-4 py-10">
-        <div class="w-full max-w-md rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+    <div class="flex min-h-screen items-center justify-center bg-[rgb(var(--cp-canvas))] px-4 py-10">
+        <div class="w-full max-w-md rounded-lg border border-[rgb(var(--cp-line))] bg-[rgb(var(--cp-surface))] p-6 shadow-sm">
             <div class="mb-6 text-center">
-                <div class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-xl bg-indigo-50 text-indigo-700">
+                <div class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-lg bg-emerald-50 text-emerald-800">
                     <svg class="h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 11c0-1.105.895-2 2-2h1V7a3 3 0 10-6 0v2h1c1.105 0 2 .895 2 2zm-7 0h14v10H5V11z" />
                     </svg>
                 </div>
-                <h1 class="text-2xl font-semibold tracking-tight text-slate-950">New Password</h1>
+                <h1 class="text-2xl font-bold text-[rgb(var(--cp-ink))]">Create a new password</h1>
                 <p class="mt-2 text-sm text-slate-600">Create a strong password for your account.</p>
             </div>
 
@@ -25,14 +25,14 @@
                 <div class="space-y-2">
                     <label for="password" class="text-sm font-medium text-slate-700">New Password</label>
                     <input id="password" type="password" name="password" required autocomplete="new-password"
-                        class="w-full rounded-lg border-slate-300 text-sm font-semibold text-slate-800 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        class="w-full rounded-lg border-[rgb(var(--cp-line))] bg-white text-sm font-semibold text-[rgb(var(--cp-ink))] shadow-sm focus:border-emerald-600 focus:ring-emerald-600">
                     <x-input-error :messages="$errors->get('password')" class="mt-2" />
                 </div>
 
                 <div class="space-y-2">
                     <label for="password_confirmation" class="text-sm font-medium text-slate-700">Confirm New Password</label>
                     <input id="password_confirmation" type="password" name="password_confirmation" required autocomplete="new-password"
-                        class="w-full rounded-lg border-slate-300 text-sm font-semibold text-slate-800 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        class="w-full rounded-lg border-[rgb(var(--cp-line))] bg-white text-sm font-semibold text-[rgb(var(--cp-ink))] shadow-sm focus:border-emerald-600 focus:ring-emerald-600">
                     <x-input-error :messages="$errors->get('password_confirmation')" class="mt-2" />
                 </div>
 

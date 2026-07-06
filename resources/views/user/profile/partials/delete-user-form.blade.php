@@ -23,7 +23,7 @@
             <div class="mt-6 space-y-2">
                 <label for="password" class="sr-only">{{ __('Password') }}</label>
                 <input id="password" name="password" type="password" placeholder="{{ __('Password') }}"
-                    class="w-full rounded-lg border-slate-300 text-sm font-semibold text-slate-800 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                    class="w-full rounded-lg border-[rgb(var(--cp-line))] bg-white text-sm font-semibold text-[rgb(var(--cp-ink))] shadow-sm focus:border-rose-500 focus:ring-rose-500">
                 <x-input-error :messages="$errors->userDeletion->get('password')" class="mt-2" />
             </div>
 

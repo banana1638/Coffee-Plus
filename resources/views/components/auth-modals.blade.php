@@ -76,7 +76,7 @@
     x-transition.opacity @click.self="authModal = null" @keydown.escape.window="authModal = null"
     @open-auth-modal.window="authModal = $event.detail.tab; tab = $event.detail.tab">
 
-    <div class="relative w-full max-w-[480px] overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg"
+    <div class="relative w-full max-w-[480px] overflow-hidden rounded-lg border border-[rgb(var(--cp-line))] bg-[rgb(var(--cp-surface))] shadow-lg"
         x-transition:enter="transition ease-out duration-200 transform"
         x-transition:enter-start="opacity-0 scale-95"
         x-transition:enter-end="opacity-100 scale-100">
@@ -89,7 +89,7 @@
         </button>
 
         <div class="p-6 sm:p-8">
-            <div class="relative mb-8 grid grid-cols-2 rounded-xl border border-slate-200 bg-slate-50 p-1">
+            <div class="relative mb-8 grid grid-cols-2 rounded-lg border border-[rgb(var(--cp-line))] bg-stone-100 p-1">
                 <div class="absolute inset-y-1 left-1 w-[calc(50%-0.25rem)] rounded-lg bg-slate-900 shadow-sm transition-transform duration-300 ease-out"
                     :class="tab === 'register' ? 'translate-x-full' : 'translate-x-0'"></div>
                 <button type="button" @click="tab = 'login'"
@@ -118,7 +118,7 @@
                             <div class="space-y-2">
                                 <label class="text-sm font-medium text-slate-700">Email Address</label>
                                 <input type="email" x-model="email" required
-                                    class="w-full rounded-lg border-slate-300 text-sm font-semibold text-slate-800 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                    class="w-full rounded-lg border-[rgb(var(--cp-line))] bg-white text-sm font-semibold text-[rgb(var(--cp-ink))] shadow-sm focus:border-emerald-600 focus:ring-emerald-600">
                                 <template x-if="errors.email">
                                     <p class="text-sm font-medium text-rose-600" x-text="errors.email[0]"></p>
                                 </template>
@@ -126,7 +126,7 @@
                             <div class="space-y-2">
                                 <label class="text-sm font-medium text-slate-700">Password</label>
                                 <input type="password" x-model="password" required
-                                    class="w-full rounded-lg border-slate-300 text-sm font-semibold text-slate-800 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                    class="w-full rounded-lg border-[rgb(var(--cp-line))] bg-white text-sm font-semibold text-[rgb(var(--cp-ink))] shadow-sm focus:border-emerald-600 focus:ring-emerald-600">
                                 <template x-if="errors.password">
                                     <p class="text-sm font-medium text-rose-600" x-text="errors.password[0]"></p>
                                 </template>
@@ -148,7 +148,7 @@
                             <div class="space-y-2">
                                 <label class="text-sm font-medium text-slate-700">Full Name</label>
                                 <input type="text" x-model="name" required
-                                    class="w-full rounded-lg border-slate-300 text-sm font-semibold text-slate-800 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                    class="w-full rounded-lg border-[rgb(var(--cp-line))] bg-white text-sm font-semibold text-[rgb(var(--cp-ink))] shadow-sm focus:border-emerald-600 focus:ring-emerald-600">
                                 <template x-if="errors.name">
                                     <p class="text-sm font-medium text-rose-600" x-text="errors.name[0]"></p>
                                 </template>
@@ -156,7 +156,7 @@
                             <div class="space-y-2">
                                 <label class="text-sm font-medium text-slate-700">Email Address</label>
                                 <input type="email" x-model="email" required
-                                    class="w-full rounded-lg border-slate-300 text-sm font-semibold text-slate-800 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                    class="w-full rounded-lg border-[rgb(var(--cp-line))] bg-white text-sm font-semibold text-[rgb(var(--cp-ink))] shadow-sm focus:border-emerald-600 focus:ring-emerald-600">
                                 <template x-if="errors.email">
                                     <p class="text-sm font-medium text-rose-600" x-text="errors.email[0]"></p>
                                 </template>
@@ -165,12 +165,12 @@
                                 <div class="space-y-2">
                                     <label class="text-sm font-medium text-slate-700">Password</label>
                                     <input type="password" x-model="password" required
-                                        class="w-full rounded-lg border-slate-300 text-sm font-semibold text-slate-800 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                        class="w-full rounded-lg border-[rgb(var(--cp-line))] bg-white text-sm font-semibold text-[rgb(var(--cp-ink))] shadow-sm focus:border-emerald-600 focus:ring-emerald-600">
                                 </div>
                                 <div class="space-y-2">
                                     <label class="text-sm font-medium text-slate-700">Confirm</label>
                                     <input type="password" x-model="password_confirmation" required
-                                        class="w-full rounded-lg border-slate-300 text-sm font-semibold text-slate-800 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                        class="w-full rounded-lg border-[rgb(var(--cp-line))] bg-white text-sm font-semibold text-[rgb(var(--cp-ink))] shadow-sm focus:border-emerald-600 focus:ring-emerald-600">
                                 </div>
                             </div>
                             <template x-if="errors.password">
@@ -180,12 +180,12 @@
                                 <div class="space-y-2">
                                     <label class="text-sm font-medium text-slate-700">Phone</label>
                                     <input type="tel" x-model="phone"
-                                        class="w-full rounded-lg border-slate-300 text-sm font-semibold text-slate-800 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                        class="w-full rounded-lg border-[rgb(var(--cp-line))] bg-white text-sm font-semibold text-[rgb(var(--cp-ink))] shadow-sm focus:border-emerald-600 focus:ring-emerald-600">
                                 </div>
                                 <div class="space-y-2">
                                     <label class="text-sm font-medium text-slate-700">Address</label>
                                     <input type="text" x-model="address"
-                                        class="w-full rounded-lg border-slate-300 text-sm font-semibold text-slate-800 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                        class="w-full rounded-lg border-[rgb(var(--cp-line))] bg-white text-sm font-semibold text-[rgb(var(--cp-ink))] shadow-sm focus:border-emerald-600 focus:ring-emerald-600">
                                 </div>
                             </div>
                             <x-ui.button type="submit" x-bind:disabled="loading" class="w-full">
