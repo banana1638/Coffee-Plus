@@ -5,7 +5,7 @@
 
     <div class="px-4 py-6 sm:px-6 lg:px-8">
         <div class="mx-auto max-w-7xl space-y-6">
-            <x-layout.page-header title="Dashboard" description="Live order queue and operational shortcuts for {{ $admin->name }}.">
+            <x-layout.page-header title="Preparation board" description="Oldest active orders first, with role-aware controls for {{ $admin->name }}.">
                 <x-slot:actions>
                     <x-ui.badge variant="success">
                         <span class="mr-1 h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
@@ -17,8 +17,8 @@
             <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
                 <x-ui.card>
                     <p class="text-sm font-medium text-slate-500">Live Orders</p>
-                    <p class="mt-3 text-3xl font-semibold text-slate-950">{{ $pendingOrders->total() }}</p>
-                    <p class="mt-1 text-xs text-slate-500">Pending kitchen queue</p>
+                    <p class="cp-tabular mt-3 text-3xl font-bold text-[rgb(var(--cp-ink))]">{{ $pendingOrders->total() }}</p>
+                    <p class="mt-1 text-xs text-slate-500">Orders awaiting preparation</p>
                 </x-ui.card>
 
                 <x-ui.card>
@@ -30,7 +30,7 @@
                 @adminCan('report.view')
                     <x-ui.card>
                         <p class="text-sm font-medium text-slate-500">Total Balance</p>
-                        <p class="mt-3 text-3xl font-semibold text-slate-950">
+                        <p class="cp-tabular mt-3 text-3xl font-bold text-[rgb(var(--cp-ink))]">
                             <span class="text-sm text-emerald-700">RM</span> {{ number_format(\App\Models\User::sum('tangki_balance'), 2) }}
                         </p>
                         <p class="mt-1 text-xs text-slate-500">Tangki balance snapshot</p>
@@ -48,7 +48,7 @@
                 <section class="space-y-4 lg:col-span-8">
                     <div class="flex items-center justify-between">
                         <div>
-                            <h2 class="text-base font-semibold text-slate-950">Live Orders</h2>
+                            <h2 class="text-base font-bold text-[rgb(var(--cp-ink))]">Active preparation queue</h2>
                             <p class="text-sm text-slate-600">Oldest orders stay at the top for faster service flow.</p>
                         </div>
                         <x-ui.badge variant="info">Queue: {{ $pendingOrders->total() }}</x-ui.badge>
@@ -59,7 +59,7 @@
                             <x-ui.card padding="compact" class="group">
                                 <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                                     <div class="flex min-w-0 items-start gap-4">
-                                        <div class="flex h-14 w-14 shrink-0 flex-col items-center justify-center rounded-xl bg-slate-900 text-white shadow-sm transition group-hover:-translate-y-0.5">
+                                        <div class="flex h-14 w-14 shrink-0 flex-col items-center justify-center rounded-lg bg-[#18201d] text-white shadow-sm">
                                             <span class="text-[10px] font-semibold uppercase text-slate-300">Order</span>
                                             <span class="text-sm font-semibold">#{{ substr($order->bill_id, -3) }}</span>
                                         </div>
@@ -82,15 +82,15 @@
                                         <form action="{{ route('admin.orders.complete', $order) }}" method="POST" class="shrink-0">
                                             @csrf @method('PATCH')
                                             <x-ui.button type="submit" size="sm">
-                                                Mark Done
+                                                Mark completed
                                             </x-ui.button>
                                         </form>
                                     @endadminCan
                                 </div>
                             </x-ui.card>
                         @empty
-                            <div class="rounded-xl border border-dashed border-slate-300 bg-white p-10 text-center">
-                                <p class="text-sm font-semibold text-slate-500">No pending orders.</p>
+                            <div class="rounded-lg border border-dashed border-[rgb(var(--cp-line))] bg-[rgb(var(--cp-surface))] p-10 text-center">
+                                <p class="font-semibold text-[rgb(var(--cp-ink))]">Preparation queue clear</p>
                                 <p class="mt-1 text-xs text-slate-400">The kitchen queue is clear.</p>
                             </div>
                         @endforelse
@@ -139,10 +139,7 @@
 
                     <x-ui.card>
                         <div class="flex items-center gap-3">
-                            <span class="relative flex h-3 w-3">
-                                <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
-                                <span class="relative inline-flex h-3 w-3 rounded-full bg-emerald-500"></span>
-                            </span>
+                            <span class="h-3 w-3 rounded-full bg-emerald-500"></span>
                             <div>
                                 <p class="text-sm font-semibold text-slate-950">Server active</p>
                                 <p class="text-xs text-slate-500">Checkout, order queue, and admin tools are reachable.</p>

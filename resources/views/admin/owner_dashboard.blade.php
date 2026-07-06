@@ -1,7 +1,7 @@
 <x-admin-layout>
     <div class="px-4 py-6 sm:px-6 lg:px-8">
         <div class="mx-auto max-w-[1500px] space-y-6">
-            <x-layout.page-header title="Analytics" description="Sales overview, revenue trend, and operating shortcuts for Coffee-Plus.">
+            <x-layout.page-header title="Operations analytics" description="Backend-recorded revenue, order volume, customer totals, and product performance.">
                 <x-slot:actions>
                     <x-ui.badge variant="success">
                         <span class="mr-1 h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
@@ -13,15 +13,15 @@
             <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
                 <x-ui.card>
                     <p class="text-sm font-medium text-slate-500">Today's Revenue</p>
-                    <p class="mt-3 text-3xl font-semibold text-slate-950">
+                    <p class="cp-tabular mt-3 text-3xl font-bold text-[rgb(var(--cp-ink))]">
                         <span class="text-sm text-emerald-700">RM</span>{{ number_format($revenueToday, 2) }}
                     </p>
                 </x-ui.card>
 
                 <x-ui.card>
                     <p class="text-sm font-medium text-slate-500">Monthly Sales</p>
-                    <p class="mt-3 text-3xl font-semibold text-slate-950">
-                        <span class="text-sm text-indigo-700">RM</span>{{ number_format($revenueThisMonth, 2) }}
+                    <p class="cp-tabular mt-3 text-3xl font-bold text-[rgb(var(--cp-ink))]">
+                        <span class="text-sm text-emerald-700">RM</span>{{ number_format($revenueThisMonth, 2) }}
                     </p>
                 </x-ui.card>
 
@@ -51,7 +51,7 @@
                 </x-ui.card>
 
                 <aside class="space-y-6 xl:col-span-4">
-                    <x-ui.card class="bg-slate-950 text-white hover:shadow-md">
+                    <x-ui.card class="bg-[#18201d] text-white">
                         <p class="text-sm font-medium text-slate-400">Lifetime Revenue</p>
                         <p class="mt-4 text-4xl font-semibold tracking-tight">
                             <span class="text-base text-slate-400">RM</span>{{ number_format($totalRevenue, 2) }}
@@ -94,9 +94,9 @@
 
                 <div class="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
                     @foreach($topProducts as $product)
-                        <div class="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 p-4 transition hover:-translate-y-0.5 hover:bg-white hover:shadow-sm">
+                        <div class="flex items-center justify-between border-b border-[rgb(var(--cp-line))] p-4 last:border-b-0">
                             <div class="flex items-center gap-3">
-                                <span class="flex h-9 w-9 items-center justify-center rounded-lg bg-slate-900 text-sm font-semibold text-white">
+                                <span class="flex h-9 w-9 items-center justify-center rounded-lg bg-[#18201d] text-sm font-semibold text-white">
                                     {{ $loop->iteration }}
                                 </span>
                                 <div>
@@ -105,7 +105,7 @@
                                 </div>
                             </div>
                             <div class="text-right">
-                                <p class="text-lg font-semibold text-indigo-700">{{ $product->total_sold }}</p>
+                                <p class="cp-tabular text-lg font-bold text-emerald-800">{{ $product->total_sold }}</p>
                                 <p class="text-xs text-slate-500">sold</p>
                             </div>
                         </div>
@@ -129,12 +129,12 @@
                         datasets: [{
                             label: 'Revenue (RM)',
                             data: salesData.map(item => item.total),
-                            borderColor: '#4f46e5',
-                            backgroundColor: 'rgba(79, 70, 229, 0.08)',
+                            borderColor: '#136f54',
+                            backgroundColor: 'rgba(19, 111, 84, 0.08)',
                             borderWidth: 3,
                             fill: true,
                             tension: 0.35,
-                            pointBackgroundColor: '#4f46e5',
+                            pointBackgroundColor: '#136f54',
                             pointBorderColor: '#fff',
                             pointBorderWidth: 2,
                             pointRadius: 4,

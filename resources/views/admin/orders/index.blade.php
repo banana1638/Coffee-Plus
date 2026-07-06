@@ -1,7 +1,7 @@
 <x-admin-layout>
     <div class="px-4 py-6 sm:px-6 lg:px-8">
         <div class="mx-auto max-w-[1400px] space-y-6">
-            <x-layout.page-header title="Order Management" description="Desktop logistics control for active orders, pickup codes, and refunds.">
+            <x-layout.page-header title="Order operations" description="Scan active orders, verify pickup codes, advance preparation status, and inspect refunds.">
                 <x-slot:actions>
                     @adminCan('report.export')
                         <x-ui.button :href="route('admin.orders.export.page')" variant="secondary">
@@ -27,11 +27,11 @@
 
                 @adminCan('order.status.update')
                     <form action="{{ route('admin.orders.complete-by-code') }}" method="POST"
-                        class="flex gap-2 rounded-xl border border-slate-200 bg-white p-2 shadow-sm">
+                        class="flex gap-2 rounded-lg border border-[rgb(var(--cp-line))] bg-[rgb(var(--cp-surface))] p-2 shadow-sm">
                         @csrf
                         <label class="sr-only" for="pickup_code">Pickup code</label>
                         <input id="pickup_code" name="pickup_code" type="text" maxlength="12" placeholder="Pickup code"
-                            class="min-w-0 flex-1 rounded-lg border-slate-200 bg-slate-50 text-sm font-semibold uppercase tracking-wide text-slate-800 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                            class="min-w-0 flex-1 rounded-lg border-[rgb(var(--cp-line))] bg-stone-100 text-sm font-semibold uppercase text-[rgb(var(--cp-ink))] shadow-sm focus:border-emerald-600 focus:ring-emerald-600">
                         <x-ui.button type="submit" size="sm">
                             Verify
                         </x-ui.button>
@@ -60,7 +60,7 @@
                                 <h3 class="mt-2 text-base font-semibold text-slate-950">#{{ $order->bill_id }}</h3>
                                 <p class="mt-1 text-xs text-slate-500">Customer: {{ $order->user->name }}</p>
                                 @if($order->pickup_code)
-                                    <p class="mt-1 text-xs font-semibold uppercase tracking-wide text-indigo-700">Pickup: {{ $order->pickup_code }}</p>
+                                    <p class="mt-1 text-xs font-semibold uppercase text-emerald-800">Pickup: {{ $order->pickup_code }}</p>
                                 @endif
                             </div>
 
@@ -78,7 +78,7 @@
 
                             <div>
                                 <p class="text-xs font-semibold uppercase tracking-wide text-slate-400">Final Amount</p>
-                                <p class="mt-2 text-xl font-semibold text-slate-950">
+                                <p class="cp-tabular mt-2 text-xl font-bold text-[rgb(var(--cp-ink))]">
                                     <span class="text-xs text-slate-500">RM</span>{{ number_format($order->final_amount, 2) }}
                                 </p>
                             </div>
@@ -100,8 +100,8 @@
                         </div>
                     </x-ui.card>
                 @empty
-                    <div class="rounded-xl border border-dashed border-slate-300 bg-white p-12 text-center">
-                        <p class="text-sm font-semibold text-slate-500">No orders found.</p>
+                    <div class="rounded-lg border border-dashed border-[rgb(var(--cp-line))] bg-[rgb(var(--cp-surface))] p-10 text-center">
+                        <p class="font-semibold text-[rgb(var(--cp-ink))]">No orders in this view</p>
                     </div>
                 @endforelse
             </div>
