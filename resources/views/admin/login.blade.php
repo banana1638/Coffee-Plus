@@ -1,6 +1,6 @@
 <x-guest-layout>
     <div class="flex min-h-screen items-center justify-center bg-[rgb(var(--cp-canvas))] px-4 py-10">
-        <div class="w-full max-w-md">
+        <div class="w-[calc(100vw-2rem)] max-w-md sm:w-full">
             <div class="mb-8 text-center">
                 <div class="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-lg border border-[rgb(var(--cp-line))] bg-[rgb(var(--cp-surface))] p-3 shadow-sm">
                     <x-application-logo class="h-full w-full" />
@@ -42,7 +42,7 @@
             </div>
 
             <p class="mt-6 text-center text-xs font-medium text-slate-500">
-                Authorized staff only · {{ date('Y') }}
+                Authorized staff only &middot; {{ date('Y') }}
             </p>
         </div>
     </div>
