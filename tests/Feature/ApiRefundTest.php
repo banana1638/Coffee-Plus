@@ -37,6 +37,7 @@ class ApiRefundTest extends TestCase
             ->assertStatus(200)
             ->assertJsonPath('meta.total', 1)
             ->assertJsonPath('refunds.0.bill_id', 'CP-REFUND-MINE')
+            ->assertJsonMissingPath('refunds.0.order_details')
             ->assertJsonMissing(['bill_id' => 'CP-REFUND-OTHER']);
     }
 

@@ -83,6 +83,12 @@
                 </article>
             @endforeach
         </div>
+
+        @if($favorites->hasPages())
+            <div>
+                {{ $favorites->links() }}
+            </div>
+        @endif
     @endif
 </div>
 

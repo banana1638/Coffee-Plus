@@ -24,7 +24,12 @@ class TangkiController extends Controller
 
     public function index()
     {
-        $transactions = Auth::user()->transactions()->with(['bill.items.product'])->latest()->take(5)->get();
+        $transactions = Auth::user()->transactions()
+            ->select(['id', 'user_id', 'bill_id', 'type', 'description', 'oz_delta', 'created_at'])
+            ->latest()
+            ->take(5)
+            ->get();
+
         return response()->json([
             'transactions' => TransactionResource::collection($transactions),
             'user' => new UserResource(Auth::user()),

@@ -42,7 +42,7 @@ class ProductAdminController extends Controller
 
     public function create()
     {
-        $menus = Menu::all();
+        $menus = Menu::select(['id', 'name'])->orderBy('name')->get();
 
         return view('admin.products.create', compact('menus'));
     }
@@ -67,7 +67,7 @@ class ProductAdminController extends Controller
     public function edit($id)
     {
         $product = Product::findOrFail($id);
-        $menus = Menu::all();
+        $menus = Menu::select(['id', 'name'])->orderBy('name')->get();
 
         return view('admin.products.edit', compact('product', 'menus'));
     }

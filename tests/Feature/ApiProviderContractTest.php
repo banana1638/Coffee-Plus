@@ -8,6 +8,7 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
 use App\Models\ProductAddon;
+use App\Models\Transaction;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -229,6 +230,38 @@ class ApiProviderContractTest extends TestCase
                     'balance',
                     'balance_cents',
                     'oz',
+                ],
+            ]);
+    }
+
+    public function test_transaction_lists_are_summary_only_and_detail_endpoint_contains_order(): void
+    {
+        $user = User::factory()->create();
+        $order = $this->createOrder($user);
+
+        $transaction = new Transaction;
+        $transaction->user_id = $user->id;
+        $transaction->bill_id = $order->bill_id;
+        $transaction->type = 'order';
+        $transaction->description = 'Order OZ usage';
+        $transaction->oz_delta = -100;
+        $transaction->save();
+
+        $this->actingAs($user)
+            ->getJson('/api/transactions')
+            ->assertOk()
+            ->assertJsonPath('transactions.0.bill_id', $order->bill_id)
+            ->assertJsonMissingPath('transactions.0.order_details');
+
+        $this->actingAs($user)
+            ->getJson("/api/transactions/{$order->bill_id}")
+            ->assertOk()
+            ->assertJsonPath('order.bill_id', $order->bill_id)
+            ->assertJsonStructure([
+                'order' => [
+                    'items' => [
+                        '*' => ['product_name', 'quantity'],
+                    ],
                 ],
             ]);
     }

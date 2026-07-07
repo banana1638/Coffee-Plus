@@ -15,7 +15,7 @@ class TransactionController extends Controller
     public function index(Request $request)
     {
         $query = Transaction::where('user_id', Auth::id())
-            ->with(['bill.items.product']);
+            ->select(['id', 'user_id', 'bill_id', 'type', 'description', 'oz_delta', 'created_at']);
 
         if ($request->filled('search_id')) {
             $query->where('bill_id', 'LIKE', "%{$request->search_id}%");
@@ -50,7 +50,7 @@ class TransactionController extends Controller
     {
         $query = Transaction::where('user_id', Auth::id())
             ->where('type', 'refund')
-            ->with(['bill.items.product']);
+            ->select(['id', 'user_id', 'bill_id', 'type', 'description', 'oz_delta', 'created_at']);
 
         if ($request->filled('search_id')) {
             $query->where('bill_id', 'LIKE', "%{$request->search_id}%");
