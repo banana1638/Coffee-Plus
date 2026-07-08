@@ -1,7 +1,7 @@
 <x-app-layout>
     <div class="px-4 py-6 sm:px-6 lg:px-8">
         <div class="mx-auto max-w-5xl space-y-6">
-            <x-layout.page-header title="Transaction History" description="Review refills, redemptions, and order-linked Tangki activity.">
+            <x-layout.page-header title="Tangki ledger" description="Review backend-confirmed refills, redemptions, and order-linked movements.">
                 <x-slot:actions>
                     <x-ui.button :href="url()->previous()" variant="secondary">
                         Back
@@ -10,10 +10,10 @@
             </x-layout.page-header>
 
             @php $type = request('type', 'all'); @endphp
-            <div class="inline-flex rounded-xl border border-slate-200 bg-white p-1 shadow-sm">
+            <div class="inline-flex rounded-lg border border-[rgb(var(--cp-line))] bg-[rgb(var(--cp-surface))] p-1 shadow-sm">
                 @foreach(['all' => 'All', 'in' => 'Refills', 'out' => 'Usage'] as $key => $label)
                     <a href="{{ route('tangki.transactions', ['type' => $key]) }}"
-                        class="rounded-lg px-4 py-2 text-sm font-semibold transition {{ $type == $key ? 'bg-slate-900 text-white' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-950' }}">
+                        class="rounded-md px-4 py-2 text-sm font-semibold transition {{ $type == $key ? 'bg-emerald-700 text-white' : 'text-[rgb(var(--cp-muted))] hover:bg-emerald-50 hover:text-emerald-800' }}">
                         {{ $label }}
                     </a>
                 @endforeach
@@ -42,7 +42,7 @@
                                 @endif
                             </div>
 
-                            <p class="text-lg font-semibold {{ $trx->oz_delta > 0 ? 'text-emerald-700' : 'text-indigo-700' }}">
+                            <p class="cp-tabular text-lg font-bold {{ $trx->oz_delta > 0 ? 'text-emerald-700' : 'text-slate-800' }}">
                                 {{ $trx->oz_delta > 0 ? '+' : '' }}{{ $trx->oz_delta }} <span class="text-xs">oz</span>
                             </p>
 
@@ -54,8 +54,8 @@
                         </div>
                     </x-ui.card>
                 @empty
-                    <div class="rounded-xl border border-dashed border-slate-300 bg-white p-12 text-center">
-                        <p class="text-sm font-semibold text-slate-500">No transactions found.</p>
+                    <div class="rounded-lg border border-dashed border-[rgb(var(--cp-line))] bg-[rgb(var(--cp-surface))] p-10 text-center">
+                        <p class="font-semibold text-[rgb(var(--cp-ink))]">No matching ledger entries</p>
                     </div>
                 @endforelse
             </div>

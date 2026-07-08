@@ -10,7 +10,7 @@
 
     <div class="px-4 py-6 sm:px-6 lg:px-8">
         <div class="mx-auto max-w-[1200px] space-y-6">
-            <x-layout.page-header title="Order #{{ $order->bill_id }}" description="Order detail, pickup verification, and status controls.">
+            <x-layout.page-header title="Order #{{ $order->bill_id }}" description="Checkout snapshot, immutable status history, pickup verification, and authorized controls.">
                 <x-slot:actions>
                     <x-ui.button :href="route('admin.orders.index')" variant="secondary">
                         Back to Orders
@@ -45,7 +45,7 @@
                     <x-ui.card>
                         <div class="mb-4 flex items-center justify-between">
                             <div>
-                                <h2 class="text-base font-semibold text-slate-950">Product Manifest</h2>
+                                <h2 class="text-base font-bold text-[rgb(var(--cp-ink))]">Drink manifest</h2>
                                 <p class="text-sm text-slate-600">Items captured at checkout time.</p>
                             </div>
                         </div>
@@ -107,8 +107,8 @@
                 <aside class="space-y-6">
                     @if($order->pickup_code)
                         <x-ui.card>
-                            <h2 class="text-base font-semibold text-slate-950">Pickup Verification</h2>
-                            <div class="mt-5 rounded-xl border border-slate-200 bg-slate-50 p-4 text-center">
+                            <h2 class="text-base font-bold text-[rgb(var(--cp-ink))]">Pickup verification</h2>
+                            <div class="mt-5 rounded-lg border border-dashed border-[rgb(var(--cp-line))] bg-stone-100 p-4 text-center">
                                 <img class="mx-auto h-40 w-40 rounded-lg border border-slate-200 bg-white p-2"
                                     src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data={{ urlencode($order->pickup_qr_payload) }}"
                                     alt="Pickup QR code">
@@ -119,7 +119,7 @@
 
                     <x-ui.card>
                         <p class="text-sm font-medium text-slate-500">Total Cash</p>
-                        <p class="mt-3 text-3xl font-semibold text-slate-950">
+                        <p class="cp-tabular mt-3 text-3xl font-bold text-[rgb(var(--cp-ink))]">
                             <span class="text-sm text-slate-500">RM</span>{{ number_format($order->final_amount, 2) }}
                         </p>
 

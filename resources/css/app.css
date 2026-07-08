@@ -1,4 +1,45 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-[x-cloak] { display: none !important; }
+
+@layer base {
+    :root {
+        --cp-ink: 24 32 29;
+        --cp-muted: 91 103 98;
+        --cp-canvas: 246 247 243;
+        --cp-surface: 255 255 252;
+        --cp-line: 218 223 216;
+        --cp-brand: 19 111 84;
+        --cp-brand-strong: 13 82 63;
+        --cp-caramel: 184 126 45;
+        --cp-accent: 184 126 45;
+    }
+
+    html {
+        color-scheme: light;
+    }
+
+    body {
+        background: rgb(var(--cp-canvas));
+        color: rgb(var(--cp-ink));
+    }
+
+    ::selection {
+        background: rgb(var(--cp-brand) / 0.18);
+    }
+
+    :focus-visible {
+        outline: 2px solid rgb(var(--cp-brand));
+        outline-offset: 2px;
+    }
+}
+
+@layer utilities {
+    .cp-tabular {
+        font-variant-numeric: tabular-nums;
+    }
+}
+
+[x-cloak] {
+    display: none !important;
+}

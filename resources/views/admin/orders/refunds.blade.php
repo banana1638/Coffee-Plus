@@ -10,10 +10,10 @@
             </x-layout.page-header>
 
             <form method="GET" action="{{ route('admin.orders.refunds') }}"
-                class="flex max-w-xl gap-2 rounded-xl border border-slate-200 bg-white p-2 shadow-sm">
+                class="flex max-w-xl gap-2 rounded-lg border border-[rgb(var(--cp-line))] bg-[rgb(var(--cp-surface))] p-2 shadow-sm">
                 <label class="sr-only" for="search_id">Search bill id</label>
                 <input id="search_id" name="search_id" type="text" value="{{ request('search_id') }}" placeholder="Search bill id"
-                    class="min-w-0 flex-1 rounded-lg border-slate-200 bg-slate-50 text-sm font-semibold uppercase tracking-wide text-slate-800 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                    class="min-w-0 flex-1 rounded-lg border-[rgb(var(--cp-line))] bg-stone-100 text-sm font-semibold uppercase text-[rgb(var(--cp-ink))] shadow-sm focus:border-emerald-600 focus:ring-emerald-600">
                 <x-ui.button type="submit" size="sm">
                     Search
                 </x-ui.button>
@@ -35,7 +35,7 @@
                             <tr class="transition hover:bg-slate-50">
                                 <td class="px-4 py-3">
                                     @if($refund->bill)
-                                        <a href="{{ route('admin.orders.show', $refund->bill) }}" class="font-semibold text-indigo-700 hover:text-indigo-900">
+                                        <a href="{{ route('admin.orders.show', $refund->bill) }}" class="font-semibold text-emerald-700 hover:text-emerald-900">
                                             {{ $refund->bill_id }}
                                         </a>
                                     @else

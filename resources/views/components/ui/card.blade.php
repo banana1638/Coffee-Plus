@@ -6,6 +6,6 @@
     $paddingClass = $padding === 'compact' ? 'p-4' : 'p-4 sm:p-6';
 @endphp
 
-<section {{ $attributes->merge(['class' => 'rounded-xl border border-slate-200 bg-white shadow-sm transition duration-200 hover:shadow-md ' . $paddingClass]) }}>
+<section {{ $attributes->merge(['class' => 'rounded-lg border border-[rgb(var(--cp-line))] bg-[rgb(var(--cp-surface))] shadow-sm ' . $paddingClass]) }}>
     {{ $slot }}
 </section>

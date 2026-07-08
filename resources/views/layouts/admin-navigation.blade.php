@@ -42,13 +42,13 @@
                 <div class="mt-2 space-y-1">
                     @adminCan('order.view')
                         <a href="{{ route('admin.dashboard') }}"
-                            class="group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-semibold transition {{ request()->routeIs('admin.dashboard') ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-950' }}">
-                            <span class="h-2 w-2 rounded-full {{ request()->routeIs('admin.dashboard') ? 'bg-emerald-400' : 'bg-slate-300 group-hover:bg-indigo-500' }}"></span>
+                            class="group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-semibold transition {{ request()->routeIs('admin.dashboard') ? 'bg-emerald-800 text-white' : 'text-slate-600 hover:bg-emerald-50 hover:text-emerald-900' }}">
+                            <span class="h-2 w-2 rounded-full {{ request()->routeIs('admin.dashboard') ? 'bg-emerald-300' : 'bg-slate-300 group-hover:bg-emerald-600' }}"></span>
                             Dashboard
                         </a>
                         <a href="{{ route('admin.orders.index') }}"
-                            class="group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-semibold transition {{ request()->routeIs('admin.orders.*') ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-950' }}">
-                            <span class="h-2 w-2 rounded-full {{ request()->routeIs('admin.orders.*') ? 'bg-emerald-400' : 'bg-slate-300 group-hover:bg-indigo-500' }}"></span>
+                            class="group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-semibold transition {{ request()->routeIs('admin.orders.*') ? 'bg-emerald-800 text-white' : 'text-slate-600 hover:bg-emerald-50 hover:text-emerald-900' }}">
+                            <span class="h-2 w-2 rounded-full {{ request()->routeIs('admin.orders.*') ? 'bg-emerald-300' : 'bg-slate-300 group-hover:bg-emerald-600' }}"></span>
                             Orders
                         </a>
                     @endadminCan
@@ -61,32 +61,32 @@
                     <div class="mt-2 space-y-1">
                         @adminCan('report.view')
                             <a href="{{ route('admin.owner.dashboard') }}"
-                                class="group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-semibold transition {{ request()->routeIs('admin.owner.dashboard') ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-950' }}">
-                                <span class="h-2 w-2 rounded-full {{ request()->routeIs('admin.owner.dashboard') ? 'bg-emerald-400' : 'bg-slate-300 group-hover:bg-indigo-500' }}"></span>
+                                class="group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-semibold transition {{ request()->routeIs('admin.owner.dashboard') ? 'bg-emerald-800 text-white' : 'text-slate-600 hover:bg-emerald-50 hover:text-emerald-900' }}">
+                                <span class="h-2 w-2 rounded-full {{ request()->routeIs('admin.owner.dashboard') ? 'bg-emerald-300' : 'bg-slate-300 group-hover:bg-emerald-600' }}"></span>
                                 Analytics
                             </a>
                         @endadminCan
 
                         @adminCan('product.view')
                             <a href="{{ route('admin.products.index') }}"
-                                class="group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-semibold transition {{ request()->routeIs('admin.products.*') ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-950' }}">
-                                <span class="h-2 w-2 rounded-full {{ request()->routeIs('admin.products.*') ? 'bg-emerald-400' : 'bg-slate-300 group-hover:bg-indigo-500' }}"></span>
+                                class="group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-semibold transition {{ request()->routeIs('admin.products.*') ? 'bg-emerald-800 text-white' : 'text-slate-600 hover:bg-emerald-50 hover:text-emerald-900' }}">
+                                <span class="h-2 w-2 rounded-full {{ request()->routeIs('admin.products.*') ? 'bg-emerald-300' : 'bg-slate-300 group-hover:bg-emerald-600' }}"></span>
                                 Products
                             </a>
                         @endadminCan
 
                         @adminCan('coupon.view')
                             <a href="{{ route('admin.coupons.index') }}"
-                                class="group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-semibold transition {{ request()->routeIs('admin.coupons.*') ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-950' }}">
-                                <span class="h-2 w-2 rounded-full {{ request()->routeIs('admin.coupons.*') ? 'bg-emerald-400' : 'bg-slate-300 group-hover:bg-indigo-500' }}"></span>
+                                class="group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-semibold transition {{ request()->routeIs('admin.coupons.*') ? 'bg-emerald-800 text-white' : 'text-slate-600 hover:bg-emerald-50 hover:text-emerald-900' }}">
+                                <span class="h-2 w-2 rounded-full {{ request()->routeIs('admin.coupons.*') ? 'bg-emerald-300' : 'bg-slate-300 group-hover:bg-emerald-600' }}"></span>
                                 Coupons
                             </a>
                         @endadminCan
 
                         @adminCan('payment.view')
                             <a href="{{ route('admin.payment-events.index') }}"
-                                class="group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-semibold transition {{ request()->routeIs('admin.payment-events.*') ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-950' }}">
-                                <span class="h-2 w-2 rounded-full {{ request()->routeIs('admin.payment-events.*') ? 'bg-emerald-400' : 'bg-slate-300 group-hover:bg-indigo-500' }}"></span>
+                                class="group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-semibold transition {{ request()->routeIs('admin.payment-events.*') ? 'bg-emerald-800 text-white' : 'text-slate-600 hover:bg-emerald-50 hover:text-emerald-900' }}">
+                                <span class="h-2 w-2 rounded-full {{ request()->routeIs('admin.payment-events.*') ? 'bg-emerald-300' : 'bg-slate-300 group-hover:bg-emerald-600' }}"></span>
                                 Payments
                             </a>
                         @endadminCan
@@ -96,7 +96,7 @@
         </nav>
 
         <div class="border-t border-slate-200 p-4">
-            <div class="rounded-xl bg-slate-50 p-4">
+            <div class="rounded-lg bg-stone-100 p-4">
                 <div class="flex items-center justify-between gap-3">
                     <div>
                         <p class="text-sm font-semibold text-slate-950">{{ $admin->name }}</p>
@@ -112,7 +112,7 @@
                     </x-ui.button>
                 </form>
                 <a href="{{ route('admin.two-factor.show') }}"
-                    class="mt-2 inline-flex w-full items-center justify-center rounded-lg px-3 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 hover:text-slate-950">
+                    class="mt-2 inline-flex w-full items-center justify-center rounded-lg px-3 py-2 text-xs font-semibold text-slate-600 hover:bg-emerald-50 hover:text-emerald-900">
                     Security settings
                 </a>
             </div>

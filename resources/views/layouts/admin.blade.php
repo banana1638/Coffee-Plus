@@ -11,7 +11,7 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 
-<body class="bg-slate-50 font-sans text-slate-950 antialiased">
+<body class="bg-[rgb(var(--cp-canvas))] font-sans text-[rgb(var(--cp-ink))] antialiased">
     <div class="min-h-screen">
         @include('layouts.admin-navigation')
 

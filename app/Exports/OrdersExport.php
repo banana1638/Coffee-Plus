@@ -5,6 +5,7 @@ namespace App\Exports;
 use App\Models\Order;
 use Carbon\Carbon;
 use Maatwebsite\Excel\Concerns\FromQuery;
+use Maatwebsite\Excel\Concerns\WithChunkReading;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithMultipleSheets;
@@ -47,7 +48,7 @@ class OrdersExport implements WithMultipleSheets
 }
 
 // Sheet-specific export logic.
-class OrdersMonthlySheet implements FromQuery, WithHeadings, WithMapping, WithTitle
+class OrdersMonthlySheet implements FromQuery, WithChunkReading, WithHeadings, WithMapping, WithTitle
 {
     private $year;
     private $month;
@@ -62,7 +63,9 @@ class OrdersMonthlySheet implements FromQuery, WithHeadings, WithMapping, WithTi
 
     public function query()
     {
-        $query = Order::query()->with('user');
+        $query = Order::query()
+            ->select(['id', 'user_id', 'bill_id', 'final_amount', 'status', 'created_at'])
+            ->with('user:id,name');
 
         if ($this->date) {
             $start = Carbon::parse($this->date)->startOfDay();
@@ -79,6 +82,11 @@ class OrdersMonthlySheet implements FromQuery, WithHeadings, WithMapping, WithTi
         }
 
         return $query->orderBy('created_at');
+    }
+
+    public function chunkSize(): int
+    {
+        return 1000;
     }
 
     public function map($order): array

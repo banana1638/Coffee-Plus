@@ -23,7 +23,8 @@ class DashboardController extends Controller
                     }
                 })
                 ->latest()
-                ->get();
+                ->paginate(12)
+                ->withQueryString();
             
             $menus = collect(); // We don't use regular menus for collections view
         } else {

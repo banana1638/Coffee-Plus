@@ -1,7 +1,7 @@
 <x-admin-layout>
     <div class="px-4 py-6 sm:px-6 lg:px-8">
         <div class="mx-auto max-w-[1300px] space-y-6">
-            <x-layout.page-header title="Coupon Manager" description="Promotion control, usage limits, and expiry monitoring.">
+            <x-layout.page-header title="Coupon controls" description="Manage backend-validated discount values, usage limits, redemption state, and expiry.">
                 <x-slot:actions>
                     @adminCan('coupon.create')
                         <x-ui.button :href="route('admin.coupons.create')" size="lg">
@@ -12,7 +12,7 @@
             </x-layout.page-header>
 
             @if(session('success'))
-                <div class="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-700">
+                <div class="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-700" role="status">
                     {{ session('success') }}
                 </div>
             @endif

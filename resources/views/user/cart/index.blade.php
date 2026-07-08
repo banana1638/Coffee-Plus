@@ -1,7 +1,7 @@
 <x-app-layout>
     <div class="px-4 py-6 sm:px-6 lg:px-8">
         <div class="mx-auto max-w-5xl space-y-6">
-            <x-layout.page-header title="My Cart" description="Review items, choose Tangki redemption, and complete checkout.">
+            <x-layout.page-header title="Review your order" description="Confirm each drink recipe, choose Tangki redemption, then select a backend-verified payment method.">
                 <x-slot:actions>
                     <x-ui.badge variant="info">{{ $cartItems->sum('quantity') }} items</x-ui.badge>
                     <x-ui.button :href="route('dashboard')" variant="secondary">
@@ -11,7 +11,7 @@
             </x-layout.page-header>
 
             @if(session('error'))
-                <div class="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-700">
+                <div class="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-700" role="alert">
                     {{ session('error') }}
                 </div>
             @endif
@@ -22,26 +22,25 @@
                         @include('components.tank-visualization')
                     </div>
                     <div class="grid gap-4 sm:grid-cols-2">
-                        <div class="rounded-xl border border-slate-200 bg-slate-50 p-4">
-                            <p class="text-sm font-medium text-slate-500">Current Storage</p>
-                            <p class="mt-2 text-3xl font-semibold text-indigo-700">
+                        <div class="border-l-2 border-emerald-600 bg-emerald-50/60 p-4">
+                            <p class="text-xs font-semibold uppercase text-emerald-800">Tangki available</p>
+                            <p class="cp-tabular mt-2 text-3xl font-bold text-[rgb(var(--cp-brand-strong))]">
                                 <span id="user-balance" data-balance="{{ Auth::user()->tangki_oz }}">{{ number_format(Auth::user()->tangki_oz) }}</span>
                                 <span class="text-sm text-slate-500">OZ</span>
                             </p>
                         </div>
-                        <div class="rounded-xl border border-slate-200 bg-slate-50 p-4">
-                            <p class="text-sm font-medium text-slate-500">Account Balance</p>
-                            <p class="mt-2 text-3xl font-semibold text-slate-950">
-                                <span class="text-sm text-slate-500">RM</span>{{ number_format(Auth::user()->tangki_balance, 2) }}
-                            </p>
+                        <div class="border-l-2 border-amber-500 bg-amber-50/60 p-4">
+                            <p class="text-xs font-semibold uppercase text-amber-800">Cash balance</p>
+                            <x-ui.price :amount="Auth::user()->tangki_balance" size="xl" accent class="mt-2" />
                         </div>
                     </div>
                 </div>
             </x-ui.card>
 
             @if($cartItems->isEmpty())
-                <div class="rounded-xl border border-dashed border-slate-300 bg-white p-12 text-center">
-                    <p class="text-sm font-semibold text-slate-500">Your cart is empty.</p>
+                <div class="rounded-lg border border-dashed border-[rgb(var(--cp-line))] bg-[rgb(var(--cp-surface))] p-10 text-center">
+                    <p class="font-semibold text-[rgb(var(--cp-ink))]">Your order is empty</p>
+                    <p class="mt-1 text-sm text-[rgb(var(--cp-muted))]">Choose a drink from the menu to begin.</p>
                     <x-ui.button :href="route('dashboard')" class="mt-4">
                         Browse Products
                     </x-ui.button>
@@ -58,7 +57,7 @@
 
                         <x-ui.card padding="compact" class="group">
                             <div class="grid gap-4 md:grid-cols-[88px_1fr_170px] md:items-center">
-                                <div class="h-20 w-20 overflow-hidden rounded-xl border border-slate-200 bg-slate-100">
+                                <div class="h-20 w-20 overflow-hidden rounded-lg border border-[rgb(var(--cp-line))] bg-stone-100">
                                     <img src="{{ $item->product->thumbnail_image_url }}" class="h-20 w-20 object-cover" alt="{{ $item->product->name }}">
                                 </div>
 
@@ -71,7 +70,7 @@
                                             <x-ui.badge variant="info">+ {{ $addon }}</x-ui.badge>
                                         @endforeach
                                     </div>
-                                    <p class="mt-3 font-semibold text-indigo-700 item-price-label"
+                                    <p class="cp-tabular mt-3 font-bold text-[rgb(var(--cp-brand-strong))] item-price-label"
                                         data-cash="RM {{ number_format($itemTotalCash, 2) }}">
                                         RM {{ number_format($itemTotalCash, 2) }}
                                     </p>
@@ -84,8 +83,8 @@
                                             data-price="{{ $itemTotalCash }}"
                                             data-price-cents="{{ $itemTotalCashCents }}"
                                             data-oz-needed="{{ $itemTotalOz }}">
-                                        <span class="h-6 w-11 rounded-full bg-slate-200 after:absolute after:left-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-slate-300 after:bg-white after:transition-all peer-checked:bg-indigo-600 peer-checked:after:translate-x-full peer-checked:after:border-white"></span>
-                                        <span class="text-xs font-semibold uppercase tracking-wide text-slate-500 peer-checked:text-indigo-700">Redeem</span>
+                                        <span class="h-6 w-11 rounded-full bg-slate-200 after:absolute after:left-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-slate-300 after:bg-white after:transition-all peer-checked:bg-emerald-700 peer-checked:after:translate-x-full peer-checked:after:border-white"></span>
+                                        <span class="text-xs font-semibold uppercase text-slate-500 peer-checked:text-emerald-800">Redeem</span>
                                     </label>
                                     <span class="text-xs font-medium text-slate-400">{{ number_format($itemTotalOz) }} OZ</span>
                                 </div>
@@ -93,14 +92,14 @@
                         </x-ui.card>
                     @endforeach
 
-                    <div class="rounded-xl bg-slate-950 p-6 text-white shadow-sm">
+                    <section class="rounded-lg bg-[rgb(var(--cp-ink))] p-6 text-white shadow-sm" aria-labelledby="checkout-total-title">
                         <div class="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
                             <div>
-                                <p class="text-sm font-medium text-slate-400">Grand Total</p>
-                                <p class="mt-2 text-4xl font-semibold">
-                                    <span class="text-lg text-indigo-300">RM</span><span id="display-total">0.00</span>
+                                <p id="checkout-total-title" class="text-sm font-medium text-stone-300">Amount confirmed at checkout</p>
+                                <p class="cp-tabular mt-2 text-4xl font-bold">
+                                    <span class="text-lg text-emerald-300">RM</span><span id="display-total">0.00</span>
                                 </p>
-                                <p id="oz-summary" class="mt-2 h-4 text-xs font-semibold uppercase tracking-wide text-indigo-300"></p>
+                                <p id="oz-summary" class="mt-2 min-h-4 text-xs font-semibold uppercase text-emerald-300" aria-live="polite"></p>
                                 <p id="balance-error" class="hidden text-xs font-semibold uppercase tracking-wide text-rose-300">
                                     Insufficient cash balance
                                 </p>
@@ -115,7 +114,7 @@
                                 </x-ui.button>
                             </div>
                         </div>
-                    </div>
+                    </section>
                 </form>
             @endif
         </div>
@@ -148,7 +147,7 @@
 
                     if (cb.checked) {
                         totalOzUsed += ozNeeded;
-                        priceLabel.innerHTML = `<span class="text-slate-400 line-through">${priceLabel.dataset.cash}</span> <span class="ml-1 text-xs font-semibold text-indigo-700">REDEEMED</span>`;
+                        priceLabel.innerHTML = `<span class="text-slate-400 line-through">${priceLabel.dataset.cash}</span> <span class="ml-1 text-xs font-semibold text-emerald-800">REDEEMED</span>`;
                     } else {
                         currentTotalCashCents += priceCents;
                         priceLabel.innerHTML = priceLabel.dataset.cash;

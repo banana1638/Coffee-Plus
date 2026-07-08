@@ -9,25 +9,25 @@
     <title>{{ config('app.name', 'Laravel') }}</title>
 
     <link rel="preconnect" href="https://fonts.bunny.net">
-    <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
+    <link href="https://fonts.bunny.net/css?family=figtree:400,500,600,700&display=swap" rel="stylesheet" />
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
-    <style>
-        [x-cloak] { display: none !important; }
-    </style>
 </head>
 
 @php
     $initialAuthTab = in_array(request('auth'), ['login', 'register'], true) ? request('auth') : null;
 @endphp
 
-<body class="bg-slate-50 font-sans text-slate-950 antialiased" x-data="{ authModal: @js($initialAuthTab) }">
+<body class="bg-[rgb(var(--cp-canvas))] font-sans text-[rgb(var(--cp-ink))] antialiased"
+    x-data="{ authModal: @js($initialAuthTab) }"
+    @open-auth-modal.window="authModal = $event.detail.tab"
+    @close-auth-modal.window="authModal = null">
     <div class="min-h-screen">
         @include('layouts.navigation')
 
         @isset($header)
-            <header class="border-b border-slate-200 bg-white">
+            <header class="border-b border-[rgb(var(--cp-line))] bg-[rgb(var(--cp-surface))]">
                 <div class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
                     {{ $header }}
                 </div>

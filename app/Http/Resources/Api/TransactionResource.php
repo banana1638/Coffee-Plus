@@ -22,7 +22,7 @@ class TransactionResource extends JsonResource
             'description' => $this->description,
             'time' => $this->created_at->diffForHumans(),
             'timestamp' => $this->created_at ? $this->created_at->format('Y-m-d H:i:s') : null,
-            'order_details' => new OrderResource($this->whenLoaded('bill')),
+            'order_details' => $this->whenLoaded('bill', fn () => new OrderResource($this->bill)),
         ];
     }
 }

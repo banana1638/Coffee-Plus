@@ -14,33 +14,33 @@
                     <div>
                         <label for="export_type" class="text-sm font-medium text-slate-700">Export type</label>
                         <select name="type" id="export_type" onchange="toggleExportFields()"
-                            class="mt-2 w-full rounded-lg border-slate-300 bg-white text-sm font-semibold text-slate-800 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                            class="mt-2 w-full rounded-lg border-[rgb(var(--cp-line))] bg-white text-sm font-semibold text-[rgb(var(--cp-ink))] shadow-sm focus:border-emerald-600 focus:ring-emerald-600">
                             <option value="date">Specific daily log</option>
                             <option value="month">Monthly statement</option>
                             <option value="year">Annual master file</option>
                         </select>
                     </div>
 
-                    <div class="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                    <div class="rounded-lg border border-[rgb(var(--cp-line))] bg-stone-100 p-4">
                         <p class="text-sm font-semibold text-slate-950">Parameters</p>
 
                         <div id="field_date" class="export-field mt-4">
                             <label for="date" class="text-sm font-medium text-slate-700">Date</label>
                             <input id="date" type="date" name="date" value="{{ date('Y-m-d') }}"
-                                class="mt-2 w-full rounded-lg border-slate-300 bg-white text-sm font-semibold text-slate-800 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                class="mt-2 w-full rounded-lg border-[rgb(var(--cp-line))] bg-white text-sm font-semibold text-slate-800 shadow-sm focus:border-emerald-600 focus:ring-emerald-600">
                             <p class="mt-2 text-xs text-slate-500">Extract all transactions for a single 24-hour period.</p>
                         </div>
 
                         <div id="field_month" class="export-field mt-4 hidden">
                             <label for="month" class="text-sm font-medium text-slate-700">Month</label>
                             <input id="month" type="month" name="month" value="{{ date('Y-m') }}"
-                                class="mt-2 w-full rounded-lg border-slate-300 bg-white text-sm font-semibold text-slate-800 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                class="mt-2 w-full rounded-lg border-[rgb(var(--cp-line))] bg-white text-sm font-semibold text-slate-800 shadow-sm focus:border-emerald-600 focus:ring-emerald-600">
                             <p class="mt-2 text-xs text-slate-500">Extract full month data into a single sheet.</p>
                         </div>
 
                         <div id="field_year" class="export-field mt-4 hidden">
                             <label for="year" class="text-sm font-medium text-slate-700">Year</label>
-                            <select id="year" name="year" class="mt-2 w-full rounded-lg border-slate-300 bg-white text-sm font-semibold text-slate-800 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                            <select id="year" name="year" class="mt-2 w-full rounded-lg border-[rgb(var(--cp-line))] bg-white text-sm font-semibold text-slate-800 shadow-sm focus:border-emerald-600 focus:ring-emerald-600">
                                 @for($y = date('Y'); $y >= 2024; $y--)
                                     <option value="{{ $y }}">{{ $y }} fiscal year</option>
                                 @endfor
