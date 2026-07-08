@@ -11,7 +11,7 @@
     <div class="flex flex-1 flex-col p-4">
         <div class="flex items-start justify-between gap-3">
             <h4 class="min-w-0 font-semibold leading-5 text-[rgb(var(--cp-ink))]">{{ $product->name }}</h4>
-            <span class="cp-tabular shrink-0 text-sm font-bold text-[rgb(var(--cp-ink))]">RM {{ number_format($product->price, 2) }}</span>
+            <x-ui.price :amount="$product->price" size="sm" accent class="shrink-0" />
         </div>
 
         <div class="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2 text-xs text-[rgb(var(--cp-muted))]">

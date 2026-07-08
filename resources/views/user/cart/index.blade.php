@@ -31,9 +31,7 @@
                         </div>
                         <div class="border-l-2 border-amber-500 bg-amber-50/60 p-4">
                             <p class="text-xs font-semibold uppercase text-amber-800">Cash balance</p>
-                            <p class="cp-tabular mt-2 text-3xl font-bold text-[rgb(var(--cp-ink))]">
-                                <span class="text-sm text-slate-500">RM</span>{{ number_format(Auth::user()->tangki_balance, 2) }}
-                            </p>
+                            <x-ui.price :amount="Auth::user()->tangki_balance" size="xl" accent class="mt-2" />
                         </div>
                     </div>
                 </div>
@@ -94,7 +92,7 @@
                         </x-ui.card>
                     @endforeach
 
-                    <section class="rounded-lg bg-[#18201d] p-6 text-white shadow-sm" aria-labelledby="checkout-total-title">
+                    <section class="rounded-lg bg-[rgb(var(--cp-ink))] p-6 text-white shadow-sm" aria-labelledby="checkout-total-title">
                         <div class="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
                             <div>
                                 <p id="checkout-total-title" class="text-sm font-medium text-stone-300">Amount confirmed at checkout</p>

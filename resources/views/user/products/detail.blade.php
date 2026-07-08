@@ -68,7 +68,10 @@
                                     <span class="ml-3 flex w-full items-center justify-between gap-3">
                                         <span class="font-semibold text-slate-700">{{ $size['name'] }}</span>
                                         @if($size['extra'] > 0)
-                                            <span class="text-sm font-medium text-slate-500">+ RM {{ number_format($size['extra'], 2) }}</span>
+                                            <span class="inline-flex items-center gap-1">
+                                                <span class="text-sm font-medium text-slate-500">+</span>
+                                                <x-ui.price :amount="$size['extra']" size="sm" accent />
+                                            </span>
                                         @endif
                                     </span>
                                 </label>
@@ -88,7 +91,10 @@
                                                 class="rounded border-slate-300 text-emerald-700 focus:ring-emerald-600">
                                             <span class="ml-3 font-semibold text-slate-700">{{ $addon->name }}</span>
                                         </span>
-                                        <span class="cp-tabular text-sm font-semibold text-[rgb(var(--cp-brand-strong))]">+ RM {{ number_format($addon->price, 2) }}</span>
+                                        <span class="inline-flex items-center gap-1">
+                                            <span class="text-sm font-medium text-slate-500">+</span>
+                                            <x-ui.price :amount="$addon->price" size="sm" accent />
+                                        </span>
                                     </label>
                                 @endforeach
                             </div>

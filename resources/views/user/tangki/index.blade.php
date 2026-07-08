@@ -28,9 +28,7 @@
                             </div>
                             <div>
                                 <p class="text-xs font-semibold uppercase text-amber-800">Cash balance</p>
-                                <p class="cp-tabular mt-2 text-3xl font-bold text-[rgb(var(--cp-ink))]">
-                                    <span class="text-sm text-slate-500">RM</span>{{ number_format(Auth::user()->tangki_balance, 2) }}
-                                </p>
+                                <x-ui.price :amount="Auth::user()->tangki_balance" size="xl" accent class="mt-2" />
                             </div>
                         </div>
                     </x-ui.card>

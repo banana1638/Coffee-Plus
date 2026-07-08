@@ -128,7 +128,7 @@
                                             @if($item->oz_at_time > 0)
                                                 {{ number_format($item->oz_at_time * $item->quantity, 1) }} OZ
                                             @else
-                                                RM {{ number_format($item->price_at_time * $item->quantity, 2) }}
+                                                <x-ui.price :amount="$item->price_at_time * $item->quantity" accent />
                                             @endif
                                         </p>
                                         @if($item->oz_at_time > 0)
@@ -143,22 +143,25 @@
 
                 <aside class="space-y-6">
                     @if($order->pickup_code)
-                        <x-ui.card>
-                            <h2 class="text-base font-bold text-[rgb(var(--cp-ink))]">Collection code</h2>
-                            <div class="mt-5 rounded-lg border border-dashed border-[rgb(var(--cp-line))] bg-stone-100 p-4 text-center">
-                                <img class="mx-auto h-40 w-40 rounded-lg border border-slate-200 bg-white p-2"
-                                    src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data={{ urlencode($order->pickup_qr_payload) }}"
-                                    alt="Pickup QR code">
-                                <p class="mt-4 text-2xl font-semibold tracking-[0.2em] text-slate-950">{{ $order->pickup_code }}</p>
+                        <section class="overflow-hidden rounded-lg border border-[rgb(var(--cp-line))] bg-[rgb(var(--cp-surface))] shadow-sm">
+                            <x-ticket-perforation />
+                            <div class="p-4 sm:p-6">
+                                <h2 class="text-base font-bold text-[rgb(var(--cp-ink))]">Collection code</h2>
+                                <div class="mt-5 rounded-lg border border-dashed border-[rgb(var(--cp-line))] bg-stone-100 p-4 text-center">
+                                    <img class="mx-auto h-40 w-40 rounded-lg border border-slate-200 bg-white p-2"
+                                        src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data={{ urlencode($order->pickup_qr_payload) }}"
+                                        alt="Pickup QR code">
+                                    <p class="mt-4 text-2xl font-semibold tracking-[0.2em] text-slate-950">{{ $order->pickup_code }}</p>
+                                </div>
                             </div>
-                        </x-ui.card>
+                        </section>
                     @endif
 
                     <x-ui.card>
                         <div class="space-y-4">
                             <div class="flex justify-between text-sm">
                                 <span class="text-slate-500">Subtotal</span>
-                                <span class="font-semibold text-slate-950">RM {{ number_format($order->subtotal, 2) }}</span>
+                                <x-ui.price :amount="$order->subtotal" size="sm" accent />
                             </div>
 
                             @if($order->oz_used > 0)
@@ -172,9 +175,7 @@
 
                             <div class="border-t border-slate-200 pt-4">
                                 <p class="text-sm font-medium text-slate-500">Total Cash</p>
-                                <p class="mt-2 text-3xl font-semibold text-slate-950">
-                                    <span class="text-sm text-slate-500">RM</span>{{ number_format($order->final_amount, 2) }}
-                                </p>
+                                <x-ui.price :amount="$order->final_amount" size="xl" accent class="mt-2" />
                             </div>
 
                             @if($order->canBeCancelled())

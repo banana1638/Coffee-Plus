@@ -19,7 +19,10 @@
     $initialAuthTab = in_array(request('auth'), ['login', 'register'], true) ? request('auth') : null;
 @endphp
 
-<body class="bg-[rgb(var(--cp-canvas))] font-sans text-[rgb(var(--cp-ink))] antialiased" x-data="{ authModal: @js($initialAuthTab) }">
+<body class="bg-[rgb(var(--cp-canvas))] font-sans text-[rgb(var(--cp-ink))] antialiased"
+    x-data="{ authModal: @js($initialAuthTab) }"
+    @open-auth-modal.window="authModal = $event.detail.tab"
+    @close-auth-modal.window="authModal = null">
     <div class="min-h-screen">
         @include('layouts.navigation')
 

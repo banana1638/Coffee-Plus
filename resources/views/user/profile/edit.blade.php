@@ -26,7 +26,7 @@
                         <div class="mt-6 grid grid-cols-2 gap-4 border-t border-[rgb(var(--cp-line))] pt-6">
                             <div>
                                 <p class="text-xs font-semibold uppercase tracking-wide text-slate-400">Balance</p>
-                                <p class="cp-tabular mt-1 text-lg font-bold text-[rgb(var(--cp-ink))]">RM {{ number_format(Auth::user()->tangki_balance, 2) }}</p>
+                                <x-ui.price :amount="Auth::user()->tangki_balance" size="lg" accent class="mt-1" />
                             </div>
                             <div>
                                 <p class="text-xs font-semibold uppercase tracking-wide text-slate-400">Storage</p>

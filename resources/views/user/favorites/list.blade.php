@@ -58,7 +58,7 @@
 
                         <div class="mt-auto flex items-center justify-between border-t border-[rgb(var(--cp-line))] pt-4">
                             <div>
-                                <p class="cp-tabular text-sm font-bold text-[rgb(var(--cp-ink))]">RM {{ number_format($product->price, 2) }}</p>
+                                <x-ui.price :amount="$product->price" size="sm" accent />
                                 <button type="button" onclick="removeFromFavorites(event, {{ $favorite->id }})" class="mt-1 text-xs font-semibold text-rose-700 hover:text-rose-900">
                                     Remove recipe
                                 </button>

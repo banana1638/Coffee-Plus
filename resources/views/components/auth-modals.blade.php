@@ -73,22 +73,24 @@
     }
 }" x-init="$watch('authModal', value => { if (value) tab = value })" x-show="authModal" @if(! $initialAuthTab) x-cloak @endif
     class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-sm"
-    x-transition.opacity @click.self="authModal = null" @keydown.escape.window="authModal = null"
-    @open-auth-modal.window="authModal = $event.detail.tab; tab = $event.detail.tab">
+    x-transition.opacity @click.self="$dispatch('close-auth-modal')" @keydown.escape.window="$dispatch('close-auth-modal')"
+    @open-auth-modal.window="tab = $event.detail.tab">
 
-    <div class="relative w-full max-w-[480px] overflow-hidden rounded-lg border border-[rgb(var(--cp-line))] bg-[rgb(var(--cp-surface))] shadow-lg"
+    <div class="relative max-h-[calc(100vh-2rem)] w-full max-w-[480px] overflow-y-auto rounded-lg border border-[rgb(var(--cp-line))] bg-[rgb(var(--cp-surface))] shadow-lg"
         x-transition:enter="transition ease-out duration-200 transform"
         x-transition:enter-start="opacity-0 scale-95"
         x-transition:enter-end="opacity-100 scale-100">
-        <button type="button" @click="authModal = null"
-            class="absolute right-4 top-4 rounded-lg p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-950"
-            aria-label="Close authentication modal">
-            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-        </button>
+        <div class="flex justify-end px-4 pt-4">
+            <button type="button" @click="$dispatch('close-auth-modal')"
+                class="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-[rgb(var(--cp-line))] bg-white text-slate-500 shadow-sm transition hover:bg-slate-100 hover:text-slate-950 focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:ring-offset-2"
+                aria-label="Close authentication modal">
+                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
 
-        <div class="p-6 sm:p-8">
+        <div class="px-6 pb-6 pt-2 sm:px-8 sm:pb-8">
             <div class="relative mb-8 grid grid-cols-2 rounded-lg border border-[rgb(var(--cp-line))] bg-stone-100 p-1">
                 <div class="absolute inset-y-1 left-1 w-[calc(50%-0.25rem)] rounded-lg bg-emerald-800 shadow-sm transition-transform duration-300 ease-out"
                     :class="tab === 'register' ? 'translate-x-full' : 'translate-x-0'"></div>
