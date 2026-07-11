@@ -18,6 +18,8 @@ class LedgerService
         string $description,
         ?int $createdBy = null
     ): WalletLedger {
+        $this->assertPositiveAmount($amountCents);
+
         return DB::transaction(function () use ($user, $amountCents, $sourceType, $sourceId, $idempotencyKey, $description, $createdBy) {
             $existing = WalletLedger::where('idempotency_key', $idempotencyKey)->first();
             if ($existing) {
@@ -57,6 +59,8 @@ class LedgerService
         string $description,
         ?int $createdBy = null
     ): ?WalletLedger {
+        $this->assertPositiveAmount($amountCents);
+
         return DB::transaction(function () use ($user, $amountCents, $sourceType, $sourceId, $idempotencyKey, $description, $createdBy) {
             $existing = WalletLedger::where('idempotency_key', $idempotencyKey)->first();
             if ($existing) {
@@ -101,5 +105,12 @@ class LedgerService
         }
 
         return max((int) $storedBalanceCents, $legacyBalanceCents);
+    }
+
+    private function assertPositiveAmount(int $amountCents): void
+    {
+        if ($amountCents <= 0) {
+            throw new \InvalidArgumentException('Wallet ledger amount must be greater than zero.');
+        }
     }
 }

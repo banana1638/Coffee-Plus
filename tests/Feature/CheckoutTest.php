@@ -275,6 +275,24 @@ class CheckoutTest extends TestCase
         $this->assertSame(200, $user->tangki_balance_cents);
     }
 
+    public function test_checkout_reprices_cart_items_using_current_product_price(): void
+    {
+        $user = User::factory()->create(['tangki_balance' => 20.00]);
+        $product = $this->createProduct(10.00);
+        $this->addCartItem($user, $product, 10.00);
+
+        $product->price = 15.00;
+        $product->save();
+
+        $checkout = $this->apiCheckout($user);
+
+        $checkout->assertOk()
+            ->assertJsonPath('data.final_amount_cents', 1500);
+
+        $user->refresh();
+        $this->assertSame(500, $user->tangki_balance_cents);
+    }
+
     public function test_checkout_accepts_legacy_balance_when_cents_cache_is_stale(): void
     {
         $user = User::factory()->create(['tangki_balance' => 20.00]);

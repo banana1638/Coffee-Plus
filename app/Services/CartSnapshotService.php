@@ -12,6 +12,10 @@ use Illuminate\Support\Facades\DB;
 
 class CartSnapshotService
 {
+    public function __construct(private readonly CartPricingService $cartPricingService)
+    {
+    }
+
     public function createFromCart(User $user, array $useOzIds, ?string $couponCode, ?string $pickupTime): CartSnapshot
     {
         return DB::transaction(function () use ($user, $useOzIds, $couponCode, $pickupTime) {
@@ -30,7 +34,7 @@ class CartSnapshotService
             $ozUsed = 0;
 
             foreach ($cartItems as $item) {
-                $unitPriceCents = (int) ($item->unit_price_cents ?? Money::toCents($item->unit_price));
+                $unitPriceCents = $this->cartPricingService->refreshUnitPrice($item);
                 $lineTotalCents = $unitPriceCents * (int) $item->quantity;
                 $paidWithOz = in_array($item->id, $useOzIds);
 

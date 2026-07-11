@@ -18,7 +18,10 @@ class CheckoutService implements CheckoutServiceInterface
 {
     protected TangkiServiceInterface $tangkiService;
 
-    public function __construct(TangkiServiceInterface $tangkiService)
+    public function __construct(
+        TangkiServiceInterface $tangkiService,
+        private readonly CartPricingService $cartPricingService,
+    )
     {
         $this->tangkiService = $tangkiService;
     }
@@ -64,7 +67,7 @@ class CheckoutService implements CheckoutServiceInterface
                 foreach ($cartItems as $item) {
                     $this->deductStock($item->product_id, (int) $item->quantity);
 
-                    $unitPriceCents = (int) ($item->unit_price_cents ?? Money::toCents($item->unit_price));
+                    $unitPriceCents = $this->cartPricingService->refreshUnitPrice($item);
                     $unitPrice = Money::fromCents($unitPriceCents);
                     $quantity = $item->quantity;
                     $itemTotalCents = $unitPriceCents * $quantity;

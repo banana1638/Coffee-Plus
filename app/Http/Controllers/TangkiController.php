@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Contracts\PaymentGatewayInterface;
 use App\Models\PaymentEvent;
+use App\Support\Money;
 
 class TangkiController extends Controller
 {
@@ -24,12 +25,13 @@ class TangkiController extends Controller
 
     public function refill(Request $request)
     {
-        $user = Auth::user();
-        $amount = (float) $request->input('amount');
+        $validated = $request->validate([
+            'amount' => ['required', 'numeric', 'min:5', 'max:500', 'decimal:0,2'],
+        ]);
 
-        if ($amount <= 0) {
-            return back()->with('error', 'Invalid amount.');
-        }
+        $user = Auth::user();
+        $amountCents = Money::toCents($validated['amount']);
+        $amount = Money::fromCents($amountCents);
 
         $items = [
             [
@@ -39,7 +41,7 @@ class TangkiController extends Controller
                         'name' => 'Tangki Refill',
                         'description' => "Refill RM" . number_format($amount, 2),
                     ],
-                    'unit_amount' => (int) ($amount * 100),
+                    'unit_amount' => $amountCents,
                 ],
                 'quantity' => 1,
             ]
@@ -48,11 +50,11 @@ class TangkiController extends Controller
         $metadata = [
             'type' => 'refill',
             'user_id' => $user->id,
-            'amount' => $amount,
+            'amount' => number_format($amount, 2, '.', ''),
         ];
         $payment = $this->paymentGateway->createCheckout($user, $items, $metadata);
 
-        PaymentEvent::recordPending($user, $payment->sessionId, 'refill', (int) round($amount * 100), $metadata);
+        PaymentEvent::recordPending($user, $payment->sessionId, 'refill', $amountCents, $metadata);
 
         return redirect($payment->redirectUrl);
     }

@@ -56,12 +56,21 @@ class TelescopeServiceProvider extends TelescopeApplicationServiceProvider
      */
     protected function gate(): void
     {
-        Gate::define('viewTelescope', function ($user) {
-            // Add admin emails here to grant Telescope access in non-local environments.
-            // Empty list = no one can access Telescope outside local env.
-            return in_array($user->email, [
-                // 'admin@yourapp.com',
-            ]);
+        Gate::define('viewTelescope', function ($user = null) {
+            $admin = request()->user('admin');
+
+            return $admin?->canPerform('telescope.view') === true;
+        });
+    }
+
+    protected function authorization(): void
+    {
+        $this->gate();
+
+        Telescope::auth(function ($request) {
+            $admin = $request->user('admin');
+
+            return $admin?->canPerform('telescope.view') === true;
         });
     }
 }

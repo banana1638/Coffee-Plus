@@ -106,4 +106,21 @@ class CouponAdminTest extends TestCase
             'id' => $coupon->id,
         ]);
     }
+
+    public function test_percent_coupon_cannot_exceed_one_hundred_percent(): void
+    {
+        $admin = $this->createAdmin();
+
+        $this->actingAs($admin, 'admin')
+            ->from(route('admin.coupons.create'))
+            ->post(route('admin.coupons.store'), [
+                'code' => 'FREEPLUS',
+                'type' => 'percent',
+                'value' => 101,
+            ])
+            ->assertRedirect(route('admin.coupons.create'))
+            ->assertSessionHasErrors('value');
+
+        $this->assertDatabaseMissing('coupons', ['code' => 'FREEPLUS']);
+    }
 }

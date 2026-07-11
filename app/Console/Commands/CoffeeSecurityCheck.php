@@ -40,7 +40,17 @@ class CoffeeSecurityCheck extends Command
         }
 
         if ($enforceProduction && config('telescope.enabled', false)) {
-            $failures[] = 'Telescope must be disabled or explicitly protected in production.';
+            $telescopeMiddleware = config('telescope.middleware', []);
+
+            if (config('telescope.path') !== 'admin/telescope'
+                || ! in_array('auth:admin', $telescopeMiddleware, true)
+                || ! in_array('admin.permission:telescope.view', $telescopeMiddleware, true)) {
+                $failures[] = 'Enabled Telescope must use /admin/telescope with admin authentication and permission middleware.';
+            }
+
+            if ((int) config('telescope.prune_hours', 0) < 24) {
+                $failures[] = 'Enabled Telescope must retain at least 24 hours and have scheduled pruning configured.';
+            }
         }
 
         if (!config('filesystems.disks.public.url')) {

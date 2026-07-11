@@ -62,4 +62,26 @@ class SecurityCheckCommandTest extends TestCase
             ->expectsOutputToContain('CORS wildcard origins are not allowed in production.')
             ->assertExitCode(1);
     }
+
+    public function test_security_check_accepts_protected_telescope_configuration(): void
+    {
+        config([
+            'app.debug' => false,
+            'app.key' => 'base64:test',
+            'services.stripe.key' => 'pk_test',
+            'services.stripe.secret' => 'sk_test',
+            'services.stripe.webhook' => 'whsec_test',
+            'broadcasting.default' => 'null',
+            'telescope.enabled' => true,
+            'telescope.path' => 'admin/telescope',
+            'telescope.prune_hours' => 168,
+            'telescope.middleware' => ['web', 'auth:admin', 'admin.permission:telescope.view'],
+            'cors.allowed_origins' => ['https://coffee-plus.example'],
+            'cors.allowed_origins_patterns' => [],
+        ]);
+
+        $this->artisan('coffee:security-check --production')
+            ->expectsOutputToContain('Coffee-Plus backend security check passed.')
+            ->assertExitCode(0);
+    }
 }

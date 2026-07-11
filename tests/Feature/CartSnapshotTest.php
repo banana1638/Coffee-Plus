@@ -54,6 +54,30 @@ class CartSnapshotTest extends TestCase
         ]);
     }
 
+    public function test_snapshot_reprices_cart_before_creating_payment_session(): void
+    {
+        $user = User::factory()->create(['tangki_balance' => 0.00]);
+        $product = $this->createProduct();
+
+        $cartItem = new CartItem();
+        $cartItem->user_id = $user->id;
+        $cartItem->product_id = $product->id;
+        $cartItem->quantity = 1;
+        $cartItem->size = 'Regular';
+        $cartItem->temp = 'Hot';
+        $cartItem->addons = [];
+        $cartItem->unit_price = 10.00;
+        $cartItem->save();
+
+        $product->price = 14.00;
+        $product->save();
+
+        $snapshot = app(CartSnapshotService::class)->createFromCart($user, [], null, null);
+
+        $this->assertSame(1400, $snapshot->final_amount_cents);
+        $this->assertSame(1400, $snapshot->items_json[0]['unit_price_cents']);
+    }
+
     private function createProduct(): Product
     {
         $menu = new Menu();

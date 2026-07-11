@@ -28,6 +28,24 @@ class WalletLedgerTest extends TestCase
         $this->assertDatabaseCount('wallet_ledger', 1);
     }
 
+    public function test_ledger_rejects_non_positive_amounts(): void
+    {
+        $user = User::factory()->create(['tangki_balance' => 10.00]);
+        $ledger = app(LedgerService::class);
+
+        foreach ([0, -100] as $amountCents) {
+            try {
+                $ledger->credit($user, $amountCents, 'test', null, 'invalid-'.$amountCents, 'Invalid');
+                $this->fail('Expected non-positive ledger amount to be rejected.');
+            } catch (\InvalidArgumentException $exception) {
+                $this->assertSame('Wallet ledger amount must be greater than zero.', $exception->getMessage());
+            }
+        }
+
+        $this->assertDatabaseCount('wallet_ledger', 0);
+        $this->assertSame(1000, $user->fresh()->tangki_balance_cents);
+    }
+
     public function test_refill_generates_cash_ledger_entry(): void
     {
         $user = User::factory()->create(['tangki_balance' => 0.00]);

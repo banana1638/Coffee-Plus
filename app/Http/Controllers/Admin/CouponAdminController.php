@@ -28,7 +28,7 @@ class CouponAdminController extends Controller
 
     public function store(Request $request)
     {
-        $validated = $request->validate($this->rules());
+        $validated = $request->validate($this->rules($request));
 
         $coupon = new Coupon();
         $this->fillCoupon($coupon, $validated);
@@ -52,7 +52,7 @@ class CouponAdminController extends Controller
 
     public function update(Request $request, Coupon $coupon)
     {
-        $validated = $request->validate($this->rules($coupon));
+        $validated = $request->validate($this->rules($request, $coupon));
 
         $oldValues = $coupon->only(['code', 'type', 'value', 'expires_at', 'usage_limit']);
         $this->fillCoupon($coupon, $validated);
@@ -77,7 +77,7 @@ class CouponAdminController extends Controller
         return back()->with('success', 'Coupon deleted.');
     }
 
-    private function rules(?Coupon $coupon = null): array
+    private function rules(Request $request, ?Coupon $coupon = null): array
     {
         return [
             'code' => [
@@ -87,7 +87,13 @@ class CouponAdminController extends Controller
                 Rule::unique('coupons', 'code')->ignore($coupon?->id),
             ],
             'type' => ['required', Rule::in(['fixed', 'percent'])],
-            'value' => ['required', 'numeric', 'min:0.01'],
+            'value' => [
+                'required',
+                'numeric',
+                'min:0.01',
+                $request->input('type') === 'percent' ? 'max:100' : 'max:10000',
+                'decimal:0,2',
+            ],
             'expires_at' => ['nullable', 'date'],
             'usage_limit' => ['nullable', 'integer', 'min:1'],
         ];

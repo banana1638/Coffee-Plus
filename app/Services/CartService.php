@@ -7,7 +7,6 @@ use App\Contracts\PricingServiceInterface;
 use App\Models\CartItem;
 use App\Models\Product;
 use App\Models\User;
-use App\Services\PricingService;
 use App\Support\AddonsSignature;
 use App\Support\Money;
 use Illuminate\Support\Collection;
@@ -29,9 +28,7 @@ class CartService implements CartServiceInterface
         $this->assertValidQuantity($quantity);
 
         $product = Product::findOrFail($productId);
-        $finalUnitPriceCents = $this->pricingService instanceof PricingService
-            ? $this->pricingService->calculateUnitPriceCents($product, $size, $addons)
-            : Money::toCents($this->pricingService->calculateUnitPrice($product, $size, $addons));
+        $finalUnitPriceCents = $this->pricingService->calculateUnitPriceCents($product, $size, $addons);
         $finalUnitPrice = Money::fromCents($finalUnitPriceCents);
 
         $addonsArray = AddonsSignature::normalize($addons);

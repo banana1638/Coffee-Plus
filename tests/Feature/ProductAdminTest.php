@@ -164,6 +164,25 @@ class ProductAdminTest extends TestCase
             ->assertSee('Low Stock Latte');
     }
 
+    public function test_admin_cannot_store_negative_product_or_addon_prices(): void
+    {
+        $admin = $this->createAdmin();
+        $menu = $this->createMenu();
+
+        $this->actingAs($admin, 'admin')
+            ->from(route('admin.products.create'))
+            ->post(route('admin.products.store'), [
+                'name' => 'Invalid Latte',
+                'price' => -1,
+                'menu_id' => $menu->id,
+                'addons' => [['name' => 'Unsafe Add-on', 'price' => -2]],
+            ])
+            ->assertRedirect(route('admin.products.create'))
+            ->assertSessionHasErrors(['price', 'addons.0.price']);
+
+        $this->assertDatabaseMissing('products', ['name' => 'Invalid Latte']);
+    }
+
     private function createAdmin(): Admin
     {
         $admin = new Admin();

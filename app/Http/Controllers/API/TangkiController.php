@@ -43,7 +43,7 @@ class TangkiController extends Controller
     public function initiateRefill(Request $request)
     {
         $request->validate([
-            'amount' => 'required|numeric|min:5|max:500',
+            'amount' => 'required|numeric|min:5|max:500|decimal:0,2',
         ]);
 
         /** @var \App\Models\User $user */

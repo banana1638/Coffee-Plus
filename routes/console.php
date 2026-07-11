@@ -10,3 +10,7 @@ Artisan::command('inspire', function () {
 
 // Prune expired Sanctum tokens daily
 Schedule::command('sanctum:prune-expired --hours=24')->daily();
+
+Schedule::command('telescope:prune', [
+    '--hours' => max(24, (int) config('telescope.prune_hours', 168)),
+])->dailyAt('02:30');

@@ -120,12 +120,15 @@ class ProductAdminController extends Controller
     {
         $request->validate([
             'name' => 'required|max:255',
-            'price' => 'required|numeric',
-            'menu_id' => 'required',
-            'oz_redeem_value' => 'nullable|numeric',
+            'price' => 'required|numeric|min:0.01|max:10000|decimal:0,2',
+            'menu_id' => 'required|integer|exists:menus,id',
+            'oz_redeem_value' => 'nullable|integer|min:0|max:1000000',
             'track_stock' => 'nullable|boolean',
             'stock' => 'nullable|integer|min:0|required_if:track_stock,1',
             'image' => 'nullable|file|image|mimetypes:image/jpeg,image/png,image/webp|extensions:jpg,jpeg,png,webp|max:5120',
+            'addons' => 'nullable|array|max:20',
+            'addons.*.name' => 'required|string|max:100',
+            'addons.*.price' => 'required|numeric|min:0|max:10000|decimal:0,2',
         ]);
 
         $product->name = $request->name;

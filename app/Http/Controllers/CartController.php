@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Contracts\CartServiceInterface;
-use Illuminate\Http\Request;
+use App\Http\Requests\API\AddCartItemRequest;
 use Illuminate\Support\Facades\Auth;
 
 class CartController extends Controller
@@ -15,16 +15,8 @@ class CartController extends Controller
         $this->cartService = $cartService;
     }
 
-    public function add(Request $request)
+    public function add(AddCartItemRequest $request)
     {
-        $request->validate([
-            'product_id' => 'required|exists:products,id',
-            'quantity' => 'required|integer|min:1',
-            'size' => 'required',
-            'temp' => 'required',
-            'addons' => 'nullable|array',
-        ]);
-
         $this->cartService->add(
             Auth::user(),
             (int) $request->product_id,

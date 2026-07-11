@@ -15,4 +15,6 @@ interface PricingServiceInterface
      * @return float
      */
     public function calculateUnitPrice(Product $product, string $size, array $selectedAddons): float;
+
+    public function calculateUnitPriceCents(Product $product, string $size, array $selectedAddons): int;
 }
