@@ -3,40 +3,32 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use App\Models\Transaction;
-use App\Models\Order;
+use App\Services\TransactionQueryService;
 
 class TransactionController extends Controller
 {
+    public function __construct(private readonly TransactionQueryService $transactionQueryService)
+    {
+    }
+
     public function index(Request $request)
     {
-        $query = Transaction::where('user_id', Auth::id())
-            ->with(['bill.items.product']);
-
-        if ($request->filled('search_id')) {
-            $query->where('bill_id', 'LIKE', "%{$request->search_id}%");
-        }
-
-        if ($request->type === 'in') {
-            $query->where('oz_delta', '>', 0);
-        } elseif ($request->type === 'out') {
-            $query->where('oz_delta', '<', 0);
-        }
-
-        $transactions = $query->latest()->paginate(15);
+        $transactions = $this->transactionQueryService
+            ->forUser($request->user(), $request->input('search_id'), $request->input('type'))
+            ->with(['bill.items.product'])
+            ->latest()
+            ->paginate(15);
 
         return view('user.tangki.transactions', compact('transactions'));
     }
 
-    public function showOrderDetail($bill_id)
+    public function showOrderDetail(Request $request, string $bill_id)
     {
-        $order = Order::where('bill_id', $bill_id)
-            ->with(['items.product', 'reviews'])
-            ->firstOrFail();
-        if ($order->user_id !== Auth::id()) {
-            abort(403, 'Unauthorized');
-        }
+        $order = $this->transactionQueryService->orderForUser(
+            $request->user(),
+            $bill_id,
+            ['items.product', 'reviews'],
+        );
 
         return view('user.tangki.order-detail', compact('order'));
     }

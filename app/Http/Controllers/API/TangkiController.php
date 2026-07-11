@@ -2,24 +2,17 @@
 
 namespace App\Http\Controllers\API;
 
-use App\Contracts\TangkiServiceInterface;
-use App\Contracts\PaymentGatewayInterface;
-use Illuminate\Http\Request;
+use App\Http\Requests\InitiateRefillRequest;
+use App\Services\RefillInitiationService;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Api\TransactionResource;
 use App\Http\Resources\Api\UserResource;
-use App\Models\PaymentEvent;
 
 class TangkiController extends Controller
 {
-    protected TangkiServiceInterface $tangkiService;
-    protected PaymentGatewayInterface $gateway;
-
-    public function __construct(TangkiServiceInterface $tangkiService, PaymentGatewayInterface $gateway)
+    public function __construct(private readonly RefillInitiationService $refillInitiationService)
     {
-        $this->tangkiService = $tangkiService;
-        $this->gateway = $gateway;
     }
 
     public function index()
@@ -40,35 +33,13 @@ class TangkiController extends Controller
      * Initiate a balance refill via Stripe Checkout.
      * Actual balance crediting is handled by the Webhook → RefillHandler.
      */
-    public function initiateRefill(Request $request)
+    public function initiateRefill(InitiateRefillRequest $request)
     {
-        $request->validate([
-            'amount' => 'required|numeric|min:5|max:500|decimal:0,2',
-        ]);
-
-        /** @var \App\Models\User $user */
-        $user = Auth::user();
-        $amount = (float) $request->input('amount');
-        $amountCents = (int) round($amount * 100);
-
         try {
-            $metadata = [
-                'type' => 'refill',
-                'user_id' => $user->id,
-                'amount' => (string) $amount,
-            ];
-            $payment = $this->gateway->createCheckout($user, [
-                [
-                    'price_data' => [
-                        'currency' => 'myr',
-                        'product_data' => ['name' => 'Tangki Balance Refill'],
-                        'unit_amount' => $amountCents,
-                    ],
-                    'quantity' => 1,
-                ],
-            ], $metadata);
-
-            PaymentEvent::recordPending($user, $payment->sessionId, 'refill', $amountCents, $metadata);
+            $payment = $this->refillInitiationService->initiate(
+                $request->user(),
+                $request->amountCents(),
+            );
 
             return response()->json([
                 'status' => 'success',

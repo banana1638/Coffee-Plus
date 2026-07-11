@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Contracts\CartServiceInterface;
-use App\Http\Requests\API\AddCartItemRequest;
+use App\Http\Requests\AddCartItemRequest;
 use Illuminate\Support\Facades\Auth;
 
 class CartController extends Controller

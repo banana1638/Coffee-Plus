@@ -2,19 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
+use App\Http\Requests\InitiateRefillRequest;
+use App\Services\RefillInitiationService;
 use Illuminate\Support\Facades\Auth;
-use App\Contracts\PaymentGatewayInterface;
-use App\Models\PaymentEvent;
-use App\Support\Money;
 
 class TangkiController extends Controller
 {
-    protected PaymentGatewayInterface $paymentGateway;
-
-    public function __construct(PaymentGatewayInterface $paymentGateway)
+    public function __construct(private readonly RefillInitiationService $refillInitiationService)
     {
-        $this->paymentGateway = $paymentGateway;
     }
 
     public function index()
@@ -23,38 +18,12 @@ class TangkiController extends Controller
         return view('user.tangki.index', compact('transactions'));
     }
 
-    public function refill(Request $request)
+    public function refill(InitiateRefillRequest $request)
     {
-        $validated = $request->validate([
-            'amount' => ['required', 'numeric', 'min:5', 'max:500', 'decimal:0,2'],
-        ]);
-
-        $user = Auth::user();
-        $amountCents = Money::toCents($validated['amount']);
-        $amount = Money::fromCents($amountCents);
-
-        $items = [
-            [
-                'price_data' => [
-                    'currency' => 'myr',
-                    'product_data' => [
-                        'name' => 'Tangki Refill',
-                        'description' => "Refill RM" . number_format($amount, 2),
-                    ],
-                    'unit_amount' => $amountCents,
-                ],
-                'quantity' => 1,
-            ]
-        ];
-
-        $metadata = [
-            'type' => 'refill',
-            'user_id' => $user->id,
-            'amount' => number_format($amount, 2, '.', ''),
-        ];
-        $payment = $this->paymentGateway->createCheckout($user, $items, $metadata);
-
-        PaymentEvent::recordPending($user, $payment->sessionId, 'refill', $amountCents, $metadata);
+        $payment = $this->refillInitiationService->initiate(
+            $request->user(),
+            $request->amountCents(),
+        );
 
         return redirect($payment->redirectUrl);
     }

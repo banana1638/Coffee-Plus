@@ -3,30 +3,22 @@
 namespace App\Http\Controllers\API;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use App\Models\Transaction;
-use App\Models\Order;
+use App\Services\TransactionQueryService;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Api\TransactionResource;
 use App\Http\Resources\Api\OrderResource;
 
 class TransactionController extends Controller
 {
+    public function __construct(private readonly TransactionQueryService $transactionQueryService)
+    {
+    }
+
     public function index(Request $request)
     {
-        $query = Transaction::where('user_id', Auth::id())
+        $query = $this->transactionQueryService
+            ->forUser($request->user(), $request->input('search_id'), $request->input('type'))
             ->select(['id', 'user_id', 'bill_id', 'type', 'description', 'oz_delta', 'created_at']);
-
-        if ($request->filled('search_id')) {
-            $query->where('bill_id', 'LIKE', "%{$request->search_id}%");
-        }
-
-        if ($request->type === 'in') {
-            $query->where('oz_delta', '>', 0);
-        } elseif ($request->type === 'out') {
-            $query->where('oz_delta', '<', 0);
-        }
-
         $transactions = $query->latest()->paginate(15);
 
         return response()->json([
@@ -34,12 +26,13 @@ class TransactionController extends Controller
         ]);
     }
 
-    public function showOrderDetail($bill_id)
+    public function showOrderDetail(Request $request, string $bill_id)
     {
-        $order = Order::where('bill_id', $bill_id)
-            ->where('user_id', Auth::id())
-            ->with(['items.product'])
-            ->firstOrFail();
+        $order = $this->transactionQueryService->orderForUser(
+            $request->user(),
+            $bill_id,
+            ['items.product'],
+        );
 
         return response()->json([
             'order' => new OrderResource($order),
@@ -48,14 +41,9 @@ class TransactionController extends Controller
 
     public function refunds(Request $request)
     {
-        $query = Transaction::where('user_id', Auth::id())
-            ->where('type', 'refund')
+        $query = $this->transactionQueryService
+            ->refundsForUser($request->user(), $request->input('search_id'))
             ->select(['id', 'user_id', 'bill_id', 'type', 'description', 'oz_delta', 'created_at']);
-
-        if ($request->filled('search_id')) {
-            $query->where('bill_id', 'LIKE', "%{$request->search_id}%");
-        }
-
         $refunds = $query->latest()->paginate(15);
 
         return response()->json([

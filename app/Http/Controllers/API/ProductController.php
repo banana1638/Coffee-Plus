@@ -4,23 +4,17 @@ namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Api\ProductResource;
-use App\Models\Product;
+use App\Services\ProductQueryService;
 
 class ProductController extends Controller
 {
+    public function __construct(private readonly ProductQueryService $productQueryService)
+    {
+    }
+
     public function show($id)
     {
-        $product = Product::query()
-            ->with([
-                'addons:id,product_id,name,price,price_cents',
-                'reviews' => fn ($query) => $query
-                    ->with('user:id,name')
-                    ->latest()
-                    ->limit(5),
-            ])
-            ->withAvg('reviews', 'rating')
-            ->withCount('reviews')
-            ->findOrFail($id);
+        $product = $this->productQueryService->detail((int) $id);
 
         $options = config('coffee.options');
 

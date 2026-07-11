@@ -3,11 +3,11 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreProductReviewRequest;
 use App\Models\Order;
 use App\Models\Product;
 use App\Models\ProductReview;
 use App\Traits\ApiResponse;
-use Illuminate\Http\Request;
 
 class ProductReviewController extends Controller
 {
@@ -33,13 +33,9 @@ class ProductReviewController extends Controller
         ]);
     }
 
-    public function store(Request $request, $order)
+    public function store(StoreProductReviewRequest $request, $order)
     {
-        $validated = $request->validate([
-            'product_id' => ['required', 'exists:products,id'],
-            'rating' => ['required', 'integer', 'min:1', 'max:5'],
-            'comment' => ['nullable', 'string', 'max:1000'],
-        ]);
+        $validated = $request->validated();
 
         $order = Order::where('user_id', $request->user()->id)
             ->where('id', $order)

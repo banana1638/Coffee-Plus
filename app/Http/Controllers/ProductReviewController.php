@@ -4,18 +4,14 @@ namespace App\Http\Controllers;
 
 use App\Models\Order;
 use App\Models\ProductReview;
-use Illuminate\Http\Request;
+use App\Http\Requests\StoreProductReviewRequest;
 use Illuminate\Support\Facades\Auth;
 
 class ProductReviewController extends Controller
 {
-    public function store(Request $request, Order $order)
+    public function store(StoreProductReviewRequest $request, Order $order)
     {
-        $validated = $request->validate([
-            'product_id' => ['required', 'exists:products,id'],
-            'rating' => ['required', 'integer', 'min:1', 'max:5'],
-            'comment' => ['nullable', 'string', 'max:1000'],
-        ]);
+        $validated = $request->validated();
 
         if ($order->user_id !== Auth::id()) {
             abort(403);

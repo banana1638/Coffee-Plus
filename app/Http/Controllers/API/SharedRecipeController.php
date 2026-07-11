@@ -3,13 +3,11 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreSharedRecipeRequest;
 use App\Models\SharedRecipe;
 use App\Contracts\CartServiceInterface;
-use App\Support\ProductAddonSelection;
 use App\Traits\ApiResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Validation\Rule;
 
 class SharedRecipeController extends Controller
 {
@@ -47,36 +45,13 @@ class SharedRecipeController extends Controller
     /**
      * Share a recipe with a friend.
      */
-    public function store(Request $request)
+    public function store(StoreSharedRecipeRequest $request)
     {
-        $sizes = collect(config('coffee.options.sizes', []))->pluck('name')->all();
-        $temps = config('coffee.options.temps', []);
-
-        $validator = Validator::make($request->all(), [
-            'recipient_id' => 'required|exists:users,id',
-            'product_id' => 'required|exists:products,id',
-            'name' => 'required|string|max:100',
-            'size' => ['required', 'string', Rule::in($sizes)],
-            'temp' => ['required', 'string', Rule::in($temps)],
-            'addons' => 'nullable|array|max:20',
-            'addons.*' => 'string|max:100',
-            'remark' => 'nullable|string|max:1000',
-        ]);
-
-        $validator->after(function ($validator) use ($request) {
-            $productId = (int) $request->input('product_id');
-            $addons = ProductAddonSelection::normalize($request->input('addons', []));
-
-            if (!ProductAddonSelection::belongsToProduct($productId, $addons)) {
-                $validator->errors()->add('addons', 'Selected add-ons are invalid for this product.');
-            }
-        });
-
-        $validator->validate();
+        $validated = $request->validated();
 
         // Ensure the recipient is an accepted friend
         $isFriend = $request->user()->friends()
-            ->where('friend_id', $request->recipient_id)
+            ->where('friend_id', $validated['recipient_id'])
             ->exists();
 
         if (!$isFriend) {
@@ -85,13 +60,13 @@ class SharedRecipeController extends Controller
 
         $recipe = new SharedRecipe();
         $recipe->sender_id = $request->user()->id;
-        $recipe->recipient_id = $request->recipient_id;
-        $recipe->product_id = $request->product_id;
-        $recipe->name = $request->name;
-        $recipe->size = $request->size;
-        $recipe->temp = $request->temp;
-        $recipe->addons = $request->input('addons', []);
-        $recipe->remark = $request->remark;
+        $recipe->recipient_id = $validated['recipient_id'];
+        $recipe->product_id = $validated['product_id'];
+        $recipe->name = $validated['name'];
+        $recipe->size = $validated['size'];
+        $recipe->temp = $validated['temp'];
+        $recipe->addons = $validated['addons'] ?? [];
+        $recipe->remark = $validated['remark'] ?? null;
         $recipe->save();
 
         return $this->success($recipe->load(['sender:id,name', 'product']), 'Recipe shared!', 201);

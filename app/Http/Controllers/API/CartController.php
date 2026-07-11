@@ -5,7 +5,7 @@ namespace App\Http\Controllers\API;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Api\CartResource;
 use App\Contracts\CartServiceInterface;
-use App\Http\Requests\API\AddCartItemRequest;
+use App\Http\Requests\AddCartItemRequest;
 use App\Http\Requests\API\UpdateCartItemRequest;
 use App\Http\Requests\API\RemoveCartItemRequest;
 use App\Traits\ApiResponse;
