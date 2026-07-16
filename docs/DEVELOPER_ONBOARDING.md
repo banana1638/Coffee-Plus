@@ -81,7 +81,7 @@ tests/Feature/               主要行為及安全測試
 tests/Unit/                  純單元測試
 ```
 
-AI 維護文件位於 `docs/AI_*.md`。這些檔案記錄架構、安全基線、付款規則與 API 合約，但 `docs/` 目前被 `.gitignore` 忽略；若團隊要把本文納入版本控制，需要明確調整 `.gitignore` 或使用團隊既定文件發布流程。
+AI 維護文件位於 `docs/AI_*.md`。這些檔案記錄架構、安全基線、付款規則與 API 合約。`docs/` 已納入版本控制；功能、環境、API 或安全行為改變時，必須在同一變更中同步相關文件。
 
 ## 4. 環境需求
 
@@ -118,6 +118,14 @@ npm.cmd --version
 ## 5. 快速啟動
 
 ### 5.1 安裝依賴
+
+預設 SQLite 的一鍵初始化：
+
+```powershell
+composer setup
+```
+
+這會安裝 PHP/Node 依賴、複製 `.env`、建立 SQLite 檔案、產生 APP_KEY、執行 migration 並建置前端。若要使用 MySQL，請使用以下手動流程，先修改 `.env` 再執行 migration。
 
 ```powershell
 composer install
@@ -217,6 +225,20 @@ php artisan schedule:work
 
 `composer run dev` 可同時啟動 HTTP、queue、log 與 Vite，但仍需依本機 PATH 和服務狀態調整。
 
+完整啟動 HTTP、queue、log、Vite、Reverb 與 scheduler：
+
+```powershell
+composer run dev:full
+```
+
+若 Laragon Apache 已經提供 HTTP，只啟動其餘服務：
+
+```powershell
+composer run dev:laragon
+```
+
+完整的啟動、停止、更新、驗證和正式部署流程見 `docs/FULL_PROJECT_STARTUP.md`。
+
 ## 6. `.env` 設定說明
 
 ### 6.1 應用程式
@@ -278,7 +300,22 @@ QUEUE_CONNECTION=database
 
 ### 6.4 Reverb
 
-本機可使用 HTTP/WS，正式環境必須使用 HTTPS/WSS、強隨機 key/secret，並限制可信來源。不要把 `.env.example` 的 `change-me` 帶到正式環境。
+本機設定：
+
+```env
+BROADCAST_CONNECTION=reverb
+REVERB_APP_ID=coffee-plus-local
+REVERB_APP_KEY=coffepluskey123
+REVERB_APP_SECRET=change-me
+REVERB_HOST=127.0.0.1
+REVERB_PORT=8080
+REVERB_SCHEME=http
+REVERB_SERVER_HOST=0.0.0.0
+REVERB_SERVER_PORT=8080
+REVERB_ALLOWED_ORIGINS=http://127.0.0.1:8000,http://localhost:8000
+```
+
+本機可使用 HTTP/WS。正式環境必須使用 HTTPS/WSS、強隨機 key/secret，且 `REVERB_ALLOWED_ORIGINS` 只能列出可信 HTTPS origins，禁止 `*`。不要把 `.env.example` 的 `change-me` 帶到正式環境。
 
 ### 6.5 Telescope
 
@@ -297,6 +334,37 @@ TELESCOPE_PRUNE_HOURS=168
 - Telescope Gate 授權
 
 Scheduler 每天 02:30 清除超過保留時間的記錄。Telescope 會記錄 request、SQL、exception 等敏感診斷資料，不應公開。
+
+### 6.6 即時通知與取餐提醒
+
+通知由 `RealtimeNotificationService` 建立，透過 queued `RealtimeBusinessNotification` 同時寫入 database notification 並廣播到使用者 UUID 私有頻道。Queue worker 未運行時，通知不會被處理；Reverb 未運行時，資料庫通知仍可在 queue 恢復後保存，但前台即時事件不可用。
+
+穩定事件名稱：
+
+- `order.accepted`
+- `order.preparing`
+- `order.ready_for_pickup`
+- `order.pickup_reminder`
+- `order.completed`
+- `order.cancelled`
+- `payment.checkout_succeeded`
+- `payment.checkout_failed`
+- `wallet.refill_succeeded`
+- `wallet.refill_failed`
+
+取餐提醒設定：
+
+```env
+PICKUP_REMINDER_MINUTES=10
+PICKUP_REMINDER_GRACE_MINUTES=15
+```
+
+Scheduler 每分鐘執行 `orders:send-pickup-reminders`。命令使用 row lock 與 `pickup_reminder_sent_at`，避免重複提醒。可手動驗證：
+
+```powershell
+php artisan orders:send-pickup-reminders
+php artisan schedule:list
+```
 
 ## 7. 系統入口與認證
 
@@ -554,7 +622,7 @@ php artisan test --filter="user cannot view another users order"
 | Product upload | `ProductAdminTest` |
 | CORS/環境 | `CorsSecurityTest`, `SecurityCheckCommandTest` |
 
-目前完整基準為 192 tests、772 assertions。新增功能後數字可以增加，但不應無理由減少。
+目前完整基準為 202 tests、806 assertions。新增功能後數字可以增加，但不應無理由減少。
 
 ## 15. 提交前驗證清單
 
@@ -596,11 +664,12 @@ composer install --no-dev --classmap-authoritative
 npm.cmd ci
 npm.cmd run build
 php artisan migrate --force
-php artisan config:cache
-php artisan route:cache
-php artisan view:cache
+php artisan optimize:clear
+php artisan optimize
 php artisan coffee:security-check --production
 ```
+
+部署帳號必須可寫入 `storage/` 與 `bootstrap/cache/`。`optimize` 已重建 config、event、route、view cache，不需要再逐一重複執行。
 
 正式環境還需要：
 
@@ -610,6 +679,7 @@ php artisan coffee:security-check --production
 - 每分鐘執行 `php artisan schedule:run`。
 - Stripe webhook endpoint 使用正式 HTTPS URL。
 - Reverb 使用 WSS、反向代理及強 secret。
+- `REVERB_ALLOWED_ORIGINS` 只列出正式 HTTPS origins，禁止 wildcard。
 - 定期備份 database 與必要 storage，並實際測試 restore。
 - 日誌輪替、failed jobs、PaymentEvent failure 與 5xx 監控。
 - Telescope 正式環境原則上關閉；若啟用只允許授權 owner，且確認 prune scheduler 運作。
@@ -681,7 +751,7 @@ php artisan queue:restart
 
 ### Reverb 無法連線
 
-確認 Reverb server、host/port/scheme、前端 Vite 環境及 broadcasting auth。正式環境要確認反向代理支援 WebSocket upgrade。
+確認 Reverb server、host/port/scheme、`REVERB_ALLOWED_ORIGINS`、前端環境及 `/api/broadcasting/auth`。使用者頻道必須是 `private-App.Models.User.{uuid}`。正式環境要確認反向代理支援 WebSocket upgrade。
 
 ### Route cache 失敗
 
@@ -735,6 +805,8 @@ Review 應先找風險，而不是先看格式：
 
 ## 21. 延伸文件
 
+- `docs/FULL_PROJECT_STARTUP.md`：從零初始化、完整服務啟動、Stripe/Reverb 聯調、部署、更新與故障恢復。
+- `docs/FLUTTER_REALTIME_NOTIFICATION_INTEGRATION_REPORT.md`：Flutter typed 通知、Reverb、頁面刷新、導航與測試方案。
 - `docs/AI_BACKEND_ARCHITECTURE_MAP.md`：實際模組及資料流。
 - `docs/AI_API_PROVIDER_CONTRACT.md`：Flutter 所依賴的 API 合約。
 - `docs/AI_SECURITY_BASELINE.md`：認證、授權、CORS、upload、debug 安全基線。

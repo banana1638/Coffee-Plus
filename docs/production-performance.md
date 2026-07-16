@@ -30,6 +30,10 @@ REDIS_PASSWORD=null
 REDIS_PORT=6379
 
 TELESCOPE_ENABLED=false
+
+REVERB_SCHEME=https
+REVERB_PORT=443
+REVERB_ALLOWED_ORIGINS=https://your-domain.example
 ```
 
 Keep these payment values server-side only:
@@ -56,25 +60,23 @@ Run these after installing dependencies and setting `.env`:
 php artisan migrate --force
 php artisan products:generate-image-variants
 npm run build
+php artisan optimize:clear
 php artisan optimize
-php artisan config:cache
-php artisan route:cache
-php artisan view:cache
+php artisan coffee:security-check --production
 ```
+
+The deploy user must be able to write `storage/` and `bootstrap/cache/`. `optimize` already rebuilds the config, event, route, and view caches; do not repeat the individual cache commands afterward.
 
 Use this when changing config, routes, or views during a hotfix:
 
 ```bash
 php artisan optimize:clear
 php artisan optimize
-php artisan config:cache
-php artisan route:cache
-php artisan view:cache
 ```
 
 ## Queue Worker
 
-`SendOrderNotification` is queued. In production, a worker must be running or notifications will remain in the queue.
+`RealtimeBusinessNotification` is queued after the business transaction commits. In production, a worker must be running or database and broadcast notifications will remain in the queue.
 
 Recommended worker command:
 
@@ -98,6 +100,52 @@ stopwaitsecs=90
 ```
 
 On Linux, replace the paths with the deployed project path.
+
+## Reverb Server
+
+Run Reverb under a process manager. The public endpoint should use WSS on port 443 through the web server or load balancer; the internal Reverb process may listen on `127.0.0.1:8080`.
+
+```ini
+[program:coffee-plus-reverb]
+command=php /var/www/coffee-plus/artisan reverb:start --host=127.0.0.1 --port=8080
+directory=/var/www/coffee-plus
+autostart=true
+autorestart=true
+redirect_stderr=true
+stdout_logfile=/var/www/coffee-plus/storage/logs/reverb.log
+stopwaitsecs=30
+```
+
+Nginx WebSocket proxy example:
+
+```nginx
+location /app/ {
+    proxy_pass http://127.0.0.1:8080;
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection "Upgrade";
+    proxy_set_header Host $host;
+    proxy_read_timeout 60s;
+}
+
+location /apps/ {
+    proxy_pass http://127.0.0.1:8080;
+    proxy_http_version 1.1;
+    proxy_set_header Host $host;
+}
+```
+
+Use unique production `REVERB_APP_KEY` and `REVERB_APP_SECRET`, set `REVERB_SCHEME=https`, and explicitly configure `REVERB_ALLOWED_ORIGINS`. `php artisan coffee:security-check --production` rejects wildcard Reverb origins.
+
+## Scheduler
+
+Production must invoke Laravel's scheduler every minute:
+
+```cron
+* * * * * cd /var/www/coffee-plus && php artisan schedule:run >> /dev/null 2>&1
+```
+
+The scheduler sends idempotent pickup reminders, prunes expired Sanctum tokens, and prunes Telescope records when enabled. Confirm registration with `php artisan schedule:list`.
 
 ## Work Classification
 
@@ -182,11 +230,11 @@ QUEUE_CONNECTION=database
 Then run:
 
 ```bash
-php artisan optimize:clear
+php artisan config:clear
 php artisan config:cache
 ```
 
-This keeps the application functional while Redis is fixed. It is safe but less performant.
+`config:clear` avoids asking the unavailable Redis cache store to clear itself. This keeps the application functional while Redis is fixed, but it is less performant.
 
 ## Verification Checklist
 
@@ -200,6 +248,8 @@ After deployment:
 - Admin order dashboard loads.
 - Product image upload creates original, thumbnail, and detail files.
 - Queue worker processes notification jobs.
+- Reverb accepts a private-channel connection through WSS and rejects an untrusted origin.
+- Scheduler lists and executes `orders:send-pickup-reminders` every minute.
 - `storage/logs/laravel.log` has no repeated queue, Redis, or image processing errors.
 
 ## Load Test Targets

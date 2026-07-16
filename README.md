@@ -84,8 +84,8 @@ coffee-plus/
 │   ├── Contracts/              # Service interfaces (Dependency Inversion)
 │   ├── DataTransferObjects/    # Typed PaymentResult DTO
 │   ├── Events/                 # OrderPlaced
-│   ├── Listeners/              # Async (queued) post-order handlers
-│   │   ├── SendOrderNotification   (ShouldQueue + afterCommit)
+│   ├── Listeners/              # Post-order event handlers
+│   │   ├── SendOrderNotification   (dispatches queued after-commit notification)
 │   │   ├── DeductUserBalance
 │   │   ├── RewardUserOz
 │   │   ├── RewardReferrer          (atomic, race-condition safe)
@@ -95,7 +95,7 @@ coffee-plus/
 │   │   ├── Controllers/Admin/  # Blade admin panel
 │   │   ├── Middleware/         # AdminPermission (PBAC)
 │   │   └── Requests/           # FormRequest validation
-│   ├── Models/                 # 19 Eloquent models
+│   ├── Models/                 # Eloquent domain models
 │   ├── Services/
 │   │   ├── CheckoutService         # Core checkout orchestrator
 │   │   ├── CartSnapshotService     # Price-locking before payment
@@ -109,7 +109,7 @@ coffee-plus/
 │   │       ├── StripeCheckoutHandler
 │   │       └── RefillHandler
 │   └── Providers/
-├── database/migrations/        # 45 migrations
+├── database/migrations/        # Versioned database schema
 ├── routes/
 │   ├── api.php                 # Sanctum-protected REST API
 │   ├── admin.php               # Blade admin routes
@@ -127,7 +127,7 @@ coffee-plus/
 | **CartSnapshot** | Stripe checkout flow | Locks prices & params before redirect |
 | **Double-Entry Ledger** | Wallet balance changes | Auditable, tamper-evident financial trail |
 | **Idempotency Keys** | Checkout & payments | Safe retries, no duplicate orders |
-| **Event-Driven Listeners** | Post-order side effects | Decoupled, async, afterCommit-safe |
+| **Event-Driven Listeners** | Post-order side effects | Decoupled; notifications are queued after commit while money/inventory remain synchronous |
 | **Order State Machine** | Status transitions | Prevents illegal state jumps |
 | **PBAC Middleware** | Admin routes | Fine-grained permission per action |
 | **Atomic CAS Update** | Referral rewards | Race-condition-safe one-time reward |
@@ -232,7 +232,7 @@ Authorization: Bearer <sanctum_token>
 - Composer
 - Node.js 18+ (for frontend assets)
 - MySQL 8+ or SQLite (for local dev)
-- Redis (for queues and cache)
+- Redis (recommended for production queues/cache; database drivers work locally)
 - Stripe account (test mode keys)
 
 ### Installation
@@ -245,10 +245,15 @@ cd Coffee-Plus
 # 2. Install PHP dependencies
 composer install
 
-# 3. Copy and configure environment
+# 3. Install frontend dependencies
+npm install
+
+# 4. Copy and configure environment
 cp .env.example .env
 php artisan key:generate
 ```
+
+For the default SQLite configuration, create `database/database.sqlite`. Alternatively, `composer setup` performs dependency installation, environment copy, SQLite file creation, key generation, migrations, and the frontend production build.
 
 ### Environment Setup
 
@@ -272,6 +277,14 @@ STRIPE_KEY=pk_test_xxxxxxxxxxxx
 STRIPE_SECRET=sk_test_xxxxxxxxxxxx
 STRIPE_WEBHOOK_SECRET=whsec_xxxxxxxxxxxx
 
+# Reverb
+BROADCAST_CONNECTION=reverb
+REVERB_ALLOWED_ORIGINS=http://127.0.0.1:8000,http://localhost:8000
+
+# Pickup reminder scheduler
+PICKUP_REMINDER_MINUTES=10
+PICKUP_REMINDER_GRACE_MINUTES=15
+
 # Mail
 MAIL_MAILER=smtp
 MAIL_HOST=sandbox.smtp.mailtrap.io
@@ -280,7 +293,7 @@ MAIL_HOST=sandbox.smtp.mailtrap.io
 ### Database & Seed
 
 ```bash
-# Run all 45 migrations
+# Run all pending migrations
 php artisan migrate
 
 # Seed with sample products, menus, and admin account
@@ -290,15 +303,28 @@ php artisan db:seed
 ### Run the Application
 
 ```bash
-# Start development server
-php artisan serve
+# Start the complete local stack:
+# HTTP + queue + logs + Vite + Reverb + scheduler
+composer run dev:full
 
-# Start queue worker (required for notifications)
-php artisan queue:work
-
-# Listen for Stripe webhooks locally (requires Stripe CLI)
-stripe listen --forward-to localhost:8000/api/stripe/webhook
+# When Laragon/Apache already serves the application
+composer run dev:laragon
 ```
+
+Equivalent separate terminals:
+
+```bash
+php artisan serve --host=127.0.0.1 --port=8000
+npm run dev
+php artisan queue:work --tries=3
+php artisan reverb:start
+php artisan schedule:work
+
+# Optional Stripe test-mode forwarding
+stripe listen --forward-to http://127.0.0.1:8000/api/stripe/webhook
+```
+
+See [docs/FULL_PROJECT_STARTUP.md](docs/FULL_PROJECT_STARTUP.md) for the complete Windows/Laragon, Stripe, Reverb, production, verification, update, and troubleshooting workflow. The architecture and business-rule guide is [docs/DEVELOPER_ONBOARDING.md](docs/DEVELOPER_ONBOARDING.md).
 
 ### Run Tests
 
