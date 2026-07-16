@@ -22,6 +22,7 @@ class Order extends Model
         'final_amount_cents',
         'payment_method',
         'pickup_time',
+        'pickup_reminder_sent_at',
         'oz_used',
         'cancelled_at',
         'completed_at',
@@ -53,6 +54,7 @@ class Order extends Model
 
     protected $casts = [
         'pickup_time' => 'datetime',
+        'pickup_reminder_sent_at' => 'datetime',
         'cancelled_at' => 'datetime',
         'completed_at' => 'datetime',
     ];

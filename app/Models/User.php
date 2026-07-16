@@ -67,6 +67,11 @@ class User extends Authenticatable
         return 'uuid';
     }
 
+    public function receivesBroadcastNotificationsOn(): string
+    {
+        return 'App.Models.User.'.$this->uuid;
+    }
+
     // -------------------------------------------------------------------------
     // Blind Index — Pending Plaintext Pattern
     // -------------------------------------------------------------------------

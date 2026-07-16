@@ -4,6 +4,7 @@ namespace App\Services\Payment;
 
 use App\Contracts\PaymentGatewayInterface;
 use App\Models\PaymentEvent;
+use App\Services\RealtimeNotificationService;
 use App\Support\Money;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -15,6 +16,7 @@ class PaymentRetryService
     public function __construct(
         private readonly PaymentGatewayInterface $gateway,
         private readonly PaymentHandlerFactory $handlerFactory,
+        private readonly RealtimeNotificationService $notificationService,
     ) {}
 
     public function retry(PaymentEvent $paymentEvent): PaymentEvent
@@ -42,7 +44,7 @@ class PaymentRetryService
                 throw new RuntimeException('Stripe does not report this payment as paid.');
             }
 
-            return DB::transaction(function () use ($paymentEvent, $result) {
+            [$processedEvent, $handlerResult] = DB::transaction(function () use ($paymentEvent, $result) {
                 $lockedEvent = PaymentEvent::whereKey($paymentEvent->id)->lockForUpdate()->firstOrFail();
 
                 if ($lockedEvent->status !== PaymentEvent::STATUS_PROCESSING) {
@@ -61,20 +63,32 @@ class PaymentRetryService
                     throw new RuntimeException('Stripe session does not match the pending payment record.');
                 }
 
-                $this->handlerFactory->make($type)->handle($result, $user);
+                $handlerResult = $this->handlerFactory->make($type)->handle($result, $user);
 
                 $lockedEvent->status = PaymentEvent::STATUS_PROCESSED;
                 $lockedEvent->processed_at = now();
                 $lockedEvent->last_error = null;
                 $lockedEvent->save();
 
-                return $lockedEvent;
+                return [$lockedEvent, $handlerResult];
             });
+
+            $this->notificationService->paymentProcessed(
+                $processedEvent->loadMissing('user'),
+                $handlerResult,
+            );
+
+            return $processedEvent;
         } catch (Throwable $exception) {
             PaymentEvent::whereKey($paymentEvent->id)->update([
                 'status' => PaymentEvent::STATUS_FAILED,
                 'last_error' => Str::limit($exception->getMessage(), 500, ''),
             ]);
+
+            $failedEvent = PaymentEvent::with('user')->find($paymentEvent->id);
+            if ($failedEvent) {
+                $this->notificationService->paymentFailed($failedEvent);
+            }
 
             throw $exception;
         }

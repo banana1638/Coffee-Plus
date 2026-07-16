@@ -7,7 +7,6 @@ use App\Models\Order;
 use App\Models\Product;
 use App\Models\Transaction;
 use App\Models\User;
-use App\Notifications\OrderCompletedNotification;
 use App\Support\Money;
 use Illuminate\Support\Facades\DB;
 
@@ -117,7 +116,6 @@ class OrderService
             }
 
             $this->orderStateMachine->transition($lockedOrder, Order::STATUS_COMPLETED);
-            $lockedOrder->user->notify(new OrderCompletedNotification($lockedOrder));
 
             return $lockedOrder->fresh(['items.product', 'user']);
         });
@@ -153,10 +151,6 @@ class OrderService
             }
 
             $this->orderStateMachine->transition($lockedOrder, $nextStatus);
-
-            if ($nextStatus === Order::STATUS_COMPLETED) {
-                $lockedOrder->user->notify(new OrderCompletedNotification($lockedOrder));
-            }
 
             return $lockedOrder->fresh(['items.product', 'user']);
         });

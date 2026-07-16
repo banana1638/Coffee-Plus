@@ -5,10 +5,15 @@ namespace App\Observers;
 use App\Models\Order;
 use App\Models\OrderStatusHistory;
 use App\Models\User;
+use App\Services\RealtimeNotificationService;
 use Illuminate\Support\Facades\Auth;
 
 class OrderObserver
 {
+    public function __construct(private readonly RealtimeNotificationService $notificationService)
+    {
+    }
+
     public function created(Order $order): void
     {
         $this->record($order, null, $order->status);
@@ -21,6 +26,7 @@ class OrderObserver
         }
 
         $this->record($order, $order->getOriginal('status'), $order->status);
+        $this->notificationService->orderStatusChanged($order);
     }
 
     private function record(Order $order, ?string $fromStatus, string $toStatus): void

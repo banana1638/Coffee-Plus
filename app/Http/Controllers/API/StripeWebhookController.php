@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Models\PaymentEvent;
 use App\Models\User;
 use App\Services\Payment\PaymentHandlerFactory;
+use App\Services\RealtimeNotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Stripe\Webhook;
@@ -16,11 +17,22 @@ class StripeWebhookController extends Controller
 {
     private const PROVIDER = 'stripe';
 
-    private const COMPLETED_CHECKOUT_EVENT = 'checkout.session.completed';
+    private const COMPLETED_CHECKOUT_EVENTS = [
+        'checkout.session.completed',
+        'checkout.session.async_payment_succeeded',
+    ];
+
+    private const FAILED_CHECKOUT_EVENTS = [
+        'checkout.session.async_payment_failed',
+        'checkout.session.expired',
+    ];
 
     private const SUPPORTED_METADATA_TYPES = ['refill', 'tangki_refill', 'checkout'];
 
-    public function __construct(private readonly PaymentHandlerFactory $handlerFactory) {}
+    public function __construct(
+        private readonly PaymentHandlerFactory $handlerFactory,
+        private readonly RealtimeNotificationService $notificationService,
+    ) {}
 
     public function __invoke(Request $request)
     {
@@ -34,7 +46,11 @@ class StripeWebhookController extends Controller
             return response()->json(['message' => 'Invalid signature.'], Response::HTTP_BAD_REQUEST);
         }
 
-        if ($event->type !== self::COMPLETED_CHECKOUT_EVENT) {
+        if (in_array($event->type, self::FAILED_CHECKOUT_EVENTS, true)) {
+            return $this->handleFailedCheckout($event);
+        }
+
+        if (! in_array($event->type, self::COMPLETED_CHECKOUT_EVENTS, true)) {
             return response()->json(['received' => true]);
         }
 
@@ -114,22 +130,74 @@ class StripeWebhookController extends Controller
                     currency: $session->currency ?? null,
                 );
 
-                $this->handlerFactory->make($result->getType())->handle($result, $user);
+                $handlerResult = $this->handlerFactory->make($result->getType())->handle($result, $user);
 
                 $paymentEvent->status = PaymentEvent::STATUS_PROCESSED;
                 $paymentEvent->processed_at = now();
                 $paymentEvent->save();
+
+                $this->notificationService->paymentProcessed(
+                    $paymentEvent->loadMissing('user'),
+                    $handlerResult,
+                );
             });
         } catch (\Throwable $e) {
             report($e);
 
-            $this->paymentEventQuery($event->id, $sessionId)
-                ->update(['status' => PaymentEvent::STATUS_FAILED]);
+            $paymentEvent = $this->paymentEventQuery($event->id, $sessionId)
+                ->with('user')
+                ->first();
+
+            if ($paymentEvent && $paymentEvent->status !== PaymentEvent::STATUS_PROCESSED) {
+                $shouldNotify = $paymentEvent->status !== PaymentEvent::STATUS_FAILED;
+
+                $paymentEvent->status = PaymentEvent::STATUS_FAILED;
+                $paymentEvent->last_error = 'Webhook processing failed.';
+                $paymentEvent->save();
+
+                if ($shouldNotify) {
+                    $this->notificationService->paymentFailed($paymentEvent);
+                }
+            }
 
             return response()->json(['message' => 'Webhook processing failed.'], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
 
         return response()->json(['received' => true]);
+    }
+
+    private function handleFailedCheckout(object $event)
+    {
+        $session = $event->data->object;
+        $sessionId = $session->id ?? null;
+
+        if (! $sessionId) {
+            return response()->json(['message' => 'Missing session id.'], Response::HTTP_BAD_REQUEST);
+        }
+
+        DB::transaction(function () use ($event, $sessionId) {
+            $paymentEvent = PaymentEvent::where('session_id', $sessionId)
+                ->with('user')
+                ->lockForUpdate()
+                ->first();
+
+            if (! $paymentEvent
+                || $paymentEvent->status === PaymentEvent::STATUS_PROCESSED
+                || $paymentEvent->status === PaymentEvent::STATUS_FAILED) {
+                return;
+            }
+
+            $paymentEvent->fill([
+                'event_id' => $event->id,
+                'status' => PaymentEvent::STATUS_FAILED,
+                'last_error' => 'Stripe checkout was not completed.',
+                'payload_json' => $event->toArray(),
+            ])->save();
+
+            $this->notificationService->paymentFailed($paymentEvent);
+        });
+
+        return response()->json(['received' => true, 'status' => PaymentEvent::STATUS_FAILED]);
     }
 
     private function shouldIgnoreSession(object $session, array $metadata): bool

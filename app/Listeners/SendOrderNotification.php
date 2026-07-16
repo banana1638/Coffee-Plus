@@ -3,15 +3,14 @@
 namespace App\Listeners;
 
 use App\Events\OrderPlaced;
-use App\Notifications\OrderPlacedNotification;
-use Illuminate\Contracts\Queue\ShouldQueue;
+use App\Services\RealtimeNotificationService;
 
-class SendOrderNotification implements ShouldQueue
+class SendOrderNotification
 {
-    public bool $afterCommit = true;
+    public function __construct(private readonly RealtimeNotificationService $notificationService) {}
 
     public function handle(OrderPlaced $event): void
     {
-        $event->user->notify(new OrderPlacedNotification($event->order));
+        $this->notificationService->orderAccepted($event->order, $event->user);
     }
 }

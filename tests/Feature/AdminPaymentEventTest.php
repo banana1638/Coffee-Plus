@@ -8,8 +8,10 @@ use App\DataTransferObjects\PaymentResult;
 use App\Models\Admin;
 use App\Models\PaymentEvent;
 use App\Models\User;
+use App\Notifications\RealtimeBusinessNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Notification;
 use Tests\TestCase;
 
 class AdminPaymentEventTest extends TestCase
@@ -64,6 +66,8 @@ class AdminPaymentEventTest extends TestCase
 
     public function test_owner_can_retry_server_owned_failed_payment(): void
     {
+        Notification::fake();
+
         $admin = $this->createAdmin('owner');
         $user = User::factory()->create();
         $event = PaymentEvent::recordPending($user, 'cs_retry_paid', 'refill', 2500, [
@@ -95,10 +99,18 @@ class AdminPaymentEventTest extends TestCase
             'action' => 'payment.retry.succeeded',
             'target_id' => $event->id,
         ]);
+        $this->assertSame(
+            ['wallet.refill_succeeded'],
+            Notification::sent($user, RealtimeBusinessNotification::class)
+                ->map(fn (RealtimeBusinessNotification $notification) => $notification->eventName())
+                ->all(),
+        );
     }
 
     public function test_retry_does_not_credit_wallet_when_stripe_is_not_paid(): void
     {
+        Notification::fake();
+
         $admin = $this->createAdmin('owner');
         $user = User::factory()->create();
         $event = PaymentEvent::recordPending($user, 'cs_retry_unpaid', 'refill', 2500);
@@ -126,6 +138,12 @@ class AdminPaymentEventTest extends TestCase
             'action' => 'payment.retry.failed',
             'target_id' => $event->id,
         ]);
+        $this->assertSame(
+            ['wallet.refill_failed'],
+            Notification::sent($user, RealtimeBusinessNotification::class)
+                ->map(fn (RealtimeBusinessNotification $notification) => $notification->eventName())
+                ->all(),
+        );
     }
 
     public function test_manager_cannot_retry_payment_event(): void

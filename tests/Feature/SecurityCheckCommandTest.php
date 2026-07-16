@@ -63,6 +63,52 @@ class SecurityCheckCommandTest extends TestCase
             ->assertExitCode(1);
     }
 
+    public function test_security_check_rejects_wildcard_reverb_origins_in_production(): void
+    {
+        config([
+            'app.debug' => false,
+            'app.key' => 'base64:test',
+            'services.stripe.key' => 'pk_test',
+            'services.stripe.secret' => 'sk_test',
+            'services.stripe.webhook' => 'whsec_test',
+            'broadcasting.default' => 'reverb',
+            'broadcasting.connections.reverb.key' => 'reverb-key',
+            'broadcasting.connections.reverb.secret' => 'reverb-secret',
+            'broadcasting.connections.reverb.app_id' => 'reverb-app',
+            'reverb.apps.apps' => [['allowed_origins' => ['*']]],
+            'telescope.enabled' => false,
+            'cors.allowed_origins' => ['https://coffee-plus.example'],
+            'cors.allowed_origins_patterns' => [],
+        ]);
+
+        $this->artisan('coffee:security-check --production')
+            ->expectsOutputToContain('Reverb allowed origins must be explicit and cannot contain * in production.')
+            ->assertExitCode(1);
+    }
+
+    public function test_security_check_accepts_explicit_reverb_origins_in_production(): void
+    {
+        config([
+            'app.debug' => false,
+            'app.key' => 'base64:test',
+            'services.stripe.key' => 'pk_test',
+            'services.stripe.secret' => 'sk_test',
+            'services.stripe.webhook' => 'whsec_test',
+            'broadcasting.default' => 'reverb',
+            'broadcasting.connections.reverb.key' => 'reverb-key',
+            'broadcasting.connections.reverb.secret' => 'reverb-secret',
+            'broadcasting.connections.reverb.app_id' => 'reverb-app',
+            'reverb.apps.apps' => [['allowed_origins' => ['https://coffee-plus.example']]],
+            'telescope.enabled' => false,
+            'cors.allowed_origins' => ['https://coffee-plus.example'],
+            'cors.allowed_origins_patterns' => [],
+        ]);
+
+        $this->artisan('coffee:security-check --production')
+            ->expectsOutputToContain('Coffee-Plus backend security check passed.')
+            ->assertExitCode(0);
+    }
+
     public function test_security_check_accepts_protected_telescope_configuration(): void
     {
         config([

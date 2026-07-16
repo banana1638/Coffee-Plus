@@ -6,7 +6,9 @@ use App\Models\Order;
 use App\Models\PaymentEvent;
 use App\Models\Transaction;
 use App\Models\User;
+use App\Notifications\RealtimeBusinessNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Notification;
 use Tests\TestCase;
 
 class StripeWebhookTest extends TestCase
@@ -21,12 +23,16 @@ class StripeWebhookTest extends TestCase
         return "t={$timestamp},v1={$signature}";
     }
 
-    private function checkoutCompletedPayload(User $user, string $eventId, string $sessionId): string
-    {
+    private function checkoutCompletedPayload(
+        User $user,
+        string $eventId,
+        string $sessionId,
+        string $eventType = 'checkout.session.completed',
+    ): string {
         return json_encode([
             'id' => $eventId,
             'object' => 'event',
-            'type' => 'checkout.session.completed',
+            'type' => $eventType,
             'data' => [
                 'object' => [
                     'id' => $sessionId,
@@ -40,6 +46,21 @@ class StripeWebhookTest extends TestCase
                         'user_id' => (string) $user->id,
                         'amount' => '10.00',
                     ],
+                ],
+            ],
+        ], JSON_UNESCAPED_SLASHES);
+    }
+
+    private function checkoutFailedPayload(string $eventId, string $sessionId): string
+    {
+        return json_encode([
+            'id' => $eventId,
+            'object' => 'event',
+            'type' => 'checkout.session.expired',
+            'data' => [
+                'object' => [
+                    'id' => $sessionId,
+                    'object' => 'checkout.session',
                 ],
             ],
         ], JSON_UNESCAPED_SLASHES);
@@ -60,6 +81,7 @@ class StripeWebhookTest extends TestCase
     public function test_stripe_webhook_processes_checkout_session_once(): void
     {
         config(['services.stripe.webhook' => 'whsec_test']);
+        Notification::fake();
 
         $user = User::factory()->create();
         $payload = $this->checkoutCompletedPayload($user, 'evt_1', 'cs_test_once');
@@ -82,6 +104,12 @@ class StripeWebhookTest extends TestCase
         $this->assertSame(1, Order::where('bill_id', 'like', 'TOPUP-%')->count());
         $this->assertSame(1, Transaction::where('type', 'refill')->count());
         $this->assertSame(1, PaymentEvent::where('status', 'processed')->count());
+        $this->assertSame(
+            ['wallet.refill_succeeded'],
+            Notification::sent($user, RealtimeBusinessNotification::class)
+                ->map(fn (RealtimeBusinessNotification $notification) => $notification->eventName())
+                ->all(),
+        );
     }
 
     public function test_stripe_webhook_transitions_pending_payment_to_processed(): void
@@ -114,9 +142,49 @@ class StripeWebhookTest extends TestCase
         $this->assertDatabaseCount('payment_events', 1);
     }
 
+    public function test_stripe_webhook_processes_async_payment_success(): void
+    {
+        config(['services.stripe.webhook' => 'whsec_test']);
+        Notification::fake();
+
+        $user = User::factory()->create();
+        PaymentEvent::recordPending($user, 'cs_async_paid', 'refill', 1000, [
+            'type' => 'refill',
+            'user_id' => $user->id,
+            'amount' => '10.00',
+        ]);
+
+        $payload = $this->checkoutCompletedPayload(
+            $user,
+            'evt_async_paid',
+            'cs_async_paid',
+            'checkout.session.async_payment_succeeded',
+        );
+        $signature = $this->stripeSignature($payload, 'whsec_test');
+
+        $this->call('POST', '/api/stripe/webhook', [], [], [], [
+            'CONTENT_TYPE' => 'application/json',
+            'HTTP_STRIPE_SIGNATURE' => $signature,
+        ], $payload)->assertOk();
+
+        $this->assertDatabaseHas('payment_events', [
+            'event_id' => 'evt_async_paid',
+            'session_id' => 'cs_async_paid',
+            'status' => PaymentEvent::STATUS_PROCESSED,
+        ]);
+        $this->assertSame(1, Transaction::where('type', 'refill')->count());
+        $this->assertSame(
+            ['wallet.refill_succeeded'],
+            Notification::sent($user, RealtimeBusinessNotification::class)
+                ->map(fn (RealtimeBusinessNotification $notification) => $notification->eventName())
+                ->all(),
+        );
+    }
+
     public function test_stripe_webhook_rejects_payment_that_does_not_match_pending_amount(): void
     {
         config(['services.stripe.webhook' => 'whsec_test']);
+        Notification::fake();
 
         $user = User::factory()->create();
         PaymentEvent::recordPending($user, 'cs_amount_mismatch', 'refill', 2000, [
@@ -141,6 +209,49 @@ class StripeWebhookTest extends TestCase
             'status' => 'failed',
         ]);
         $this->assertSame(0, Transaction::where('type', 'refill')->count());
+        $this->assertSame(
+            ['wallet.refill_failed'],
+            Notification::sent($user, RealtimeBusinessNotification::class)
+                ->map(fn (RealtimeBusinessNotification $notification) => $notification->eventName())
+                ->all(),
+        );
+    }
+
+    public function test_stripe_expired_session_marks_pending_refill_failed_once(): void
+    {
+        config(['services.stripe.webhook' => 'whsec_test']);
+        Notification::fake();
+
+        $user = User::factory()->create();
+        PaymentEvent::recordPending($user, 'cs_refill_expired', 'refill', 1000, [
+            'type' => 'refill',
+            'user_id' => $user->id,
+            'amount' => '10.00',
+        ]);
+
+        $payload = $this->checkoutFailedPayload('evt_refill_expired', 'cs_refill_expired');
+        $signature = $this->stripeSignature($payload, 'whsec_test');
+
+        for ($attempt = 0; $attempt < 2; $attempt++) {
+            $this->call('POST', '/api/stripe/webhook', [], [], [], [
+                'CONTENT_TYPE' => 'application/json',
+                'HTTP_STRIPE_SIGNATURE' => $signature,
+            ], $payload)->assertOk()
+                ->assertJsonPath('status', PaymentEvent::STATUS_FAILED);
+        }
+
+        $this->assertDatabaseHas('payment_events', [
+            'event_id' => 'evt_refill_expired',
+            'session_id' => 'cs_refill_expired',
+            'status' => PaymentEvent::STATUS_FAILED,
+        ]);
+        $this->assertSame(0, Transaction::where('type', 'refill')->count());
+        $this->assertSame(
+            ['wallet.refill_failed'],
+            Notification::sent($user, RealtimeBusinessNotification::class)
+                ->map(fn (RealtimeBusinessNotification $notification) => $notification->eventName())
+                ->all(),
+        );
     }
 
     public function test_stripe_webhook_ignores_unpaid_session(): void

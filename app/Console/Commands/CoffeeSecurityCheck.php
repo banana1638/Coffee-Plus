@@ -21,21 +21,32 @@ class CoffeeSecurityCheck extends Command
             $failures[] = 'APP_DEBUG must be false in production.';
         }
 
-        if (!config('app.key')) {
+        if (! config('app.key')) {
             $failures[] = 'APP_KEY is missing.';
         }
 
         foreach (['key', 'secret', 'webhook'] as $stripeKey) {
-            if (!config("services.stripe.{$stripeKey}")) {
+            if (! config("services.stripe.{$stripeKey}")) {
                 $failures[] = "Stripe {$stripeKey} is missing.";
             }
         }
 
         if (config('broadcasting.default') === 'reverb') {
             foreach (['key', 'secret', 'app_id'] as $reverbKey) {
-                if (!config("broadcasting.connections.reverb.{$reverbKey}")) {
+                if (! config("broadcasting.connections.reverb.{$reverbKey}")) {
                     $failures[] = "Reverb {$reverbKey} is missing while BROADCAST_CONNECTION=reverb.";
                 }
+            }
+
+            $reverbApps = config('reverb.apps.apps', []);
+            $hasRestrictedOrigins = collect($reverbApps)->every(function (array $reverbApp): bool {
+                $allowedOrigins = $reverbApp['allowed_origins'] ?? [];
+
+                return $allowedOrigins !== [] && ! in_array('*', $allowedOrigins, true);
+            });
+
+            if ($enforceProduction && ($reverbApps === [] || ! $hasRestrictedOrigins)) {
+                $failures[] = 'Reverb allowed origins must be explicit and cannot contain * in production.';
             }
         }
 
@@ -53,11 +64,11 @@ class CoffeeSecurityCheck extends Command
             }
         }
 
-        if (!config('filesystems.disks.public.url')) {
+        if (! config('filesystems.disks.public.url')) {
             $warnings[] = 'Public filesystem URL is missing.';
         }
 
-        if (!File::exists(public_path('storage'))) {
+        if (! File::exists(public_path('storage'))) {
             $warnings[] = 'Public storage link was not found at public/storage.';
         }
 
