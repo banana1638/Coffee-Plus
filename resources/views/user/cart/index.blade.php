@@ -1,14 +1,14 @@
 <x-app-layout>
-    <div class="px-4 py-6 sm:px-6 lg:px-8">
-        <div class="mx-auto max-w-5xl space-y-6">
-            <x-layout.page-header title="Review your order" description="Confirm each drink recipe, choose Tangki redemption, then select a backend-verified payment method.">
+    <div class="px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
+        <div class="mx-auto max-w-6xl space-y-8">
+            <x-layout.customer-page-header eyebrow="Order review" title="Your counter receipt" description="Confirm each drink recipe, choose Tangki redemption, then select a backend-verified payment method.">
                 <x-slot:actions>
                     <x-ui.badge variant="info">{{ $cartItems->sum('quantity') }} items</x-ui.badge>
                     <x-ui.button :href="route('dashboard')" variant="secondary">
                         Back to Menu
                     </x-ui.button>
                 </x-slot:actions>
-            </x-layout.page-header>
+            </x-layout.customer-page-header>
 
             @if(session('error'))
                 <div class="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-700" role="alert">
@@ -16,37 +16,35 @@
                 </div>
             @endif
 
-            <x-ui.card>
-                <div class="grid gap-6 md:grid-cols-[180px_1fr] md:items-center">
-                    <div class="mx-auto w-36">
+            <section class="grid gap-6 border-y border-[rgb(var(--cp-line))] bg-[rgb(var(--cp-surface))] px-5 py-6 md:grid-cols-[160px_1fr] md:items-center sm:px-7">
+                    <div class="mx-auto w-32">
                         @include('components.tank-visualization')
                     </div>
                     <div class="grid gap-4 sm:grid-cols-2">
-                        <div class="border-l-2 border-emerald-600 bg-emerald-50/60 p-4">
-                            <p class="text-xs font-semibold uppercase text-emerald-800">Tangki available</p>
+                        <div class="border-l-2 border-[rgb(var(--cp-brand))] px-4 py-2">
+                            <p class="text-xs font-semibold uppercase tracking-[0.14em] text-emerald-800">Tangki available</p>
                             <p class="cp-tabular mt-2 text-3xl font-bold text-[rgb(var(--cp-brand-strong))]">
                                 <span id="user-balance" data-balance="{{ Auth::user()->tangki_oz }}">{{ number_format(Auth::user()->tangki_oz) }}</span>
                                 <span class="text-sm text-slate-500">OZ</span>
                             </p>
                         </div>
-                        <div class="border-l-2 border-amber-500 bg-amber-50/60 p-4">
-                            <p class="text-xs font-semibold uppercase text-amber-800">Cash balance</p>
+                        <div class="border-l-2 border-[rgb(var(--cp-caramel))] px-4 py-2">
+                            <p class="text-xs font-semibold uppercase tracking-[0.14em] text-[rgb(var(--cp-muted))]">Cash balance</p>
                             <x-ui.price :amount="Auth::user()->tangki_balance" size="xl" accent class="mt-2" />
                         </div>
                     </div>
-                </div>
-            </x-ui.card>
+            </section>
 
             @if($cartItems->isEmpty())
-                <div class="rounded-lg border border-dashed border-[rgb(var(--cp-line))] bg-[rgb(var(--cp-surface))] p-10 text-center">
-                    <p class="font-semibold text-[rgb(var(--cp-ink))]">Your order is empty</p>
+                <div class="border-y border-dashed border-[rgb(var(--cp-line))] py-16 text-center">
+                    <p class="font-display text-3xl font-medium text-[rgb(var(--cp-ink))]">Your order is empty</p>
                     <p class="mt-1 text-sm text-[rgb(var(--cp-muted))]">Choose a drink from the menu to begin.</p>
                     <x-ui.button :href="route('dashboard')" class="mt-4">
                         Browse Products
                     </x-ui.button>
                 </div>
             @else
-                <form action="{{ route('order.checkout') }}" method="POST" id="checkout-form" class="space-y-4">
+                <form action="{{ route('order.checkout') }}" method="POST" id="checkout-form" class="space-y-5">
                     @csrf
                     @foreach($cartItems as $item)
                         @php
@@ -55,14 +53,15 @@
                             $itemTotalOz = $itemTotalCashCents;
                         @endphp
 
-                        <x-ui.card padding="compact" class="group">
-                            <div class="grid gap-4 md:grid-cols-[88px_1fr_170px] md:items-center">
-                                <div class="h-20 w-20 overflow-hidden rounded-lg border border-[rgb(var(--cp-line))] bg-stone-100">
-                                    <img src="{{ $item->product->thumbnail_image_url }}" class="h-20 w-20 object-cover" alt="{{ $item->product->name }}">
+                        <x-ui.card padding="compact" class="group shadow-none">
+                            <div class="grid gap-5 md:grid-cols-[112px_1fr_180px] md:items-center">
+                                <div class="h-28 w-28 overflow-hidden rounded-lg bg-stone-100">
+                                    <img src="{{ $item->product->thumbnail_image_url }}" class="h-28 w-28 object-cover" alt="{{ $item->product->name }}">
                                 </div>
 
                                 <div>
-                                    <h3 class="font-semibold text-slate-950">{{ $item->product->name }}</h3>
+                                    <p class="text-xs font-semibold uppercase tracking-[0.14em] text-[rgb(var(--cp-brand))]">Drink {{ $loop->iteration }}</p>
+                                    <h3 class="mt-1 font-display text-2xl font-medium text-[rgb(var(--cp-ink))]">{{ $item->product->name }}</h3>
                                     <div class="mt-2 flex flex-wrap gap-2">
                                         <x-ui.badge>{{ $item->size }}</x-ui.badge>
                                         <x-ui.badge>{{ $item->temp }}</x-ui.badge>
@@ -92,11 +91,11 @@
                         </x-ui.card>
                     @endforeach
 
-                    <section class="rounded-lg bg-[rgb(var(--cp-ink))] p-6 text-white shadow-sm" aria-labelledby="checkout-total-title">
+                    <section class="rounded-lg bg-[rgb(var(--cp-ink))] p-6 text-white shadow-[0_22px_55px_-34px_rgba(24,32,29,0.75)] sm:p-8" aria-labelledby="checkout-total-title">
                         <div class="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
                             <div>
-                                <p id="checkout-total-title" class="text-sm font-medium text-stone-300">Amount confirmed at checkout</p>
-                                <p class="cp-tabular mt-2 text-4xl font-bold">
+                                <p id="checkout-total-title" class="text-xs font-semibold uppercase tracking-[0.15em] text-stone-300">Amount confirmed at checkout</p>
+                                <p class="cp-tabular mt-3 text-4xl font-bold sm:text-5xl">
                                     <span class="text-lg text-emerald-300">RM</span><span id="display-total">0.00</span>
                                 </p>
                                 <p id="oz-summary" class="mt-2 min-h-4 text-xs font-semibold uppercase text-emerald-300" aria-live="polite"></p>

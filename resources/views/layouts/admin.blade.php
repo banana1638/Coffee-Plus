@@ -8,6 +8,9 @@
 
     <title>Admin - {{ config('app.name', 'Laravel') }}</title>
 
+    <link rel="preconnect" href="https://fonts.bunny.net">
+    <link href="https://fonts.bunny.net/css?family=figtree:400,500,600,700&display=swap" rel="stylesheet" />
+
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 
@@ -15,7 +18,7 @@
     <div class="min-h-screen">
         @include('layouts.admin-navigation')
 
-        <main class="min-h-screen lg:pl-72">
+        <main class="min-h-screen lg:pl-64">
             {{ $slot }}
         </main>
     </div>

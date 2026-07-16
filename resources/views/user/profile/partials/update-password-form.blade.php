@@ -1,6 +1,7 @@
 <section>
     <header>
-        <h2 class="text-base font-bold text-[rgb(var(--cp-ink))]">{{ __('Update Password') }}</h2>
+        <p class="text-xs font-semibold uppercase tracking-[0.16em] text-[rgb(var(--cp-brand))]">Security</p>
+        <h2 class="mt-2 font-display text-3xl font-medium text-[rgb(var(--cp-ink))]">{{ __('Update Password') }}</h2>
         <p class="mt-1 text-sm text-slate-600">{{ __('Ensure your account is using a long, random password to stay secure.') }}</p>
     </header>
 

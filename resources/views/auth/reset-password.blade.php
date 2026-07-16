@@ -1,13 +1,13 @@
 <x-guest-layout>
     <div class="flex min-h-screen items-center justify-center bg-[rgb(var(--cp-canvas))] px-4 py-10">
-        <div class="w-full max-w-md rounded-lg border border-[rgb(var(--cp-line))] bg-[rgb(var(--cp-surface))] p-6 shadow-sm">
+        <div class="cp-menu-paper w-full max-w-md rounded-lg border border-[rgb(var(--cp-line))] bg-[rgb(var(--cp-surface))] p-6 shadow-[0_24px_65px_-38px_rgba(24,32,29,0.6)] sm:p-8">
             <div class="mb-6 text-center">
                 <div class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-lg bg-emerald-50 text-emerald-800">
                     <svg class="h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 11c0-1.105.895-2 2-2h1V7a3 3 0 10-6 0v2h1c1.105 0 2 .895 2 2zm-7 0h14v10H5V11z" />
                     </svg>
                 </div>
-                <h1 class="text-2xl font-bold text-[rgb(var(--cp-ink))]">Create a new password</h1>
+                <h1 class="font-display text-4xl font-medium tracking-[-0.035em] text-[rgb(var(--cp-ink))]">Create a new password</h1>
                 <p class="mt-2 text-sm text-slate-600">Create a strong password for your account.</p>
             </div>
 

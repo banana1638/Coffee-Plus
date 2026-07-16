@@ -1,6 +1,7 @@
 <section>
     <header>
-        <h2 class="text-base font-bold text-[rgb(var(--cp-ink))]">{{ __('Profile Information') }}</h2>
+        <p class="text-xs font-semibold uppercase tracking-[0.16em] text-[rgb(var(--cp-brand))]">Identity</p>
+        <h2 class="mt-2 font-display text-3xl font-medium text-[rgb(var(--cp-ink))]">{{ __('Profile Information') }}</h2>
         <p class="mt-1 text-sm text-slate-600">{{ __("Update your account's profile information and email address.") }}</p>
     </header>
 

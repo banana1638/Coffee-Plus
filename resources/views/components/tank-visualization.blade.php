@@ -7,42 +7,36 @@
     $amp = ($percentage <= 0 || $percentage >= 100) ? 0 : 4;
 
     $path1 = "M0 100 V $waveY Q 25 " . ($waveY - $amp) . " 50 $waveY T 100 $waveY V 100 Z";
-    $path2 = "M0 100 V $waveY Q 25 " . ($waveY + $amp) . " 50 $waveY T 100 $waveY V 100 Z";
-    $path3 = "M0 100 V $waveY Q 25 " . ($waveY - $amp) . " 50 $waveY T 100 $waveY V 100 Z";
 @endphp
 
-<div class="relative w-48 h-48 mx-auto group">
-    <div class="absolute inset-0 flex flex-col items-center justify-center z-20 pointer-events-none">
-        <span class="text-4xl font-black {{ $percentage > 50 ? 'text-white' : 'text-blue-600' }} transition-colors duration-500">
-            {{ round($percentage) }}<span class="text-sm font-bold">%</span>
+<div class="group relative mx-auto h-48 w-48">
+    <div class="pointer-events-none absolute inset-0 z-20 flex flex-col items-center justify-center">
+        <span class="cp-tabular text-4xl font-bold {{ $percentage > 50 ? 'text-white' : 'text-[rgb(var(--cp-brand-strong))]' }}">
+            {{ round($percentage) }}<span class="text-sm font-semibold">%</span>
         </span>
-        <span class="text-[10px] font-black uppercase tracking-widest {{ $percentage > 50 ? 'text-blue-100' : 'text-gray-400' }} opacity-80">
+        <span class="text-[10px] font-semibold uppercase tracking-[0.18em] {{ $percentage > 50 ? 'text-emerald-100' : 'text-[rgb(var(--cp-muted))]' }}">
             Capacity
         </span>
     </div>
 
-    <svg viewBox="0 0 100 100" class="w-full h-full rounded-full border-4 border-white shadow-2xl bg-gray-50 overflow-hidden">
+    <svg viewBox="0 0 100 100" class="h-full w-full overflow-hidden rounded-full border-4 border-[rgb(var(--cp-surface))] bg-stone-100 shadow-[0_20px_45px_-26px_rgba(24,32,29,0.7)]" aria-hidden="true">
         <defs>
-            <linearGradient id="waterGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-                <stop offset="0%" stop-color="#60a5fa" />
-                <stop offset="100%" stop-color="#1d4ed8" />
+            <linearGradient id="tangkiFill" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stop-color="#1b8b69" />
+                <stop offset="100%" stop-color="#0d523f" />
             </linearGradient>
-            <mask id="roundMask">
+            <mask id="tangkiMask">
                 <circle cx="50" cy="50" r="50" fill="white" />
             </mask>
         </defs>
 
-        <g mask="url(#roundMask)">
-            <path fill="url(#waterGrad)">
-                <animate 
-                    attributeName="d" 
-                    dur="2.5s" 
-                    repeatCount="indefinite"
-                    values="{{ $path1 }};{{ $path2 }};{{ $path3 }}" 
-                />
-            </path>
+        <g mask="url(#tangkiMask)">
+            <path d="{{ $path1 }}" fill="url(#tangkiFill)" />
+            <path d="M0 88 H100" fill="none" stroke="rgb(255 255 255 / 0.18)" stroke-width="0.7" />
+            <path d="M0 76 H100" fill="none" stroke="rgb(255 255 255 / 0.14)" stroke-width="0.7" />
+            <path d="M0 64 H100" fill="none" stroke="rgb(255 255 255 / 0.11)" stroke-width="0.7" />
         </g>
     </svg>
-    
-    <div class="absolute -inset-2 rounded-full border-2 border-blue-200/30 animate-pulse"></div>
+
+    <div class="absolute -inset-2 rounded-full border border-[rgb(var(--cp-caramel))]/25"></div>
 </div>

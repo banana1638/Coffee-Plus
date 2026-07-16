@@ -1,22 +1,22 @@
-<nav class="sticky top-0 z-40 border-b border-slate-200 bg-white/95 backdrop-blur" x-data="{ activeMenu: null, mobileOpen: false }"
+<nav class="sticky top-0 z-40 border-b border-[rgb(var(--cp-line))] bg-[rgb(var(--cp-surface))]/95 backdrop-blur" x-data="{ activeMenu: null, mobileOpen: false }"
     @keydown.escape.window="activeMenu = null; mobileOpen = false">
     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div class="flex h-16 items-center justify-between">
             <div class="flex items-center gap-8">
-                <a href="{{ route('dashboard') }}" class="flex items-center gap-3">
+                <a href="{{ route('dashboard') }}" class="group flex items-center gap-3">
                     <x-application-logo class="block h-9 w-auto" />
-                    <span class="hidden text-sm font-semibold text-slate-950 sm:block">Coffee-Plus</span>
+                    <span class="hidden font-display text-lg font-medium tracking-[-0.02em] text-[rgb(var(--cp-ink))] sm:block">Coffee-Plus</span>
                 </a>
 
                 <div class="hidden items-center gap-1 md:flex">
                     <a href="{{ route('dashboard') }}"
-                        class="rounded-lg px-3 py-2 text-sm font-semibold transition {{ request()->routeIs('dashboard') ? 'bg-emerald-800 text-white' : 'text-slate-600 hover:bg-emerald-50 hover:text-emerald-900' }}">
+                        class="border-b-2 px-3 py-5 text-sm font-semibold transition {{ request()->routeIs('dashboard') ? 'border-[rgb(var(--cp-brand))] text-[rgb(var(--cp-brand-strong))]' : 'border-transparent text-slate-600 hover:border-emerald-200 hover:text-emerald-900' }}">
                         Menu
                     </a>
 
                     @auth
                         <a href="{{ route('tangki.index') }}"
-                            class="rounded-lg px-3 py-2 text-sm font-semibold transition {{ request()->routeIs('tangki.*') ? 'bg-emerald-800 text-white' : 'text-slate-600 hover:bg-emerald-50 hover:text-emerald-900' }}">
+                            class="border-b-2 px-3 py-5 text-sm font-semibold transition {{ request()->routeIs('tangki.*') ? 'border-[rgb(var(--cp-brand))] text-[rgb(var(--cp-brand-strong))]' : 'border-transparent text-slate-600 hover:border-emerald-200 hover:text-emerald-900' }}">
                             My Tangki
                         </a>
                     @endauth
@@ -52,9 +52,12 @@
                         </button>
 
                         <div x-show="activeMenu === 'notification'" x-cloak x-transition
-                            class="absolute right-0 mt-3 w-96 overflow-hidden rounded-lg border border-[rgb(var(--cp-line))] bg-[rgb(var(--cp-surface))] shadow-lg">
-                            <div class="flex items-center justify-between border-b border-slate-200 bg-slate-50 px-4 py-3">
-                                <span class="text-xs font-semibold uppercase tracking-wide text-slate-500">Notifications</span>
+                            class="absolute right-0 mt-3 w-96 overflow-hidden rounded-lg border border-[rgb(var(--cp-line))] bg-[rgb(var(--cp-surface))] shadow-[0_22px_55px_-28px_rgba(24,32,29,0.5)]">
+                            <div class="flex items-center justify-between border-b border-[rgb(var(--cp-line))] px-4 py-4">
+                                <div>
+                                    <span class="block text-xs font-semibold uppercase tracking-[0.15em] text-[rgb(var(--cp-brand))]">Order updates</span>
+                                    <span class="mt-1 block font-display text-xl font-medium text-[rgb(var(--cp-ink))]">Notifications</span>
+                                </div>
                                 @if($navbarUnreadCount > 0)
                                     <form action="{{ route('notifications.markAllAsRead') }}" method="POST">
                                         @csrf
@@ -74,7 +77,7 @@
                                                     {{ $notification->data['message'] ?? 'New notification' }}
                                                 </p>
                                                 <p class="mt-1 text-xs text-slate-500">
-                                                    #{{ $notification->data['bill_id'] ?? 'N/A' }} · {{ $notification->created_at->diffForHumans() }}
+                                                    #{{ $notification->data['bill_id'] ?? 'N/A' }} &middot; {{ $notification->created_at->diffForHumans() }}
                                                 </p>
                                             </button>
                                         </form>
@@ -103,7 +106,8 @@
                     <div class="relative">
                         <button type="button" @click="activeMenu = activeMenu === 'user' ? null : 'user'"
                             @click.away="if(activeMenu === 'user') activeMenu = null"
-                            class="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50">
+                            class="inline-flex items-center gap-2 border-l border-[rgb(var(--cp-line))] px-3 py-2 text-sm font-semibold text-slate-700 transition hover:text-[rgb(var(--cp-brand-strong))]">
+                            <span class="inline-flex h-7 w-7 items-center justify-center rounded-full bg-[rgb(var(--cp-brand-strong))] text-xs font-bold text-white">{{ substr(auth()->user()->name, 0, 1) }}</span>
                             <span>{{ auth()->user()->name }}</span>
                             <svg class="h-4 w-4 transition" :class="{ 'rotate-180': activeMenu === 'user' }" viewBox="0 0 20 20" fill="currentColor">
                                 <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
@@ -142,7 +146,7 @@
         </div>
     </div>
 
-    <div x-show="mobileOpen" x-cloak x-transition class="border-t border-slate-200 bg-white px-4 py-3 md:hidden">
+    <div x-show="mobileOpen" x-cloak x-transition class="border-t border-[rgb(var(--cp-line))] bg-[rgb(var(--cp-surface))] px-4 py-4 md:hidden">
         <div class="space-y-1">
             <a href="{{ route('dashboard') }}" class="block rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100">Menu</a>
             @auth

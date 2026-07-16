@@ -1,8 +1,8 @@
 <x-guest-layout>
     <div class="flex min-h-screen items-center justify-center bg-[rgb(var(--cp-canvas))] px-4 py-10">
-        <div class="w-full max-w-lg rounded-lg border border-[rgb(var(--cp-line))] bg-[rgb(var(--cp-surface))] p-6 shadow-sm">
+        <div class="cp-menu-paper w-full max-w-lg rounded-lg border border-[rgb(var(--cp-line))] bg-[rgb(var(--cp-surface))] p-6 shadow-[0_24px_65px_-38px_rgba(24,32,29,0.6)] sm:p-8">
             <p class="text-xs font-semibold uppercase text-[rgb(var(--cp-brand))]">Account verification</p>
-            <h1 class="mt-1 text-2xl font-bold text-[rgb(var(--cp-ink))]">{{ __('Verify Email') }}</h1>
+            <h1 class="mt-2 font-display text-4xl font-medium tracking-[-0.035em] text-[rgb(var(--cp-ink))]">{{ __('Verify Email') }}</h1>
             <p class="mt-2 text-sm text-slate-600">
                 {{ __('Thanks for signing up! Please verify your email address by clicking on the link we just emailed to you.') }}
             </p>

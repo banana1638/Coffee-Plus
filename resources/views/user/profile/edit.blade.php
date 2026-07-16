@@ -8,18 +8,18 @@
         </div>
     @endif
 
-    <div class="px-4 py-6 sm:px-6 lg:px-8">
-        <div class="mx-auto max-w-7xl space-y-6">
-            <x-layout.page-header title="Account and security" description="Manage identity details, backend-confirmed Tangki balances, password, and account access." />
+    <div class="px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
+        <div class="mx-auto max-w-7xl space-y-8">
+            <x-layout.customer-page-header eyebrow="Personal counter" title="Account and security" description="Manage identity details, backend-confirmed Tangki balances, password, and account access." />
 
             <div class="grid gap-6 lg:grid-cols-[360px_1fr]">
                 <aside class="space-y-6 lg:sticky lg:top-24 lg:self-start">
-                    <x-ui.card>
+                    <x-ui.card class="overflow-hidden shadow-[0_22px_55px_-40px_rgba(24,32,29,0.5)]">
                         <div class="text-center">
-                            <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-lg bg-[rgb(var(--cp-brand-strong))] text-2xl font-bold text-white">
+                            <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[rgb(var(--cp-brand-strong))] font-display text-3xl font-medium text-white">
                                 {{ substr(Auth::user()->name, 0, 1) }}
                             </div>
-                            <h2 class="mt-4 text-xl font-semibold text-slate-950">{{ Auth::user()->name }}</h2>
+                            <h2 class="mt-4 font-display text-2xl font-medium text-[rgb(var(--cp-ink))]">{{ Auth::user()->name }}</h2>
                             <p class="mt-1 text-sm text-slate-500">{{ Auth::user()->email }}</p>
                         </div>
 
@@ -35,7 +35,7 @@
                         </div>
                     </x-ui.card>
 
-                    <x-ui.card padding="compact">
+                    <x-ui.card padding="compact" class="shadow-none">
                         <nav class="space-y-1">
                             <a href="#profile-info" class="block rounded-lg px-3 py-2 text-sm font-semibold text-slate-600 hover:bg-emerald-50 hover:text-emerald-800">Profile Information</a>
                             <a href="#password-info" class="block rounded-lg px-3 py-2 text-sm font-semibold text-slate-600 hover:bg-emerald-50 hover:text-emerald-800">Update Password</a>
@@ -46,7 +46,7 @@
 
                 <div class="space-y-6">
                     <section id="profile-info" class="scroll-mt-24">
-                        <x-ui.card>
+                        <x-ui.card class="shadow-none">
                             <div class="max-w-xl">
                                 @include('user.profile.partials.update-profile-information-form')
                             </div>
@@ -54,7 +54,7 @@
                     </section>
 
                     <section id="password-info" class="scroll-mt-24">
-                        <x-ui.card>
+                        <x-ui.card class="shadow-none">
                             <div class="max-w-xl">
                                 @include('user.profile.partials.update-password-form')
                             </div>
@@ -62,7 +62,7 @@
                     </section>
 
                     <section id="delete-account" class="scroll-mt-24">
-                        <x-ui.card class="border-rose-200">
+                        <x-ui.card class="border-rose-200 shadow-none">
                             <div class="max-w-xl">
                                 @include('user.profile.partials.delete-user-form')
                             </div>

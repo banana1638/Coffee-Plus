@@ -1,6 +1,7 @@
 <section class="space-y-6">
     <header>
-        <h2 class="text-base font-semibold text-rose-700">{{ __('Delete Account') }}</h2>
+        <p class="text-xs font-semibold uppercase tracking-[0.16em] text-rose-600">Danger zone</p>
+        <h2 class="mt-2 font-display text-3xl font-medium text-rose-800">{{ __('Delete Account') }}</h2>
         <p class="mt-1 text-sm text-slate-600">
             {{ __('Once your account is deleted, all of its resources and data will be permanently deleted.') }}
         </p>

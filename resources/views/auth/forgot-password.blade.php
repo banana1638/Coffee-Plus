@@ -1,13 +1,13 @@
 <x-guest-layout>
     <div class="flex min-h-screen items-center justify-center bg-[rgb(var(--cp-canvas))] px-4 py-10">
-        <div class="w-full max-w-md rounded-lg border border-[rgb(var(--cp-line))] bg-[rgb(var(--cp-surface))] p-6 shadow-sm">
+        <div class="cp-menu-paper w-full max-w-md rounded-lg border border-[rgb(var(--cp-line))] bg-[rgb(var(--cp-surface))] p-6 shadow-[0_24px_65px_-38px_rgba(24,32,29,0.6)] sm:p-8">
             <div class="mb-6 text-center">
                 <div class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-lg bg-emerald-50 text-emerald-800">
                     <svg class="h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
                     </svg>
                 </div>
-                <h1 class="text-2xl font-bold text-[rgb(var(--cp-ink))]">Reset your password</h1>
+                <h1 class="font-display text-4xl font-medium tracking-[-0.035em] text-[rgb(var(--cp-ink))]">Reset your password</h1>
                 <p class="mt-2 text-sm text-slate-600">{{ __('Forgot your password? No problem. Just let us know your email address.') }}</p>
             </div>
 

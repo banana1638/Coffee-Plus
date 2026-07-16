@@ -1,34 +1,34 @@
 <x-app-layout>
-    <div class="px-4 py-6 sm:px-6 lg:px-8">
-        <div class="mx-auto max-w-5xl space-y-6">
-            <x-layout.page-header title="Tangki ledger" description="Review backend-confirmed refills, redemptions, and order-linked movements.">
+    <div class="px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
+        <div class="mx-auto max-w-6xl space-y-8">
+            <x-layout.customer-page-header eyebrow="Account ledger" title="Tangki activity" description="Review backend-confirmed refills, redemptions, and order-linked movements.">
                 <x-slot:actions>
                     <x-ui.button :href="url()->previous()" variant="secondary">
                         Back
                     </x-ui.button>
                 </x-slot:actions>
-            </x-layout.page-header>
+            </x-layout.customer-page-header>
 
             @php $type = request('type', 'all'); @endphp
-            <div class="inline-flex rounded-lg border border-[rgb(var(--cp-line))] bg-[rgb(var(--cp-surface))] p-1 shadow-sm">
+            <nav class="inline-flex border-b border-[rgb(var(--cp-line))]" aria-label="Transaction type">
                 @foreach(['all' => 'All', 'in' => 'Refills', 'out' => 'Usage'] as $key => $label)
                     <a href="{{ route('tangki.transactions', ['type' => $key]) }}"
-                        class="rounded-md px-4 py-2 text-sm font-semibold transition {{ $type == $key ? 'bg-emerald-700 text-white' : 'text-[rgb(var(--cp-muted))] hover:bg-emerald-50 hover:text-emerald-800' }}">
+                        class="border-b-2 px-4 py-3 text-sm font-semibold transition {{ $type == $key ? 'border-[rgb(var(--cp-brand))] text-[rgb(var(--cp-brand-strong))]' : 'border-transparent text-[rgb(var(--cp-muted))] hover:border-emerald-200 hover:text-emerald-800' }}">
                         {{ $label }}
                     </a>
                 @endforeach
-            </div>
+            </nav>
 
             <div class="grid gap-3">
                 @forelse($transactions as $trx)
-                    <x-ui.card padding="compact">
-                        <div class="grid gap-4 md:grid-cols-[1fr_150px_110px] md:items-center">
+                    <x-ui.card padding="compact" class="shadow-none">
+                        <div class="grid gap-5 md:grid-cols-[1fr_150px_110px] md:items-center">
                             <div>
                                 <div class="mb-2 flex items-center gap-2">
                                     <x-ui.badge>{{ $trx->type }}</x-ui.badge>
                                     <span class="text-xs text-slate-500">{{ $trx->created_at->format('M d, H:i') }}</span>
                                 </div>
-                                <h3 class="font-semibold text-slate-950">{{ $trx->description }}</h3>
+                                <h3 class="font-display text-xl font-medium text-[rgb(var(--cp-ink))]">{{ $trx->description }}</h3>
 
                                 @if($trx->bill && $trx->bill->items)
                                     <div class="mt-3 border-l border-slate-200 pl-4">
@@ -54,8 +54,8 @@
                         </div>
                     </x-ui.card>
                 @empty
-                    <div class="rounded-lg border border-dashed border-[rgb(var(--cp-line))] bg-[rgb(var(--cp-surface))] p-10 text-center">
-                        <p class="font-semibold text-[rgb(var(--cp-ink))]">No matching ledger entries</p>
+                    <div class="border-y border-dashed border-[rgb(var(--cp-line))] py-14 text-center">
+                        <p class="font-display text-2xl font-medium text-[rgb(var(--cp-ink))]">No matching ledger entries</p>
                     </div>
                 @endforelse
             </div>

@@ -1,29 +1,37 @@
 <x-app-layout>
-    <div class="px-4 py-6 pb-36 sm:px-6 lg:px-8">
-        <div class="mx-auto max-w-6xl space-y-6">
+    <div class="px-4 py-8 pb-40 sm:px-6 sm:py-10 lg:px-8">
+        <div class="mx-auto max-w-7xl space-y-10">
             <div class="flex items-center justify-between">
                 <x-ui.button :href="route('dashboard')" variant="secondary">
                     Back to Menu
                 </x-ui.button>
-                <x-ui.badge variant="info">Drink recipe</x-ui.badge>
+                <span class="text-xs font-semibold uppercase tracking-[0.16em] text-[rgb(var(--cp-brand))]">Drink recipe</span>
             </div>
 
-            <div class="grid gap-8 lg:grid-cols-2 lg:items-start">
+            <div class="grid gap-10 lg:grid-cols-[1.08fr_0.92fr] lg:items-start lg:gap-14">
                 <div class="lg:sticky lg:top-24 lg:self-start">
-                    <div class="overflow-hidden rounded-lg border border-[rgb(var(--cp-line))] bg-stone-100 shadow-sm">
-                        <img src="{{ $product->detail_image_url }}" class="aspect-[4/3] w-full object-cover lg:aspect-square" alt="{{ $product->name }}">
+                    <div class="relative overflow-hidden rounded-lg bg-stone-100 shadow-[0_24px_70px_-38px_rgba(24,32,29,0.55)]">
+                        <img src="{{ $product->detail_image_url }}" class="aspect-[5/4] w-full object-cover lg:aspect-[4/5]" alt="{{ $product->name }}">
+                        <div class="absolute inset-x-4 bottom-4 hidden border border-white/70 bg-white/95 px-4 py-3 shadow-sm md:block lg:hidden">
+                            <p class="text-[10px] font-semibold uppercase tracking-[0.16em] text-[rgb(var(--cp-brand))]">Drink recipe</p>
+                            <p class="mt-1 font-display text-2xl font-medium leading-none text-[rgb(var(--cp-ink))]">{{ $product->name }}</p>
+                        </div>
+                        <div class="absolute bottom-4 left-4 hidden border border-white/70 bg-white/95 px-3 py-2 text-xs font-semibold uppercase tracking-[0.14em] text-[rgb(var(--cp-ink))] shadow-sm lg:block">
+                            Made fresh after checkout
+                        </div>
                     </div>
                 </div>
 
-                <form action="{{ route('cart.add') }}" method="POST" id="orderForm" class="space-y-8">
+                <form action="{{ route('cart.add') }}" method="POST" id="orderForm" class="space-y-7">
                     @csrf
                     <input type="hidden" name="product_id" value="{{ $product->id }}">
 
                     <div class="flex items-start justify-between gap-4">
                         <div>
-                            <p class="text-xs font-semibold uppercase text-[rgb(var(--cp-brand))]">Made to order</p>
-                            <h1 class="mt-1 text-3xl font-bold text-[rgb(var(--cp-ink))]">{{ $product->name }}</h1>
-                            <p class="mt-2 text-sm text-[rgb(var(--cp-muted))]">
+                            <p class="text-xs font-semibold uppercase tracking-[0.17em] text-[rgb(var(--cp-brand))]">Made to order</p>
+                            <h1 class="mt-3 font-display text-5xl font-medium leading-[0.95] tracking-[-0.04em] text-[rgb(var(--cp-ink))] sm:text-6xl">{{ $product->name }}</h1>
+                            <p class="mt-4 text-sm font-medium text-[rgb(var(--cp-muted))]">
+                                <span class="text-[rgb(var(--cp-caramel))]" aria-hidden="true">&#9733;</span>
                                 {{ number_format($product->average_rating, 1) }} / 5 from {{ $product->reviews_count }} reviews
                             </p>
                         </div>
@@ -42,9 +50,9 @@
                             class="h-24 w-full resize-none rounded-lg border-[rgb(var(--cp-line))] bg-[rgb(var(--cp-surface))] text-sm font-medium text-[rgb(var(--cp-ink))] shadow-sm focus:border-emerald-600 focus:ring-emerald-600"></textarea>
                     </div>
 
-                    <x-ui.card>
-                        <p class="text-xs font-semibold uppercase text-[rgb(var(--cp-muted))]">Step 1</p>
-                        <h2 class="mt-1 text-base font-bold text-[rgb(var(--cp-ink))]">Temperature</h2>
+                    <x-ui.card class="border-l-4 border-l-[rgb(var(--cp-brand))] shadow-none">
+                        <p class="text-xs font-semibold uppercase tracking-[0.16em] text-[rgb(var(--cp-muted))]">01 &middot; First decision</p>
+                        <h2 class="mt-2 font-display text-2xl font-medium text-[rgb(var(--cp-ink))]">Temperature</h2>
                         <div class="mt-4 grid grid-cols-2 gap-3">
                             @foreach($options['temps'] as $temp)
                                 <label class="cursor-pointer">
@@ -57,9 +65,9 @@
                         </div>
                     </x-ui.card>
 
-                    <x-ui.card>
-                        <p class="text-xs font-semibold uppercase text-[rgb(var(--cp-muted))]">Step 2</p>
-                        <h2 class="mt-1 text-base font-bold text-[rgb(var(--cp-ink))]">Cup size</h2>
+                    <x-ui.card class="border-l-4 border-l-[rgb(var(--cp-brand))] shadow-none">
+                        <p class="text-xs font-semibold uppercase tracking-[0.16em] text-[rgb(var(--cp-muted))]">02 &middot; Choose capacity</p>
+                        <h2 class="mt-2 font-display text-2xl font-medium text-[rgb(var(--cp-ink))]">Cup size</h2>
                         <div class="mt-4 space-y-3">
                             @foreach($options['sizes'] as $size)
                                 <label class="flex cursor-pointer items-center rounded-lg border border-[rgb(var(--cp-line))] bg-[rgb(var(--cp-surface))] p-4 transition has-[:checked]:border-emerald-700 has-[:checked]:bg-emerald-50 hover:border-emerald-300">
@@ -80,9 +88,9 @@
                     </x-ui.card>
 
                     @if($product->addons->isNotEmpty())
-                        <x-ui.card>
-                            <p class="text-xs font-semibold uppercase text-[rgb(var(--cp-muted))]">Step 3</p>
-                            <h2 class="mt-1 text-base font-bold text-[rgb(var(--cp-ink))]">Add-ons</h2>
+                        <x-ui.card class="border-l-4 border-l-[rgb(var(--cp-brand))] shadow-none">
+                            <p class="text-xs font-semibold uppercase tracking-[0.16em] text-[rgb(var(--cp-muted))]">03 &middot; Finish the recipe</p>
+                            <h2 class="mt-2 font-display text-2xl font-medium text-[rgb(var(--cp-ink))]">Add-ons</h2>
                             <div class="mt-4 grid gap-3 md:grid-cols-2">
                                 @foreach($product->addons as $addon)
                                     <label class="flex cursor-pointer items-center justify-between rounded-lg border border-[rgb(var(--cp-line))] bg-[rgb(var(--cp-surface))] p-4 transition has-[:checked]:border-emerald-700 has-[:checked]:bg-emerald-50 hover:border-emerald-300">
@@ -103,11 +111,12 @@
                 </form>
             </div>
 
-            <x-ui.card>
-                <h2 class="text-base font-bold text-[rgb(var(--cp-ink))]">Recent customer reviews</h2>
-                <div class="mt-4 grid gap-3 md:grid-cols-2">
+            <section class="border-t border-[rgb(var(--cp-line))] pt-9">
+                <p class="text-xs font-semibold uppercase tracking-[0.17em] text-[rgb(var(--cp-brand))]">From the counter</p>
+                <h2 class="mt-2 font-display text-3xl font-medium text-[rgb(var(--cp-ink))]">Recent customer reviews</h2>
+                <div class="mt-6 grid gap-4 md:grid-cols-2">
                     @forelse($product->reviews as $review)
-                        <article class="border-l-2 border-amber-400 bg-amber-50/40 p-4">
+                        <article class="border-l-2 border-[rgb(var(--cp-caramel))] bg-[rgb(var(--cp-surface))] p-5">
                             <div class="flex justify-between gap-3">
                                 <p class="font-semibold text-slate-950">{{ $review->user->name ?? 'Customer' }}</p>
                                 <p class="text-sm font-semibold text-amber-700">{{ $review->rating }} / 5</p>
@@ -120,11 +129,11 @@
                         <p class="text-sm font-semibold text-slate-500">No reviews yet.</p>
                     @endforelse
                 </div>
-            </x-ui.card>
+            </section>
         </div>
     </div>
 
-    <div class="fixed bottom-0 left-0 right-0 z-50 border-t border-[rgb(var(--cp-line))] bg-[rgb(var(--cp-surface))]/95 px-4 py-4 shadow-lg backdrop-blur">
+    <div class="fixed bottom-0 left-0 right-0 z-50 border-t border-[rgb(var(--cp-line))] bg-[rgb(var(--cp-surface))]/95 px-4 py-4 shadow-[0_-18px_45px_-32px_rgba(24,32,29,0.55)] backdrop-blur">
         <div class="mx-auto flex max-w-6xl flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div class="flex items-center rounded-lg border border-[rgb(var(--cp-line))] bg-stone-100 p-1" aria-label="Quantity selector">
                 <button type="button" onclick="changeQty(-1)" class="flex h-10 w-10 items-center justify-center rounded-lg text-lg font-semibold text-slate-700 hover:bg-white" aria-label="Decrease quantity">-</button>

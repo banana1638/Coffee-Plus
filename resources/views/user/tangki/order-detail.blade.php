@@ -10,9 +10,9 @@
         $activeStep = $order->statusStep();
     @endphp
 
-    <div class="px-4 py-6 sm:px-6 lg:px-8">
-        <div class="mx-auto max-w-6xl space-y-6">
-            <x-layout.page-header title="Pickup ticket {{ $order->bill_id }}" description="Backend-confirmed order status, collection code, item recipe, and payment summary.">
+    <div class="px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
+        <div class="mx-auto max-w-6xl space-y-8">
+            <x-layout.customer-page-header eyebrow="Order status" title="Pickup ticket {{ $order->bill_id }}" description="Backend-confirmed order status, collection code, item recipe, and payment summary.">
                 <x-slot:actions>
                     <x-ui.button :href="url()->previous()" variant="secondary">
                         Back
@@ -21,11 +21,11 @@
                         Print
                     </x-ui.button>
                 </x-slot:actions>
-            </x-layout.page-header>
+            </x-layout.customer-page-header>
 
             <div class="grid gap-6 xl:grid-cols-[1fr_360px]">
-                <div class="space-y-6">
-                    <x-ui.card>
+                <div class="min-w-0 space-y-6">
+                    <x-ui.card class="shadow-none">
                         <div class="grid gap-4 md:grid-cols-3">
                             <div>
                                 <p class="text-xs font-semibold uppercase tracking-wide text-slate-400">Date</p>
@@ -39,7 +39,7 @@
                             </div>
                             <div>
                                 <p class="text-xs font-semibold uppercase tracking-wide text-slate-400">Bill ID</p>
-                                <p class="mt-2 font-semibold text-slate-950">{{ $order->bill_id }}</p>
+                                <p class="mt-2 break-all font-semibold text-slate-950">{{ $order->bill_id }}</p>
                             </div>
                         </div>
 
@@ -58,8 +58,9 @@
                         @endif
                     </x-ui.card>
 
-                    <x-ui.card>
-                        <h2 class="text-base font-bold text-[rgb(var(--cp-ink))]">Drink manifest</h2>
+                    <x-ui.card class="shadow-none">
+                        <p class="text-xs font-semibold uppercase tracking-[0.16em] text-[rgb(var(--cp-brand))]">Order contents</p>
+                        <h2 class="mt-2 font-display text-3xl font-medium text-[rgb(var(--cp-ink))]">Drink manifest</h2>
                         <div class="mt-4 divide-y divide-slate-200">
                             @foreach($order->items as $item)
                                 @php
@@ -69,7 +70,7 @@
                                 @endphp
                                 <div class="grid gap-4 py-5 md:grid-cols-[1fr_150px]">
                                     <div>
-                                        <p class="font-semibold text-slate-950">{{ $item->product->name ?? 'Product' }}</p>
+                                        <p class="font-display text-xl font-medium text-[rgb(var(--cp-ink))]">{{ $item->product->name ?? 'Product' }}</p>
 
                                         @if($item->options)
                                             <div class="mt-2 flex flex-wrap gap-2">
@@ -141,12 +142,13 @@
                     </x-ui.card>
                 </div>
 
-                <aside class="space-y-6">
+                <aside class="min-w-0 space-y-6">
                     @if($order->pickup_code)
                         <section class="overflow-hidden rounded-lg border border-[rgb(var(--cp-line))] bg-[rgb(var(--cp-surface))] shadow-sm">
                             <x-ticket-perforation />
                             <div class="p-4 sm:p-6">
-                                <h2 class="text-base font-bold text-[rgb(var(--cp-ink))]">Collection code</h2>
+                                <p class="text-xs font-semibold uppercase tracking-[0.16em] text-[rgb(var(--cp-brand))]">Show at the counter</p>
+                                <h2 class="mt-2 font-display text-3xl font-medium text-[rgb(var(--cp-ink))]">Collection code</h2>
                                 <div class="mt-5 rounded-lg border border-dashed border-[rgb(var(--cp-line))] bg-stone-100 p-4 text-center">
                                     <img class="mx-auto h-40 w-40 rounded-lg border border-slate-200 bg-white p-2"
                                         src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data={{ urlencode($order->pickup_qr_payload) }}"
@@ -157,7 +159,7 @@
                         </section>
                     @endif
 
-                    <x-ui.card>
+                    <x-ui.card class="shadow-none">
                         <div class="space-y-4">
                             <div class="flex justify-between text-sm">
                                 <span class="text-slate-500">Subtotal</span>

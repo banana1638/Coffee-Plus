@@ -76,11 +76,15 @@
     x-transition.opacity @click.self="$dispatch('close-auth-modal')" @keydown.escape.window="$dispatch('close-auth-modal')"
     @open-auth-modal.window="tab = $event.detail.tab">
 
-    <div class="relative max-h-[calc(100vh-2rem)] w-full max-w-[480px] overflow-y-auto rounded-lg border border-[rgb(var(--cp-line))] bg-[rgb(var(--cp-surface))] shadow-lg"
+    <div class="relative max-h-[calc(100vh-2rem)] w-full max-w-[520px] overflow-y-auto rounded-lg border border-[rgb(var(--cp-line))] bg-[rgb(var(--cp-surface))] shadow-[0_28px_80px_-32px_rgba(24,32,29,0.75)]"
         x-transition:enter="transition ease-out duration-200 transform"
         x-transition:enter-start="opacity-0 scale-95"
         x-transition:enter-end="opacity-100 scale-100">
-        <div class="flex justify-end px-4 pt-4">
+        <div class="cp-menu-paper flex items-center justify-between border-b border-[rgb(var(--cp-line))] px-5 py-4">
+            <div>
+                <p class="text-xs font-semibold uppercase tracking-[0.16em] text-[rgb(var(--cp-brand))]">Coffee Plus</p>
+                <p class="mt-1 text-sm text-[rgb(var(--cp-muted))]">Your account at the counter</p>
+            </div>
             <button type="button" @click="$dispatch('close-auth-modal')"
                 class="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-[rgb(var(--cp-line))] bg-white text-slate-500 shadow-sm transition hover:bg-slate-100 hover:text-slate-950 focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:ring-offset-2"
                 aria-label="Close authentication modal">
@@ -112,8 +116,8 @@
                     :style="tab === 'register' ? 'transform: translateX(-100%)' : 'transform: translateX(0%)'">
                     <div class="w-full shrink-0">
                         <div class="mb-6">
-                            <h2 class="text-2xl font-semibold tracking-tight text-slate-950">Welcome Back</h2>
-                            <p class="mt-1 text-sm text-slate-600">Login to your Coffee-Plus account.</p>
+                            <h2 class="font-display text-4xl font-medium tracking-[-0.035em] text-[rgb(var(--cp-ink))]">Welcome back</h2>
+                            <p class="mt-2 text-sm text-slate-600">Sign in to reorder recipes, use Tangki, and follow pickup updates.</p>
                         </div>
 
                         <form @submit.prevent="submitLogin" class="space-y-4">
@@ -142,8 +146,8 @@
 
                     <div class="w-full shrink-0 pl-1">
                         <div class="mb-6">
-                            <h2 class="text-2xl font-semibold tracking-tight text-slate-950">Create Account</h2>
-                            <p class="mt-1 text-sm text-slate-600">Join Coffee-Plus and start collecting rewards.</p>
+                            <h2 class="font-display text-4xl font-medium tracking-[-0.035em] text-[rgb(var(--cp-ink))]">Create an account</h2>
+                            <p class="mt-2 text-sm text-slate-600">Save recipes, manage Tangki, and keep every pickup in one place.</p>
                         </div>
 
                         <form @submit.prevent="submitRegister" class="space-y-4">

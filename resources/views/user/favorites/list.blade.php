@@ -1,31 +1,32 @@
-<div class="space-y-4">
-    <div class="flex items-end justify-between gap-4 border-b border-[rgb(var(--cp-line))] pb-3">
+<div class="space-y-7">
+    <div class="flex items-end justify-between gap-4 border-b border-[rgb(var(--cp-line))] pb-5">
         <div>
-            <h3 class="text-lg font-bold text-[rgb(var(--cp-ink))]">Saved recipes</h3>
-            <p class="mt-1 text-sm text-[rgb(var(--cp-muted))]">Your preferred size, temperature, and add-ons.</p>
+            <p class="text-xs font-semibold uppercase tracking-[0.16em] text-[rgb(var(--cp-brand))]">Ready to reorder</p>
+            <h3 class="mt-2 font-display text-3xl font-medium text-[rgb(var(--cp-ink))] sm:text-4xl">Saved recipes</h3>
+            <p class="mt-2 text-sm text-[rgb(var(--cp-muted))]">Your preferred size, temperature, and add-ons.</p>
         </div>
         <span class="hidden text-xs font-semibold uppercase text-[rgb(var(--cp-muted))] sm:inline">Quick reorder</span>
     </div>
 
     @if($favorites->isEmpty())
-        <div class="rounded-lg border border-dashed border-[rgb(var(--cp-line))] bg-[rgb(var(--cp-surface))] p-10 text-center">
-            <p class="font-semibold text-[rgb(var(--cp-ink))]">No saved recipes yet</p>
+        <div class="border-y border-dashed border-[rgb(var(--cp-line))] py-14 text-center">
+            <p class="font-display text-2xl font-medium text-[rgb(var(--cp-ink))]">No saved recipes yet</p>
             <p class="mt-1 text-sm text-[rgb(var(--cp-muted))]">Configure a drink and save it for faster ordering.</p>
             <x-ui.button :href="route('dashboard')" class="mt-4">
                 Browse Menu
             </x-ui.button>
         </div>
     @else
-        <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <div class="cp-menu-grid grid gap-x-5 gap-y-8 sm:grid-cols-2 xl:grid-cols-3">
             @foreach($favorites as $favorite)
                 @php
                     $product = $favorite->product;
                 @endphp
-                <article class="flex flex-col overflow-hidden rounded-lg border border-[rgb(var(--cp-line))] bg-[rgb(var(--cp-surface))] shadow-sm">
-                    <a href="{{ route('product.detail', $product->id) }}?favorite_id={{ $favorite->id }}" class="relative block aspect-[4/3] overflow-hidden bg-stone-100">
+                <article class="group flex flex-col">
+                    <a href="{{ route('product.detail', $product->id) }}?favorite_id={{ $favorite->id }}" class="relative block aspect-[5/4] overflow-hidden rounded-lg bg-stone-100">
                         @if($product->image)
                             <img src="{{ $product->thumbnail_image_url }}"
-                                class="h-full w-full object-cover"
+                                class="h-full w-full object-cover transition duration-500 group-hover:scale-[1.035]"
                                 alt="{{ $product->name }}" onerror="this.src='https://placehold.co/400x400?text=Image+Missing'">
                         @else
                             <img src="https://placehold.co/400x400?text={{ urlencode($product->name) }}"
@@ -38,9 +39,9 @@
 
                     </a>
 
-                    <div class="flex flex-1 flex-col p-4">
+                    <div class="flex flex-1 flex-col border-b border-[rgb(var(--cp-line))] px-1 pb-5 pt-4 transition group-hover:border-emerald-300">
                         <div class="mb-2 flex items-start justify-between gap-2">
-                            <h4 class="min-w-0 flex-1 font-semibold text-[rgb(var(--cp-ink))]">{{ $product->name }}</h4>
+                            <h4 class="min-w-0 flex-1 font-display text-2xl font-medium text-[rgb(var(--cp-ink))]">{{ $product->name }}</h4>
                             <x-ui.badge variant="info">{{ $favorite->size }}</x-ui.badge>
                         </div>
 
