@@ -55,9 +55,9 @@ class FavoriteController extends Controller
         return response()->json(['is_favorite' => $isFavorite]);
     }
 
-    public function destroy($id)
+    public function destroy(int $id)
     {
-        $this->favoriteService->delete(Auth::user(), (int) $id);
+        $this->favoriteService->delete(Auth::user(), $id);
         return response()->json(['status' => 'success']);
     }
 }

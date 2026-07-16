@@ -13,7 +13,7 @@ class NotificationController extends Controller
         return back()->with('success', 'All notifications marked as read.');
     }
 
-    public function markAsRead($id)
+    public function markAsRead(int $id)
     {
         $notification = Auth::user()->notifications()->findOrFail($id);
         $notification->markAsRead();
@@ -26,7 +26,7 @@ class NotificationController extends Controller
         return back();
     }
 
-    public function destroy($id)
+    public function destroy(int $id)
     {
         $notification = Auth::user()->notifications()->findOrFail($id);
         $notification->delete();

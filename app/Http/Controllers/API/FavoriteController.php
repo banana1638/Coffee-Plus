@@ -53,9 +53,9 @@ class FavoriteController extends Controller
         }
     }
 
-    public function destroy($id)
+    public function destroy(int $id)
     {
-        $this->favoriteService->delete(auth()->user(), (int) $id);
+        $this->favoriteService->delete(auth()->user(), $id);
 
         return $this->success(null, 'Favorite removed');
     }

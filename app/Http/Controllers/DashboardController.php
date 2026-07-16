@@ -3,9 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\Menu;
+use App\Models\User;
 use App\Services\DashboardMenuService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Auth;
 
 class DashboardController extends Controller
 {
@@ -14,8 +16,11 @@ class DashboardController extends Controller
         $search = $request->input('search');
         $category = $request->input('category', 'all');
 
-        if ($category === 'collections' && auth()->check()) {
-            $favorites = auth()->user()->favorites()
+        if ($category === 'collections' && Auth::check()) {
+            /** @var User $user */
+            $user = Auth::user();
+
+            $favorites = $user->favorites()
                 ->with('product')
                 ->whereHas('product', function ($query) use ($search) {
                     if ($search) {
